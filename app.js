@@ -32,6 +32,11 @@ const state = {
   unlocked: false,
   selectedId: null,
   prevPrices: {},
+  view: 'portfolio',
+  charts: { nav: null, alloc: null, wl: null, sparks: {} },
+  indexSeries: {},
+  navSeries: null,
+  chartBusy: false,
 };
 
 const $ = id => document.getElementById(id);
@@ -751,6 +756,7 @@ function renderAll() {
   renderKPIs(c);
   renderHoldings(c);
   renderOptions(c);
+  updateLiveCharts(c);
   if (state.selectedId) {
     // refresh open drawer numbers
     const overlay = $('detailOverlay');
@@ -896,6 +902,7 @@ async function refreshQuotes() {
     state.quotesReady = true;
     state.prevPrices = before;
     renderAll();
+    refreshChartSeries();
   } finally {
     state.refreshing = false;
     if (btn) btn.disabled = false;
@@ -976,6 +983,426 @@ async function boot() {
     if (mode) mode.textContent = '無法載入持倉快照: ' + e.message;
   }
 }
+
+
+/* ===== Charts (Chart.js) + view switch ===== */
+const CHART_COLORS = {
+  up: '#10b981', down: '#f43f5e', accent: '#3b82f6', muted: '#64748b',
+  grid: 'rgba(30, 38, 56, 0.85)', text: '#94a3b8',
+  alloc: {
+    '收益型': '#3b82f6', '現金': '#10b981', '港股': '#a855f7', '美股': '#f59e0b',
+    '日本': '#06b6d4', 'A股': '#f43f5e', 'BTC': '#fb923c', '期權': '#818cf8',
+  },
+};
+const INDEX_DEFS = [
+  { id: 'HSI', label: '恆生指數', yahoo: '^HSI', canvas: 'sparkHSI', priceEl: 'idxHSIPrice', chgEl: 'idxHSIChg' },
+  { id: 'IXIC', label: '納斯達克', yahoo: '^IXIC', canvas: 'sparkIXIC', priceEl: 'idxIXICPrice', chgEl: 'idxIXICChg' },
+  { id: 'N225', label: '日經 225', yahoo: '^N225', canvas: 'sparkN225', priceEl: 'idxN225Price', chgEl: 'idxN225Chg' },
+  { id: 'BTC', label: '比特幣', yahoo: 'BTC-USD', canvas: 'sparkBTC', priceEl: 'idxBTCPrice', chgEl: 'idxBTCChg' },
+];
+
+function chartDefaults() {
+  if (typeof Chart === 'undefined') return;
+  Chart.defaults.color = CHART_COLORS.text;
+  Chart.defaults.borderColor = CHART_COLORS.grid;
+  Chart.defaults.font.family = "'Noto Sans TC', Inter, system-ui, sans-serif";
+}
+
+async function yahooIntraday(sym, range = '1d', interval = '5m') {
+  const path = `/v8/finance/chart/${encodeURIComponent(sym)}?range=${range}&interval=${interval}&includePrePost=false`;
+  const direct = ['https://query1.finance.yahoo.com' + path, 'https://query2.finance.yahoo.com' + path];
+  let j = null;
+  for (const u of direct) {
+    try { j = await fetchJSON(u, 5000); break; } catch (_) {}
+  }
+  if (!j) {
+    const cand = PUBLIC_PROXIES.map(([n, f]) => [n, f(direct[0])]);
+    j = await Promise.any(cand.map(async ([, u]) => fetchJSON(u, 8000)));
+  }
+  const res = j && j.chart && j.chart.result && j.chart.result[0];
+  if (!res || !res.timestamp) throw new Error('no chart');
+  const meta = res.meta || {};
+  const closes = (res.indicators && res.indicators.quote && res.indicators.quote[0] && res.indicators.quote[0].close) || [];
+  const pts = [];
+  for (let i = 0; i < res.timestamp.length; i++) {
+    const c = closes[i];
+    if (c == null || !(c > 0)) continue;
+    pts.push({ t: res.timestamp[i] * 1000, c });
+  }
+  if (!pts.length) throw new Error('empty series');
+  const price = meta.regularMarketPrice || pts[pts.length - 1].c;
+  const prevClose = meta.chartPreviousClose || meta.previousClose || pts[0].c;
+  return { pts, price, prevClose, changePct: prevClose ? (price - prevClose) / prevClose : 0, currency: meta.currency };
+}
+
+function destroyChart(ref) {
+  if (ref && typeof ref.destroy === 'function') {
+    try { ref.destroy(); } catch (_) {}
+  }
+  return null;
+}
+
+function sparkColor(chg) {
+  return chg >= 0 ? CHART_COLORS.up : CHART_COLORS.down;
+}
+
+function ensureSpark(id, canvasId, pts, chg) {
+  const canvas = $(canvasId);
+  if (!canvas || typeof Chart === 'undefined') return;
+  const labels = pts.map(p => p.t);
+  const data = pts.map(p => p.c);
+  const color = sparkColor(chg);
+  const existing = state.charts.sparks[id];
+  if (existing) {
+    existing.data.labels = labels;
+    existing.data.datasets[0].data = data;
+    existing.data.datasets[0].borderColor = color;
+    existing.data.datasets[0].backgroundColor = color + '22';
+    existing.update('none');
+    return;
+  }
+  state.charts.sparks[id] = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data, borderColor: color, backgroundColor: color + '22',
+        borderWidth: 1.5, pointRadius: 0, fill: true, tension: 0.35,
+      }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      scales: { x: { display: false }, y: { display: false } },
+      elements: { line: { borderJoinStyle: 'round' } },
+    },
+  });
+}
+
+function updateIndexStripUI() {
+  for (const d of INDEX_DEFS) {
+    const s = state.indexSeries[d.id];
+    if (!s) continue;
+    const pe = $(d.priceEl), ce = $(d.chgEl);
+    if (pe) pe.textContent = fmt(s.price, s.price >= 1000 ? 0 : (s.price >= 100 ? 1 : 2));
+    if (ce) {
+      ce.textContent = signed(s.changePct * 100, 2) + '%';
+      ce.className = `text-[11px] font-num px-1.5 py-0.5 rounded ${badgePL(s.changePct)}`;
+    }
+    ensureSpark(d.id, d.canvas, s.pts, s.changePct);
+  }
+  const meta = $('indexStripMeta');
+  if (meta) meta.textContent = 'Yahoo 盤中 · ' + new Date().toLocaleTimeString('zh-HK', { hour12: false });
+}
+
+async function loadIndexSeries() {
+  await Promise.all(INDEX_DEFS.map(async (d) => {
+    try {
+      const s = await yahooIntraday(d.yahoo, '1d', '5m');
+      state.indexSeries[d.id] = s;
+    } catch (_) {
+      try {
+        const s = await yahooIntraday(d.yahoo, '5d', '1h');
+        state.indexSeries[d.id] = s;
+      } catch (__) {}
+    }
+  }));
+  updateIndexStripUI();
+}
+
+function pickNavHoldings(rows) {
+  return rows
+    .filter(r => r.type !== 'OPT' && r.yahoo && r.mvHKD > 0 && r.live !== false)
+    .slice()
+    .sort((a, b) => Math.abs(b.mvHKD) - Math.abs(a.mvHKD))
+    .slice(0, 12);
+}
+
+async function buildNavPath(c) {
+  const picks = pickNavHoldings(c.rows);
+  const meta = $('navChartMeta');
+  if (!picks.length) {
+    if (meta) meta.textContent = '等待持倉報價…';
+    return null;
+  }
+  if (meta) meta.textContent = `加權 ${picks.length} 隻主要持倉…`;
+  const seriesList = [];
+  await mapPool(picks, 4, async (h) => {
+    try {
+      const s = await yahooIntraday(h.yahoo, '1d', '5m');
+      seriesList.push({ h, s });
+    } catch (_) {}
+  });
+  if (!seriesList.length) {
+    if (meta) meta.textContent = '暫未能載入盤中走勢';
+    return null;
+  }
+  // Align on union of timestamps (5-min buckets); use last known close per series
+  const allTs = [...new Set(seriesList.flatMap(x => x.s.pts.map(p => p.t)))].sort((a, b) => a - b);
+  if (allTs.length < 2) {
+    if (meta) meta.textContent = '盤中點數不足';
+    return null;
+  }
+  const weightSum = seriesList.reduce((a, x) => a + Math.abs(x.h.mvHKD || 0), 0) || 1;
+  const cash = c.cash || 0;
+  const path = [];
+  const cursors = seriesList.map(x => ({ ...x, i: 0, last: x.s.pts[0].c }));
+  for (const t of allTs) {
+    let mv = 0;
+    for (const cur of cursors) {
+      while (cur.i < cur.s.pts.length && cur.s.pts[cur.i].t <= t) {
+        cur.last = cur.s.pts[cur.i].c;
+        cur.i++;
+      }
+      const h = cur.h;
+      const px = cur.last;
+      const ratio = h.price > 0 ? px / h.price : 1;
+      mv += (h.mvHKD || 0) * ratio;
+    }
+    // Scale sample MV to full portfolio MV + cash
+    const sampleMvNow = seriesList.reduce((a, x) => a + (x.h.mvHKD || 0), 0) || 1;
+    const fullMv = c.mv || sampleMvNow;
+    const scaledMv = mv * (fullMv / sampleMvNow);
+    path.push({ t, nav: cash + scaledMv });
+  }
+  if (meta) meta.textContent = `加權 ${seriesList.length}/${picks.length} 隻 · Yahoo 1日`;
+  state.navSeries = path;
+  return path;
+}
+
+function renderNavChart(path) {
+  const canvas = $('navChart');
+  if (!canvas || typeof Chart === 'undefined' || !path || path.length < 2) return;
+  const labels = path.map(p => new Date(p.t).toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit', hour12: false }));
+  const data = path.map(p => p.nav);
+  const up = data[data.length - 1] >= data[0];
+  const color = up ? CHART_COLORS.up : CHART_COLORS.down;
+  const cfg = {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: '估算 NAV (HKD)',
+        data, borderColor: color, backgroundColor: color + '18',
+        borderWidth: 2, pointRadius: 0, fill: true, tension: 0.3,
+      }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => 'NAV ' + fmt(ctx.parsed.y, 0) + ' HKD',
+          },
+        },
+      },
+      scales: {
+        x: {
+          ticks: { maxTicksLimit: 8, color: CHART_COLORS.muted, font: { size: 10 } },
+          grid: { color: CHART_COLORS.grid },
+        },
+        y: {
+          ticks: {
+            color: CHART_COLORS.muted, font: { size: 10 },
+            callback: (v) => (v >= 1e6 ? (v / 1e6).toFixed(2) + 'M' : fmt(v, 0)),
+          },
+          grid: { color: CHART_COLORS.grid },
+        },
+      },
+    },
+  };
+  if (state.charts.nav) {
+    state.charts.nav.data.labels = labels;
+    state.charts.nav.data.datasets[0].data = data;
+    state.charts.nav.data.datasets[0].borderColor = color;
+    state.charts.nav.data.datasets[0].backgroundColor = color + '18';
+    state.charts.nav.update('none');
+  } else {
+    state.charts.nav = new Chart(canvas, cfg);
+  }
+}
+
+function allocGroupsFrom(c) {
+  const groups = {
+    '收益型': 0, '現金': c.cash, '港股': 0, '美股': 0, '日本': 0, 'A股': 0, 'BTC': 0, '期權': 0,
+  };
+  const income = new Set(['PFN', 'PCN', 'TLT', 'JEPI', '03419', '02823', '02806']);
+  for (const r of c.rows) {
+    const absMv = Math.abs(r.mvHKD || 0);
+    if (r.type === 'OPT') groups['期權'] += absMv;
+    else if (r.market === 'BTC') groups['BTC'] += absMv;
+    else if (r.market === 'JP') groups['日本'] += absMv;
+    else if (r.type === 'A') groups['A股'] += absMv;
+    else if (r.type === 'HK') groups['港股'] += absMv;
+    else if (income.has(String(r.symbol).replace('.T', ''))) groups['收益型'] += absMv;
+    else groups['美股'] += absMv;
+  }
+  return Object.entries(groups).filter(([, v]) => v > 0);
+}
+
+function renderAllocDonut(c) {
+  const canvas = $('allocDonut');
+  if (!canvas || typeof Chart === 'undefined') return;
+  const entries = allocGroupsFrom(c);
+  const labels = entries.map(([k]) => k);
+  const data = entries.map(([, v]) => v);
+  const colors = labels.map(k => CHART_COLORS.alloc[k] || '#64748b');
+  if (state.charts.alloc) {
+    state.charts.alloc.data.labels = labels;
+    state.charts.alloc.data.datasets[0].data = data;
+    state.charts.alloc.data.datasets[0].backgroundColor = colors;
+    state.charts.alloc.update('none');
+    return;
+  }
+  state.charts.alloc = new Chart(canvas, {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{
+        data, backgroundColor: colors, borderColor: '#0e121b', borderWidth: 2,
+        hoverOffset: 6,
+      }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '62%',
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { boxWidth: 10, boxHeight: 10, font: { size: 10 }, color: CHART_COLORS.text, padding: 10 },
+        },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const total = ctx.dataset.data.reduce((a, b) => a + b, 0) || 1;
+              const pct = (ctx.parsed / total * 100).toFixed(1);
+              return ` ${ctx.label}: ${pct}% (${fmt(ctx.parsed / 1000, 0)}k)`;
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+function renderWlBar(c) {
+  const canvas = $('wlBarChart');
+  if (!canvas || typeof Chart === 'undefined') return;
+  const ranked = c.rows.filter(r => Number.isFinite(r.todayHKD)).slice().sort((a, b) => b.todayHKD - a.todayHKD);
+  const winners = ranked.filter(r => r.todayHKD > 0).slice(0, 5);
+  const losers = ranked.filter(r => r.todayHKD < 0).sort((a, b) => a.todayHKD - b.todayHKD).slice(0, 5);
+  const mix = [...winners, ...losers.reverse()];
+  // unique by display
+  const seen = new Set();
+  const items = [];
+  for (const r of mix) {
+    if (seen.has(r.id)) continue;
+    seen.add(r.id);
+    items.push(r);
+  }
+  items.sort((a, b) => a.todayHKD - b.todayHKD);
+  const labels = items.map(r => r.display);
+  const data = items.map(r => r.todayHKD);
+  const colors = data.map(v => v >= 0 ? CHART_COLORS.up : CHART_COLORS.down);
+  if (state.charts.wl) {
+    state.charts.wl.data.labels = labels;
+    state.charts.wl.data.datasets[0].data = data;
+    state.charts.wl.data.datasets[0].backgroundColor = colors;
+    state.charts.wl.update('none');
+    return;
+  }
+  state.charts.wl = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: '今日盈虧 HKD',
+        data, backgroundColor: colors, borderRadius: 4, maxBarThickness: 22,
+      }],
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: { label: (ctx) => signed(ctx.parsed.x, 0) + ' HKD' },
+        },
+      },
+      scales: {
+        x: {
+          grid: { color: CHART_COLORS.grid },
+          ticks: {
+            color: CHART_COLORS.muted, font: { size: 10 },
+            callback: (v) => (Math.abs(v) >= 1000 ? signed(v / 1000, 1) + 'k' : signed(v, 0)),
+          },
+        },
+        y: {
+          grid: { display: false },
+          ticks: { color: CHART_COLORS.text, font: { size: 10, family: 'JetBrains Mono, monospace' } },
+        },
+      },
+    },
+  });
+}
+
+function updateLiveCharts(c) {
+  chartDefaults();
+  renderAllocDonut(c);
+  renderWlBar(c);
+  if (state.navSeries) renderNavChart(state.navSeries);
+}
+
+async function refreshChartSeries() {
+  if (state.chartBusy || !state.unlocked) return;
+  state.chartBusy = true;
+  try {
+    chartDefaults();
+    await loadIndexSeries();
+    const c = compute();
+    const path = await buildNavPath(c);
+    if (path) renderNavChart(path);
+    renderAllocDonut(c);
+    renderWlBar(c);
+  } catch (e) {
+    console.warn('charts', e);
+  } finally {
+    state.chartBusy = false;
+  }
+}
+
+window.switchAppView = function(view) {
+  state.view = view === 'calc' ? 'calc' : 'portfolio';
+  const port = $('viewPortfolio');
+  const calc = $('viewCalc');
+  const frame = $('calcFrame');
+  document.querySelectorAll('.top-nav-btn').forEach(btn => {
+    const isCalc = (btn.textContent || '').includes('期權');
+    const active = state.view === 'calc' ? isCalc : !isCalc;
+    btn.classList.toggle('active', active);
+  });
+  if (state.view === 'calc') {
+    if (port) port.classList.add('hidden-view');
+    if (calc) calc.classList.add('active');
+    if (frame && (!frame.src || frame.src === 'about:blank' || frame.getAttribute('src') === 'about:blank')) {
+      frame.src = 'calc/index.html';
+    }
+    // pause quote noise a bit optional — keep running in background
+  } else {
+    if (port) port.classList.remove('hidden-view');
+    if (calc) calc.classList.remove('active');
+    // resize charts after show
+    setTimeout(() => {
+      try {
+        state.charts.nav && state.charts.nav.resize();
+        state.charts.alloc && state.charts.alloc.resize();
+        state.charts.wl && state.charts.wl.resize();
+        Object.values(state.charts.sparks || {}).forEach(ch => ch && ch.resize && ch.resize());
+      } catch (_) {}
+    }, 50);
+  }
+};
 
 setupGate();
 })();

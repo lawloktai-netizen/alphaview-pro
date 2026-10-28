@@ -138,6 +138,86 @@
             70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
             100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
+
+        .pro-panel {
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+        .pro-panel:hover {
+            border-color: rgba(59, 130, 246, 0.35);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(59, 130, 246, 0.08), 0 0 28px rgba(59, 130, 246, 0.06);
+        }
+        .kpi-card {
+            background: linear-gradient(145deg, rgba(28, 35, 49, 0.95) 0%, rgba(14, 18, 27, 0.98) 100%);
+            border: 1px solid #1e2638;
+            border-radius: 0.5rem;
+            transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+        }
+        .kpi-card:hover {
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.1);
+            transform: translateY(-1px);
+        }
+        .chart-wrap { position: relative; width: 100%; }
+        .chart-wrap.spark { height: 48px; }
+        .chart-wrap.nav { height: 180px; }
+        .chart-wrap.donut { height: 220px; max-width: 260px; margin: 0 auto; }
+        .chart-wrap.bars { height: 220px; }
+        .index-chip {
+            background: linear-gradient(160deg, rgba(21, 27, 38, 0.9), rgba(10, 14, 23, 0.95));
+            border: 1px solid #1e2638;
+            border-radius: 0.75rem;
+            padding: 0.65rem 0.85rem;
+            min-width: 0;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .index-chip:hover {
+            border-color: rgba(59, 130, 246, 0.35);
+            box-shadow: 0 0 18px rgba(59, 130, 246, 0.08);
+        }
+        .num-soft { transition: color 0.35s ease; }
+
+        .top-nav {
+            display: flex; gap: 0.35rem; align-items: center;
+            background: rgba(6, 8, 12, 0.6);
+            border: 1px solid #1e2638;
+            border-radius: 0.65rem;
+            padding: 0.2rem;
+        }
+        .top-nav-btn {
+            padding: 0.4rem 0.9rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            color: #64748b;
+            transition: all 0.15s;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .top-nav-btn:hover { color: #e2e8f0; background: rgba(255,255,255,0.04); }
+        .top-nav-btn.active {
+            color: #fff;
+            background: #3b82f6;
+            box-shadow: 0 2px 10px rgba(59,130,246,0.3);
+        }
+        #viewPortfolio { display: contents; }
+        #viewPortfolio.hidden-view { display: none !important; }
+        #viewCalc {
+            display: none;
+            flex: 1 1 auto;
+            min-height: 100vh;
+            flex-direction: column;
+            width: 100%;
+        }
+        #viewCalc.active { display: flex; }
+        #calcFrame {
+            flex: 1;
+            width: 100%;
+            border: 0;
+            background: #0b0f14;
+            min-height: calc(100vh - 3.5rem);
+        }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col selection:bg-blue-500 selection:text-white">
@@ -166,6 +246,7 @@
     </div>
     <div id="appShell" style="display:none">
 
+    <div id="viewPortfolio">
     <!-- Status bar -->
     <div class="bg-[#040609] border-b border-borderDark px-4 md:px-6 py-1.5 flex flex-wrap justify-between items-center text-[11px] text-muted gap-2">
         <div class="flex items-center gap-4 overflow-x-auto hide-scrollbar">
@@ -195,43 +276,49 @@
     <header class="bg-panel/90 backdrop-blur-md border-b border-borderDark px-4 md:px-6 py-3 sticky top-0 z-30">
         <div class="max-w-[1920px] mx-auto flex flex-col gap-2.5">
             <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-3">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-blue-500/20 border border-blue-400/30">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                    </div>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <h1 class="text-lg md:text-xl font-bold text-white tracking-tight">Ricky's <span class="text-blue-500 font-light">Investment</span></h1>
-                            <span id="liveBadge" class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">同步中</span>
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-blue-500/20 border border-blue-400/30">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                         </div>
-                        <p class="text-xs text-muted mt-0.5" id="subtitleCount">持倉載入中…</p>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h1 class="text-lg md:text-xl font-bold text-white tracking-tight">Ricky's <span class="text-blue-500 font-light">Investment</span></h1>
+                                <span id="liveBadge" class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">同步中</span>
+                            </div>
+                            <p class="text-xs text-muted mt-0.5" id="subtitleCount">持倉載入中…</p>
+                        </div>
                     </div>
+                    <nav class="top-nav" aria-label="主功能">
+                        <button type="button" class="top-nav-btn active" id="navPortfolio" onclick="switchAppView('portfolio')">組合</button>
+                        <button type="button" class="top-nav-btn" id="navCalc" onclick="switchAppView('calc')">期權計算機</button>
+                    </nav>
                 </div>
 
                 <!-- 4 primary KPIs -->
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 w-full xl:w-auto xl:min-w-[720px]">
-                    <div class="bg-panelLight/80 border border-borderDark rounded-lg px-3.5 py-2">
+                    <div class="kpi-card px-3.5 py-2">
                         <p class="text-[11px] text-muted flex items-center justify-between">
                             <span>合併淨資產 (HKD)</span>
                             <span class="text-[10px] text-emerald-400 font-num" id="netAssetDiff">—</span>
                         </p>
                         <p class="text-lg font-bold text-white font-num mt-0.5" id="totalNetAsset">—</p>
                     </div>
-                    <div class="bg-panelLight/80 border border-borderDark rounded-lg px-3.5 py-2">
+                    <div class="kpi-card px-3.5 py-2">
                         <p class="text-[11px] text-muted">今日估算變動</p>
                         <div class="flex items-baseline gap-1.5 mt-0.5">
                             <p class="text-lg font-bold font-num" id="todayChangeAmt">—</p>
                             <span class="text-xs font-num px-1.5 rounded" id="todayChangePct">—</span>
                         </div>
                     </div>
-                    <div class="bg-panelLight/80 border border-borderDark rounded-lg px-3.5 py-2">
+                    <div class="kpi-card px-3.5 py-2">
                         <p class="text-[11px] text-muted">總未實現盈虧</p>
                         <div class="flex items-baseline gap-1.5 mt-0.5">
                             <p class="text-lg font-bold font-num" id="totalUnrealizedPL">—</p>
                             <span class="text-xs font-num px-1.5 rounded" id="totalUnrealizedPct">—</span>
                         </div>
                     </div>
-                    <div class="bg-panelLight/80 border border-borderDark rounded-lg px-3.5 py-2">
+                    <div class="kpi-card px-3.5 py-2">
                         <p class="text-[11px] text-muted">現金及貨幣基金</p>
                         <div class="flex items-baseline gap-1.5 mt-0.5">
                             <p class="text-lg font-bold text-white font-num" id="totalCash">—</p>
@@ -266,6 +353,59 @@
             </div>
             <div class="text-[11px] text-muted">
                 綠點 = 瀏覽器即時報價 · 黃點 = 券商快照（期權等）· 市況變動<strong class="text-gray-400">唔使重新上架</strong>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Mini index strip -->
+    <div class="bg-[#070a10] border-b border-borderDark px-4 md:px-6 py-3">
+        <div class="max-w-[1920px] mx-auto">
+            <div class="flex items-center justify-between mb-2">
+                <h2 class="text-[11px] font-medium text-muted tracking-wide">主要指數 · 即時走勢</h2>
+                <span class="text-[10px] text-muted font-num" id="indexStripMeta">Yahoo 1日</span>
+            </div>
+            <div class="grid grid-cols-2 xl:grid-cols-4 gap-3" id="indexStrip">
+                <div class="index-chip" data-idx="HSI">
+                    <div class="flex justify-between items-start gap-2">
+                        <div>
+                            <p class="text-[11px] text-muted">恆生指數</p>
+                            <p class="text-sm font-bold text-white font-num num-soft" id="idxHSIPrice">—</p>
+                        </div>
+                        <span class="text-[11px] font-num px-1.5 py-0.5 rounded" id="idxHSIChg">—</span>
+                    </div>
+                    <div class="chart-wrap spark mt-1"><canvas id="sparkHSI"></canvas></div>
+                </div>
+                <div class="index-chip" data-idx="IXIC">
+                    <div class="flex justify-between items-start gap-2">
+                        <div>
+                            <p class="text-[11px] text-muted">納斯達克</p>
+                            <p class="text-sm font-bold text-white font-num num-soft" id="idxIXICPrice">—</p>
+                        </div>
+                        <span class="text-[11px] font-num px-1.5 py-0.5 rounded" id="idxIXICChg">—</span>
+                    </div>
+                    <div class="chart-wrap spark mt-1"><canvas id="sparkIXIC"></canvas></div>
+                </div>
+                <div class="index-chip" data-idx="N225">
+                    <div class="flex justify-between items-start gap-2">
+                        <div>
+                            <p class="text-[11px] text-muted">日經 225</p>
+                            <p class="text-sm font-bold text-white font-num num-soft" id="idxN225Price">—</p>
+                        </div>
+                        <span class="text-[11px] font-num px-1.5 py-0.5 rounded" id="idxN225Chg">—</span>
+                    </div>
+                    <div class="chart-wrap spark mt-1"><canvas id="sparkN225"></canvas></div>
+                </div>
+                <div class="index-chip" data-idx="BTC">
+                    <div class="flex justify-between items-start gap-2">
+                        <div>
+                            <p class="text-[11px] text-muted">比特幣 (USD)</p>
+                            <p class="text-sm font-bold text-white font-num num-soft" id="idxBTCPrice">—</p>
+                        </div>
+                        <span class="text-[11px] font-num px-1.5 py-0.5 rounded" id="idxBTCChg">—</span>
+                    </div>
+                    <div class="chart-wrap spark mt-1"><canvas id="sparkBTC"></canvas></div>
+                </div>
             </div>
         </div>
     </div>
@@ -307,24 +447,39 @@
                 </div>
             </div>
 
-            <!-- Today's winners / losers -->
+            <!-- Portfolio day path -->
+            <div class="pro-panel rounded-xl p-4">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                    <div>
+                        <h2 class="font-semibold text-white text-sm">組合今日走勢估算</h2>
+                        <p class="text-[10px] text-muted mt-0.5">以主要持倉 Yahoo 盤中走勢加權估算 NAV（非完整交易記錄）</p>
+                    </div>
+                    <span class="text-[10px] text-muted font-num" id="navChartMeta">載入中…</span>
+                </div>
+                <div class="chart-wrap nav"><canvas id="navChart"></canvas></div>
+            </div>
+
+            <!-- Today's winners / losers + bar chart -->
             <div class="pro-panel rounded-xl p-4">
                 <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
                     <h2 class="font-semibold text-white text-sm">今日贏家 / 輸家</h2>
                     <span class="text-[10px] text-muted">按今日盈虧 (HKD) · 即時報價</span>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <p class="text-[11px] text-emerald-400 font-medium mb-2">貢獻最大 Top 5</p>
-                        <ul class="space-y-1.5 text-xs" id="winnersList">
-                            <li class="text-muted">載入中…</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <p class="text-[11px] text-rose-400 font-medium mb-2">拖累最大 Top 5</p>
-                        <ul class="space-y-1.5 text-xs" id="losersList">
-                            <li class="text-muted">載入中…</li>
-                        </ul>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+                    <div class="chart-wrap bars"><canvas id="wlBarChart"></canvas></div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-[11px] text-emerald-400 font-medium mb-2">貢獻最大 Top 5</p>
+                            <ul class="space-y-1.5 text-xs" id="winnersList">
+                                <li class="text-muted">載入中…</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="text-[11px] text-rose-400 font-medium mb-2">拖累最大 Top 5</p>
+                            <ul class="space-y-1.5 text-xs" id="losersList">
+                                <li class="text-muted">載入中…</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -361,8 +516,13 @@
             <!-- Allocation -->
             <div class="pro-panel rounded-xl p-5">
                 <h2 class="font-semibold text-white text-sm mb-4" id="allocTitle">資產配置結構</h2>
-                <div class="w-full h-3 rounded-full overflow-hidden flex mb-4 bg-gray-900 p-0.5 gap-0.5" id="allocBar"></div>
-                <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs font-num" id="allocList"></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                    <div class="chart-wrap donut"><canvas id="allocDonut"></canvas></div>
+                    <div>
+                        <div class="w-full h-3 rounded-full overflow-hidden flex mb-4 bg-gray-900 p-0.5 gap-0.5" id="allocBar"></div>
+                        <div class="grid grid-cols-1 gap-x-4 gap-y-1 text-xs font-num" id="allocList"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -416,6 +576,22 @@
         Ricky's Investment · 報價即時 · 持倉快照同步於 <span id="footerSync" class="text-gray-400">—</span>
     </footer>
 
+    </div><!-- /viewPortfolio -->
+
+    <div id="viewCalc">
+        <div class="bg-[#040609] border-b border-borderDark px-4 md:px-6 py-2 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-3">
+                <nav class="top-nav" aria-label="主功能">
+                    <button type="button" class="top-nav-btn" onclick="switchAppView('portfolio')">組合</button>
+                    <button type="button" class="top-nav-btn active" onclick="switchAppView('calc')">期權計算機</button>
+                </nav>
+                <span class="text-xs text-muted hidden sm:inline">Ricky's Investment · 期權計算機</span>
+            </div>
+            <button type="button" class="text-xs text-blue-300 hover:text-blue-200" onclick="switchAppView('portfolio')">← 返回組合</button>
+        </div>
+        <iframe id="calcFrame" title="期權計算機" src="about:blank" loading="lazy"></iframe>
+    </div>
+
     <!-- Detail drawer (inside app shell) -->
     <div id="detailOverlay" onclick="if(event.target===this) closeHoldingDetail()">
         <aside id="detailDrawer" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
@@ -446,6 +622,7 @@
         });
       });
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

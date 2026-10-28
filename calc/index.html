@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="zh-Hant-HK">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>期權計算機 | Ricky's Investment</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+<link rel="stylesheet" href="style.css">
+
+<script>
+(function(){
+  var PASS_HASH = '21f3dc4db237caf55464ec97e07ecf20d5031b8e3a934436d00651b1e4b02614';
+  var SESSION_KEY = 'ricky_invest_unlocked_v1';
+  if (sessionStorage.getItem(SESSION_KEY) === PASS_HASH) return;
+  // Standalone unlock UI if opened directly
+  document.documentElement.style.visibility = 'hidden';
+  document.addEventListener('DOMContentLoaded', function(){
+    document.body.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#040609;color:#e2e8f0;font-family:system-ui,sans-serif;padding:16px"><form id="g" style="max-width:360px;width:100%;background:#0e121b;border:1px solid #1e2638;border-radius:16px;padding:24px"><h1 style="margin:0 0 4px;font-size:18px">Ricky\'s Investment</h1><p style="margin:0 0 16px;font-size:12px;color:#64748b">期權計算機 · 請輸入通行密碼</p><input id="p" type="password" required autofocus placeholder="通行密碼" style="width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid #1e2638;background:#06080c;color:#fff;margin-bottom:8px"><p id="e" style="color:#f43f5e;font-size:12px;display:none">密碼不正確</p><button style="width:100%;padding:10px;border:0;border-radius:8px;background:#3b82f6;color:#fff;font-weight:600;cursor:pointer">解鎖</button><p style="margin-top:12px;font-size:11px"><a href="../" style="color:#93c5fd">← 返回儀表板</a></p></form></div>';
+    document.documentElement.style.visibility = 'visible';
+    document.getElementById('g').onsubmit = async function(ev){
+      ev.preventDefault();
+      var pwd = document.getElementById('p').value||'';
+      var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pwd));
+      var h = [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+      if (h === PASS_HASH) { sessionStorage.setItem(SESSION_KEY, PASS_HASH); location.reload(); }
+      else { document.getElementById('e').style.display='block'; document.getElementById('p').value=''; }
+    };
+  });
+})();
+</script>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>📊 期權計算機 <span style="font-size:.65em;font-weight:500;opacity:.7">Ricky's Investment</span></h1>
+    <p>美股 · 港股 ｜ 即時報價 · 多腳策略 · 盈虧圖 · Greeks ｜ 填完即計，唔使撳掣</p>
+    <p style="margin:6px 0 0;font-size:12px;opacity:.65"><a href="../" style="color:inherit">← 返回組合儀表板</a></p>
+  </header>
+
+  <div class="grid">
+  <!-- ========= 左欄：輸入 ========= -->
+  <div class="col">
+
+    <!-- ① 正股 -->
+    <section class="card" id="cardUnderlying">
+      <h2>① 正股 Underlying</h2>
+      <div class="tickrow">
+        <div class="field grow">
+          <label for="ticker">股票代號 <span class="hint">美股：AAPL ／ 港股：700 或 0700.HK</span></label>
+          <input id="ticker" list="tickerList" autocomplete="off" autocapitalize="characters" placeholder="例如 AAPL、TSLA、0700.HK、9988">
+          <datalist id="tickerList"></datalist>
+        </div>
+        <button class="btn primary" id="btnQuote">🔄 攞報價</button>
+      </div>
+      <div class="chips" id="popChips"></div>
+
+      <div id="quoteBox" class="quotebox idle">
+        <div class="qname" id="qName">未載入報價 — 可以直接喺下面人手輸入現價</div>
+        <div class="qprice"><span id="qPrice">—</span> <span id="qChg" class="chg"></span></div>
+        <div class="qmeta" id="qMeta"></div>
+        <div class="qsrc" id="qSrc"></div>
+      </div>
+
+      <div class="fields f3">
+        <div class="field"><label for="spot">現價 <span class="hint">(可改)</span></label><input id="spot" type="number" inputmode="decimal" step="any"></div>
+        <div class="field"><label for="divYield">股息率 % <span class="hint">年度</span></label><input id="divYield" type="number" inputmode="decimal" step="any"></div>
+        <div class="field"><label for="rate">無風險利率 %</label><input id="rate" type="number" inputmode="decimal" step="any"></div>
+        <div class="field"><label for="mult">每張合約股數</label><input id="mult" type="number" inputmode="numeric" step="1"></div>
+        <div class="field"><label for="ivDefault">預設 IV % <span class="hint" id="hvHint"></span></label><input id="ivDefault" type="number" inputmode="decimal" step="any"></div>
+        <div class="field"><label for="currency">貨幣</label>
+          <select id="currency"><option value="USD">USD 美元</option><option value="HKD">HKD 港元</option></select></div>
+      </div>
+      <div class="note" id="multNote"></div>
+      <details class="adv"><summary>⚙️ 資料來源設定 <span class="hint" id="modeLbl"></span></summary>
+        <div class="field" style="margin-top:8px"><label for="proxy">自訂 CORS Proxy（可選）<span class="hint">例：https://你的worker.workers.dev/?url={url}　留空 = 用內置公共代理</span></label>
+          <input id="proxy" placeholder="https://..." autocomplete="off"></div>
+        <div class="note">純網頁模式下，瀏覽器會依次試：Yahoo 直連 → 自訂 Proxy → 公共 CORS Proxy（allorigins / corsproxy.io / codetabs / cors.lol）→ 騰訊財經（原生支援 CORS）。全部失敗就請人手輸入現價同股息率。</div>
+      </details>
+    </section>
+
+    <!-- ② 到期日 -->
+    <section class="card">
+      <h2>② 到期日 Expiry</h2>
+      <div class="fields f2">
+        <div class="field">
+          <label for="expiry">到期日期 <span class="hint">撳揀日曆或直接打</span></label>
+          <input id="expiry" type="date">
+          <div class="dteline" id="dteLine">—</div>
+        </div>
+        <div class="field">
+          <label for="expSelect">Yahoo 期權到期日 <span class="hint">(只限有期權鏈嘅美股)</span></label>
+          <select id="expSelect"><option value="">— 未載入 —</option></select>
+          <div class="dteline" id="chainNote"></div>
+        </div>
+      </div>
+      <div class="quick">
+        <div class="qlabel">⚡ 快速揀到期日</div>
+        <div class="chips" id="expChips"></div>
+      </div>
+    </section>
+
+    <!-- ③ 策略模板 -->
+    <section class="card">
+      <h2>③ 策略模板 Strategy</h2>
+      <div class="tabs" id="tplTabs"></div>
+      <div class="tplgrid" id="tplGrid"></div>
+      <div class="tpldesc" id="tplDesc"></div>
+      <div class="fields f3 small">
+        <div class="field"><label for="lots">組數 <span class="hint">(模板 × 幾多組)</span></label><input id="lots" type="number" min="1" step="1" value="1" inputmode="numeric"></div>
+        <div class="field"><label for="width">行使價闊度 <span class="hint">% 現價</span></label><input id="width" type="number" step="any" value="5" inputmode="decimal"></div>
+        <div class="field"><label>&nbsp;</label><button class="btn" id="btnReapply">↺ 重新套用模板</button></div>
+      </div>
+    </section>
+
+    <!-- ④ 期權腳 -->
+    <section class="card">
+      <h2>④ 期權腳 Legs <span class="hint" id="legCount"></span></h2>
+      <div id="legs"></div>
+      <div class="addrow">
+        <button class="btn" data-add="call">＋ Call 認購</button>
+        <button class="btn" data-add="put">＋ Put 認沽</button>
+        <button class="btn" data-add="stock">＋ 正股</button>
+        <button class="btn ghost" id="btnReprice">⟳ 重新報價 (未鎖定腳)</button>
+        <button class="btn ghost danger" id="btnClear">🗑 清空</button>
+      </div>
+      <div class="note">💡 改「期權金」會自動 🔒 鎖定並反推 IV；改 IV 會用 Black-Scholes 重算期權金。有 Yahoo 期權鏈時，未鎖定嘅腳會自動用 Bid/Ask 中間價同 IV。</div>
+    </section>
+  </div>
+
+  <!-- ========= 右欄：結果 ========= -->
+  <div class="col">
+    <section class="card result" id="cardSummary">
+      <h2>⑤ 結果 Summary</h2>
+      <div class="hero" id="hero">
+        <div class="hlabel" id="heroLabel">淨期權金</div>
+        <div class="hval" id="heroVal">—</div>
+        <div class="hsub" id="heroSub">揀模板或者加期權腳即開始計算</div>
+      </div>
+      <div class="kpis" id="kpis"></div>
+      <h3>Greeks（整個組合）</h3>
+      <div class="kpis greeks" id="greeks"></div>
+      <div class="insight" id="insight"></div>
+    </section>
+
+    <section class="card">
+      <h2>⑥ 盈虧圖 P/L Chart</h2>
+      <div class="chartbox"><canvas id="chart"></canvas></div>
+      <div class="legend-note">🟩/🟥 實線 = 到期盈虧　🔵 虛線 = 今日理論盈虧 (T+0)　🟠 = 評估日盈虧　│ 灰線 = 現價　紫線 = 打和點</div>
+      <div class="sliders">
+        <div class="slider"><label>📅 評估日期：<b id="evalLbl">今日</b></label><input type="range" id="evalDays" min="0" max="30" value="0"></div>
+        <div class="slider"><label>🌡 IV 變動：<b id="ivShiftLbl">0%</b></label><input type="range" id="ivShift" min="-50" max="50" value="0"></div>
+        <div class="slider"><label>↔ 圖表範圍：<b id="rangeLbl">±25%</b></label><input type="range" id="range" min="5" max="100" value="25"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>⑦ 盈虧表 P/L Table</h2>
+      <div class="tablewrap"><table id="plTable"></table></div>
+    </section>
+  </div>
+  </div>
+
+  <section class="card">
+    <h2>公式 · 用法 · 說明</h2>
+    <details open><summary>點用</summary>
+      <ol>
+        <li>輸入股票代號（美股如 <b>AAPL</b>，港股打 <b>700</b> 或 <b>0700.HK</b>），撳「攞報價」→ 自動填現價、股息率、每張股數、歷史波幅。攞唔到就人手輸入。</li>
+        <li>揀到期日（日曆／快速掣／Yahoo 到期日），系統自動計距離今日日數。</li>
+        <li>揀策略模板（賣方策略喺「收期權金」分頁），或者自己加腳。每隻腳都可以改：買／沽、Call／Put／正股、行使價、張數、到期日、IV、期權金。</li>
+        <li>右邊即時顯示淨收支、最大盈利／虧損、打和點、獲利機率、回報率（年化）、Greeks、盈虧圖同盈虧表。</li>
+      </ol>
+    </details>
+    <details><summary>計算公式</summary>
+      <ul>
+        <li><b>到期日數 DTE</b> = 到期日期 − 今日（曆日）；年期 T = DTE ÷ 365</li>
+        <li><b>理論價</b>：Black-Scholes-Merton（連續股息率 q、無風險利率 r、引伸波幅 IV）</li>
+        <li><b>淨期權金</b> = Σ（買入 +／沽出 −）期權金 × 張數 × 每張股數</li>
+        <li><b>到期盈虧</b> = Σ 每腳（到期價值 − 入場價）× 方向 × 數量；日曆價差嘅遠期腳以 BS 估值</li>
+        <li><b>所需本金</b>（有限風險）= 最大虧損 + 期權金收入（例：Short Put = 行使價 × 股數，同原版「準備接貨本金」一致）；有無限風險嘅策略用 Reg-T 粗略保證金估算（20% 正股價 − 價外金額，最少 10%）＋ 期權金</li>
+        <li><b>回報率</b> = 期權金收入（或最大盈利）÷ 所需本金；<b>年化</b> = 回報率 ÷ DTE × 365；<b>複利年化</b> = (1+回報率)^(365/DTE) − 1</li>
+        <li><b>獲利機率 POP</b>：假設到期股價對數常態分佈（用各腳平均 IV），計到期時盈利 &gt; 0 嘅機率</li>
+        <li><b>Greeks</b>：Delta（股數等值）、Gamma、Theta（每日）、Vega（IV 每 1%）、已乘數量同每張股數</li>
+      </ul>
+    </details>
+    <details><summary>Short Put 三大原則（原版）</summary>
+      <ul>
+        <li><b>尋找標的</b>：前提係優質股，不介意持有正股、長線會上升，有足夠資金接正股</li>
+        <li><b>進場時機</b>：先觀察大市，尤其 SPX 當日下跌可以尋找獵物；標的切入點處於重要支持位置</li>
+        <li><b>心態</b>：做 Short Put 等於打折去買入正股</li>
+      </ul>
+    </details>
+    <details><summary>資料來源 · 限制</summary>
+      <ul>
+        <li>報價次序：Yahoo Finance (yfinance) → Yahoo Chart API → 騰訊財經 → Nasdaq API；股息 = 過去 12 個月派息總和。</li>
+        <li>期權鏈（Bid/Ask/IV）只有 Yahoo 美股；港股期權 Yahoo 冇提供，請人手輸入期權金或 IV（預設用 30 日歷史波幅）。</li>
+        <li>港股每張合約股數按港交所股票期權名單預填（例：騰訊 100、阿里 500、美團 500、小米 1000、匯豐 400）。</li>
+        <li>美式期權提早行使、手續費、稅項、孖展利息未計；Yahoo 報價可能有 15 分鐘延遲。本工具只作教學計算用途，不構成投資建議。</li>
+      </ul>
+    </details>
+  </section>
+  <footer>Ricky's Investment · 期權計算機 · 參考 dicsal.com Short Put 計算機改良 · 只作教學用途，不構成投資建議</footer>
+</div>
+<div id="toast"></div>
+<script src="chart.umd.min.js"></script>
+<script src="hk_options.js"></script>
+<script src="optmath.js"></script>
+<script src="templates.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
