@@ -172,6 +172,43 @@
         .tv-index-wrap .tradingview-widget-copyright {
             display: none;
         }
+        .tv-cal-panel {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 520px;
+        }
+        .tv-cal-body { display: flex; flex-direction: column; gap: 0; flex: 1; min-height: 0; }
+        .tv-cal-section { display: none; flex-direction: column; min-height: 0; }
+        .tv-cal-section.is-visible { display: flex; }
+        .tv-cal-section-label {
+            font-size: 10px;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #64748b;
+            padding: 0.45rem 0.85rem 0.25rem;
+            border-bottom: 1px solid rgba(30, 38, 56, 0.65);
+            background: rgba(10, 14, 23, 0.45);
+        }
+        .tv-cal-wrap {
+            width: 100%;
+            height: 420px;
+            overflow: hidden;
+            background: #0e121b;
+        }
+        .tv-cal-wrap.tall { height: 520px; }
+        .tv-cal-wrap .tradingview-widget-container,
+        .tv-cal-wrap .tradingview-widget-container__widget { width: 100%; height: 100%; }
+        .tv-cal-wrap .tradingview-widget-copyright { display: none; }
+        .cal-tab {
+            padding: 0.2rem 0.5rem;
+            font-size: 11px;
+            border-radius: 0.375rem;
+            transition: all 0.15s;
+        }
+        .cal-tab-active { background-color: #3b82f6; color: #fff; font-weight: 500; }
+        .cal-tab-inactive { background-color: #111827; color: #94a3b8; }
+        .cal-tab-inactive:hover { color: #fff; }
         .num-soft { transition: color 0.35s ease; }
 
         .top-nav {
@@ -516,7 +553,7 @@
         </div>
 
         <!-- Right: holdings -->
-        <div class="lg:col-span-4 flex flex-col gap-6 lg:sticky lg:top-[7.5rem]">
+        <div class="lg:col-span-4 flex flex-col gap-6">
             <div class="pro-panel rounded-xl holdings-shell">
                 <div class="pro-panel-header px-4 py-3 flex flex-col gap-2 shrink-0">
                     <div class="flex justify-between items-center">
@@ -547,6 +584,67 @@
                         </thead>
                         <tbody id="holdingsBody"></tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- 經濟數據與業績日曆 — TradingView live widgets -->
+            <div class="pro-panel rounded-xl tv-cal-panel" id="econCalendarPanel">
+                <div class="pro-panel-header px-4 py-3 flex justify-between items-center gap-2 shrink-0">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <svg class="w-4 h-4 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <h2 class="font-semibold text-white text-sm truncate">經濟數據與業績日曆</h2>
+                    </div>
+                    <div class="flex gap-1 shrink-0" role="tablist" aria-label="日曆篩選">
+                        <button type="button" onclick="filterCalendar('all', this)" class="cal-tab cal-tab-active" data-cal-tab="all">全部</button>
+                        <button type="button" onclick="filterCalendar('macro', this)" class="cal-tab cal-tab-inactive" data-cal-tab="macro">宏觀</button>
+                        <button type="button" onclick="filterCalendar('earnings', this)" class="cal-tab cal-tab-inactive" data-cal-tab="earnings">業績</button>
+                    </div>
+                </div>
+                <div class="tv-cal-body" id="calendarContainer">
+                    <div class="tv-cal-section is-visible" id="calMacroSection" data-cal="macro">
+                        <div class="tv-cal-section-label">宏觀經濟 · 預期 vs 實際（US / CN / JP）</div>
+                        <div class="tv-cal-wrap" id="tvEconomicCalendar">
+                            <!-- TradingView Widget BEGIN: Economic Calendar -->
+                            <div class="tradingview-widget-container">
+                                <div class="tradingview-widget-container__widget"></div>
+                                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-events.js" async>
+                                {
+                                "colorTheme": "dark",
+                                "isTransparent": true,
+                                "width": "100%",
+                                "height": "100%",
+                                "locale": "zh_TW",
+                                "importanceFilter": "0,1",
+                                "currencyFilter": "USD,CNY,JPY,HKD,EUR"
+                                }
+                                </script>
+                            </div>
+                            <!-- TradingView Widget END -->
+                        </div>
+                    </div>
+                    <div class="tv-cal-section is-visible" id="calEarningsSection" data-cal="earnings">
+                        <div class="tv-cal-section-label">公司業績 · 本週公佈（含市場預期／估算）</div>
+                        <div class="tv-cal-wrap" id="tvEarningsScreener">
+                            <!-- TradingView Widget BEGIN: Stock Screener earnings_this_week -->
+                            <div class="tradingview-widget-container">
+                                <div class="tradingview-widget-container__widget"></div>
+                                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-screener.js" async>
+                                {
+                                "width": "100%",
+                                "height": "100%",
+                                "defaultColumn": "overview",
+                                "defaultScreen": "earnings_this_week",
+                                "market": "america",
+                                "showToolbar": true,
+                                "colorTheme": "dark",
+                                "isTransparent": true,
+                                "locale": "zh_TW"
+                                }
+                                </script>
+                            </div>
+                            <!-- TradingView Widget END -->
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -650,6 +748,23 @@
         const b = document.getElementById('footerSync');
         if (a && b) b.textContent = a.textContent;
       });
+      window.filterCalendar = function (mode, btn) {
+        const macro = document.getElementById('calMacroSection');
+        const earn = document.getElementById('calEarningsSection');
+        const macroWrap = document.querySelector('#tvEconomicCalendar');
+        const earnWrap = document.querySelector('#tvEarningsScreener');
+        if (!macro || !earn) return;
+        document.querySelectorAll('[data-cal-tab]').forEach((el) => {
+          el.classList.toggle('cal-tab-active', el === btn);
+          el.classList.toggle('cal-tab-inactive', el !== btn);
+        });
+        const showMacro = mode === 'all' || mode === 'macro';
+        const showEarn = mode === 'all' || mode === 'earnings';
+        macro.classList.toggle('is-visible', showMacro);
+        earn.classList.toggle('is-visible', showEarn);
+        if (macroWrap) macroWrap.classList.toggle('tall', mode === 'macro');
+        if (earnWrap) earnWrap.classList.toggle('tall', mode === 'earnings');
+      };
       document.addEventListener('DOMContentLoaded', () => {
         const a = document.getElementById('posSyncTime');
         if (a) _obs.observe(a, { childList: true, characterData: true, subtree: true });
@@ -659,6 +774,6 @@
       });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-    <script src="app.js?v=20261028tv"></script>
+    <script src="app.js?v=20261028cal"></script>
 </body>
 </html>
