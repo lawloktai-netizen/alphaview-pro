@@ -1004,28 +1004,9 @@ const CHART_COLORS = {
     '日本': '#06b6d4', 'A股': '#f43f5e', 'BTC': '#fb923c', '期權': '#818cf8',
   },
 };
-const INDEX_DEFS = [
-  {
-    id: 'HSI', label: '恆生指數', yahoo: '^HSI', yahooAlt: ['2800.HK'],
-    tencent: 'r_hkHSI', sina: 'int_hangseng', sinaRt: 'rt_hkHSI',
-    priceEl: 'idxHSIPrice', changeEl: 'idxHSIChange', chgEl: 'idxHSIChg', viaEl: 'idxHSIVia',
-  },
-  {
-    id: 'IXIC', label: '納斯達克', yahoo: '^IXIC', yahooAlt: ['^COMP', 'QQQ'],
-    tencent: 'usIXIC', sina: 'int_nasdaq',
-    priceEl: 'idxIXICPrice', changeEl: 'idxIXICChange', chgEl: 'idxIXICChg', viaEl: 'idxIXICVia',
-  },
-  {
-    id: 'N225', label: '日經 225', yahoo: '^N225', yahooAlt: ['1321.T'],
-    sina: 'int_nikkei',
-    priceEl: 'idxN225Price', changeEl: 'idxN225Change', chgEl: 'idxN225Chg', viaEl: 'idxN225Via',
-  },
-  {
-    id: 'BTC', label: '比特幣', yahoo: 'BTC-USD', yahooAlt: ['BTCUSD=X'],
-    coingecko: true,
-    priceEl: 'idxBTCPrice', changeEl: 'idxBTCChange', chgEl: 'idxBTCChg', viaEl: 'idxBTCVia',
-  },
-];
+/* Main indices now shown via TradingView Tickers embed in index.html — no custom quote strip. */
+const INDEX_DEFS = [];
+
 
 function chartDefaults() {
   if (typeof Chart === 'undefined') return;
@@ -1305,84 +1286,15 @@ function textPL(v) {
 }
 
 function updateIndexStripUI() {
-  for (const d of INDEX_DEFS) {
-    const s = state.indexSeries[d.id];
-    if (!s || !(s.price > 0)) continue;
-    const pe = $(d.priceEl), ce = $(d.chgEl), chEl = $(d.changeEl), viaEl = $(d.viaEl);
-    const decimals = s.price >= 1000 ? 0 : (s.price >= 100 ? 1 : 2);
-    const change = Number.isFinite(s.change) ? s.change : (s.prevClose ? s.price - s.prevClose : 0);
-    const chgPct = Number.isFinite(s.changePct) ? s.changePct : (s.prevClose ? (s.price - s.prevClose) / s.prevClose : 0);
-    if (pe) pe.textContent = fmt(s.price, decimals);
-    if (chEl) {
-      chEl.textContent = signed(change, decimals);
-      chEl.className = `text-right font-num ${textPL(change)}`;
-    }
-    if (ce) {
-      ce.textContent = signed(chgPct * 100, 2) + '%';
-      ce.className = `text-[11px] font-num px-1.5 py-0.5 rounded ${badgePL(chgPct)}`;
-    }
-    if (viaEl) viaEl.textContent = s._via || '—';
-  }
-  const meta = $('indexStripMeta');
-  if (meta) {
-    const src = [...new Set(INDEX_DEFS.map(d => (state.indexSeries[d.id] || {})._via).filter(Boolean))];
-    const n = INDEX_DEFS.filter(d => state.indexSeries[d.id] && state.indexSeries[d.id].price > 0).length;
-    const label = src.length ? src.join(' · ') : '等待報價';
-    meta.textContent = `${n}/${INDEX_DEFS.length} 已更新 · ${label} · ` + new Date().toLocaleTimeString('zh-HK', { hour12: false });
-  }
+  /* no-op: #indexStrip is TradingView Tickers embed */
 }
 
-/** Fast live quotes only (no intraday series / sparklines). */
-async function loadOneIndexQuote(d) {
-  let quote = null;
-  if (d.tencent) {
-    try { quote = await tencentIndexQuote(d.tencent); } catch (_) {}
-  }
-  if (!quote && d.sinaRt) {
-    try { quote = await sinaScriptQuote(d.sinaRt); } catch (_) {}
-  }
-  if (!quote && d.sina) {
-    try { quote = await sinaScriptQuote(d.sina); } catch (_) {}
-  }
-  if (!quote && d.coingecko) {
-    try { quote = await coinGeckoBtc(); } catch (_) {}
-  }
-  if (!quote) {
-    const ysyms = [d.yahoo, ...(d.yahooAlt || [])].filter(Boolean);
-    for (const sym of ysyms) {
-      try {
-        const q = await yahooQuote(sym);
-        if (q && q.price > 0) {
-          quote = { ...q, _via: q._via || 'Yahoo' };
-          break;
-        }
-      } catch (_) {}
-    }
-  }
-  if (!quote || !(quote.price > 0)) throw new Error('index ' + d.id + ' quote fail');
-  const prevClose = quote.prevClose > 0 ? quote.prevClose : quote.price;
-  const change = Number.isFinite(quote.change) ? quote.change : (quote.price - prevClose);
-  const changePct = Number.isFinite(quote.changePct)
-    ? quote.changePct
-    : (prevClose ? (quote.price - prevClose) / prevClose : 0);
-  return {
-    price: quote.price,
-    prevClose,
-    change,
-    changePct,
-    _via: quote._via || '報價',
-  };
+async function loadOneIndexQuote() {
+  return null;
 }
 
 async function loadIndexSeries() {
-  await Promise.all(INDEX_DEFS.map(async (d) => {
-    try {
-      state.indexSeries[d.id] = await loadOneIndexQuote(d);
-    } catch (e) {
-      console.warn('index', d.id, e);
-    }
-  }));
-  updateIndexStripUI();
+  /* no-op: indices come from TradingView widget */
 }
 
 function pickNavHoldings(rows) {
@@ -1677,7 +1589,6 @@ async function refreshChartSeries() {
   state.chartBusy = true;
   try {
     chartDefaults();
-    await loadIndexSeries();
     const c = compute();
     const path = await buildNavPath(c);
     if (path) renderNavChart(path);

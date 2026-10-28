@@ -161,36 +161,16 @@
         .chart-wrap.nav { height: 180px; }
         .chart-wrap.donut { height: 220px; max-width: 260px; margin: 0 auto; }
         .chart-wrap.bars { height: 220px; }
-        .index-table-wrap {
+        .tv-index-wrap {
             background: linear-gradient(160deg, rgba(21, 27, 38, 0.9), rgba(10, 14, 23, 0.95));
             border: 1px solid #1e2638;
             border-radius: 0.75rem;
             overflow: hidden;
+            min-height: 72px;
         }
-        .index-table-wrap table { width: 100%; }
-        .index-table-wrap th {
-            background: rgba(8, 12, 20, 0.95);
-            padding: 0.55rem 0.9rem;
-            font-size: 0.65rem;
-        }
-        .index-table-wrap td {
-            padding: 0.7rem 0.9rem;
-            border-bottom: 1px solid rgba(30, 38, 56, 0.55);
-            vertical-align: middle;
-        }
-        .index-table-wrap tbody tr:last-child td { border-bottom: none; }
-        .index-table-wrap tbody tr:hover { background-color: rgba(59, 130, 246, 0.06); }
-        .index-code {
-            display: inline-block;
-            font-size: 0.65rem;
-            font-family: 'JetBrains Mono', ui-monospace, monospace;
-            color: #64748b;
-            background: rgba(148, 163, 184, 0.08);
-            border: 1px solid rgba(148, 163, 184, 0.15);
-            border-radius: 0.3rem;
-            padding: 0.1rem 0.4rem;
-            margin-left: 0.45rem;
-            vertical-align: middle;
+        .tv-index-wrap .tradingview-widget-container { width: 100%; }
+        .tv-index-wrap .tradingview-widget-copyright {
+            display: none;
         }
         .num-soft { transition: color 0.35s ease; }
 
@@ -386,69 +366,33 @@
     </div>
 
 
-    <!-- Main market indices (table — fast live quotes) -->
+    <!-- Main market indices — TradingView Tickers (live quotes, no custom CORS fetch) -->
     <div class="bg-[#070a10] border-b border-borderDark px-4 md:px-6 py-3">
         <div class="max-w-[1920px] mx-auto">
             <div class="flex items-center justify-between mb-2">
-                <h2 class="text-[11px] font-medium text-muted tracking-wide">主要指數 · 即時報價</h2>
-                <span class="text-[10px] text-muted font-num" id="indexStripMeta">多源報價載入中…</span>
+                <h2 class="text-[11px] font-medium text-muted tracking-wide">主要指數 · TradingView</h2>
+                <span class="text-[10px] text-muted font-num">HSI · NASDAQ · 日經 · BTC</span>
             </div>
-            <div class="index-table-wrap" id="indexStrip">
-                <div class="overflow-x-auto">
-                    <table class="min-w-[560px]">
-                        <thead>
-                            <tr>
-                                <th>指數</th>
-                                <th class="text-right">最新價</th>
-                                <th class="text-right">漲跌</th>
-                                <th class="text-right">漲跌%</th>
-                                <th class="text-right hidden sm:table-cell">來源</th>
-                            </tr>
-                        </thead>
-                        <tbody class="font-num text-sm">
-                            <tr data-idx="HSI">
-                                <td>
-                                    <span class="text-white font-medium text-[13px]">恆生指數</span>
-                                    <span class="index-code">HSI</span>
-                                </td>
-                                <td class="text-right text-white font-semibold num-soft" id="idxHSIPrice">—</td>
-                                <td class="text-right" id="idxHSIChange">—</td>
-                                <td class="text-right"><span class="text-[11px] font-num px-1.5 py-0.5 rounded" id="idxHSIChg">—</span></td>
-                                <td class="text-right text-[10px] text-muted hidden sm:table-cell" id="idxHSIVia">—</td>
-                            </tr>
-                            <tr data-idx="IXIC">
-                                <td>
-                                    <span class="text-white font-medium text-[13px]">納斯達克</span>
-                                    <span class="index-code">IXIC</span>
-                                </td>
-                                <td class="text-right text-white font-semibold num-soft" id="idxIXICPrice">—</td>
-                                <td class="text-right" id="idxIXICChange">—</td>
-                                <td class="text-right"><span class="text-[11px] font-num px-1.5 py-0.5 rounded" id="idxIXICChg">—</span></td>
-                                <td class="text-right text-[10px] text-muted hidden sm:table-cell" id="idxIXICVia">—</td>
-                            </tr>
-                            <tr data-idx="N225">
-                                <td>
-                                    <span class="text-white font-medium text-[13px]">日經 225</span>
-                                    <span class="index-code">N225</span>
-                                </td>
-                                <td class="text-right text-white font-semibold num-soft" id="idxN225Price">—</td>
-                                <td class="text-right" id="idxN225Change">—</td>
-                                <td class="text-right"><span class="text-[11px] font-num px-1.5 py-0.5 rounded" id="idxN225Chg">—</span></td>
-                                <td class="text-right text-[10px] text-muted hidden sm:table-cell" id="idxN225Via">—</td>
-                            </tr>
-                            <tr data-idx="BTC">
-                                <td>
-                                    <span class="text-white font-medium text-[13px]">比特幣</span>
-                                    <span class="index-code">BTC-USD</span>
-                                </td>
-                                <td class="text-right text-white font-semibold num-soft" id="idxBTCPrice">—</td>
-                                <td class="text-right" id="idxBTCChange">—</td>
-                                <td class="text-right"><span class="text-[11px] font-num px-1.5 py-0.5 rounded" id="idxBTCChg">—</span></td>
-                                <td class="text-right text-[10px] text-muted hidden sm:table-cell" id="idxBTCVia">—</td>
-                            </tr>
-                        </tbody>
-                    </table>
+            <div class="tv-index-wrap" id="indexStrip">
+                <!-- TradingView Widget BEGIN -->
+                <div class="tradingview-widget-container">
+                    <div class="tradingview-widget-container__widget"></div>
+                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-tickers.js" async>
+                    {
+                    "symbols": [
+                      { "proName": "HSI:HSI", "title": "恆生指數" },
+                      { "proName": "NASDAQ:IXIC", "title": "納斯達克" },
+                      { "proName": "TVC:NI225", "title": "日經225" },
+                      { "proName": "BITSTAMP:BTCUSD", "title": "比特幣" }
+                    ],
+                    "showSymbolLogo": true,
+                    "colorTheme": "dark",
+                    "isTransparent": true,
+                    "locale": "zh_TW"
+                    }
+                    </script>
                 </div>
+                <!-- TradingView Widget END -->
             </div>
         </div>
     </div>
@@ -715,6 +659,6 @@
       });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-    <script src="app.js?v=20261028e"></script>
+    <script src="app.js?v=20261028tv"></script>
 </body>
 </html>
