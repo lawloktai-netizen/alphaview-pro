@@ -363,7 +363,7 @@
         <div class="max-w-[1920px] mx-auto">
             <div class="flex items-center justify-between mb-2">
                 <h2 class="text-[11px] font-medium text-muted tracking-wide">主要指數 · 即時走勢</h2>
-                <span class="text-[10px] text-muted font-num" id="indexStripMeta">Yahoo 1日</span>
+                <span class="text-[10px] text-muted font-num" id="indexStripMeta">多源報價載入中…</span>
             </div>
             <div class="grid grid-cols-2 xl:grid-cols-4 gap-3" id="indexStrip">
                 <div class="index-chip" data-idx="HSI">
@@ -452,11 +452,23 @@
                 <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
                     <div>
                         <h2 class="font-semibold text-white text-sm">組合今日走勢估算</h2>
-                        <p class="text-[10px] text-muted mt-0.5">以主要持倉 Yahoo 盤中走勢加權估算 NAV（非完整交易記錄）</p>
+                        <p class="text-[10px] text-muted mt-0.5">優先加權盤中走勢；Yahoo 不可用時以今日盈虧估算（非完整交易記錄）</p>
                     </div>
                     <span class="text-[10px] text-muted font-num" id="navChartMeta">載入中…</span>
                 </div>
                 <div class="chart-wrap nav"><canvas id="navChart"></canvas></div>
+            </div>
+
+            <!-- Allocation -->
+            <div class="pro-panel rounded-xl p-5">
+                <h2 class="font-semibold text-white text-sm mb-4" id="allocTitle">資產配置結構</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                    <div class="chart-wrap donut"><canvas id="allocDonut"></canvas></div>
+                    <div>
+                        <div class="w-full h-3 rounded-full overflow-hidden flex mb-4 bg-gray-900 p-0.5 gap-0.5" id="allocBar"></div>
+                        <div class="grid grid-cols-1 gap-x-4 gap-y-1 text-xs font-num" id="allocList"></div>
+                    </div>
+                </div>
             </div>
 
             <!-- Today's winners / losers + bar chart -->
@@ -513,17 +525,7 @@
                 </div>
             </div>
 
-            <!-- Allocation -->
-            <div class="pro-panel rounded-xl p-5">
-                <h2 class="font-semibold text-white text-sm mb-4" id="allocTitle">資產配置結構</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-                    <div class="chart-wrap donut"><canvas id="allocDonut"></canvas></div>
-                    <div>
-                        <div class="w-full h-3 rounded-full overflow-hidden flex mb-4 bg-gray-900 p-0.5 gap-0.5" id="allocBar"></div>
-                        <div class="grid grid-cols-1 gap-x-4 gap-y-1 text-xs font-num" id="allocList"></div>
-                    </div>
-                </div>
-            </div>
+
         </div>
 
         <!-- Right: holdings -->
@@ -623,6 +625,6 @@
       });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-    <script src="app.js?v=20261028b"></script>
+    <script src="app.js?v=20261028c"></script>
 </body>
 </html>

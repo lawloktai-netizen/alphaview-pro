@@ -6,7 +6,7 @@ const PASS_HASH = '21f3dc4db237caf55464ec97e07ecf20d5031b8e3a934436d00651b1e4b02
 const SESSION_KEY = 'ricky_invest_unlocked_v2';
 const HOLDINGS_URL = 'data/snap_a7f3e9c2.json';
 const PUBLIC_PROXIES = [
-  ['corsproxy.io', u => 'https://corsproxy.io/?url=' + encodeURIComponent(u)],
+  // corsproxy.io keyless requires API key now — omitted
   ['allorigins', u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u)],
   ['codetabs', u => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u)],
 ];
@@ -991,8 +991,7 @@ async function boot() {
   }
 }
 
-
-/* ===== Charts (Chart.js) + view switch ===== */
+/* ===== Charts (Chart.js) + multi-source series (Stooq / Tencent / Sina / CoinGecko; Yahoo last) ===== */
 const CHART_COLORS = {
   up: '#10b981', down: '#f43f5e', accent: '#3b82f6', muted: '#64748b',
   grid: 'rgba(30, 38, 56, 0.85)', text: '#94a3b8',
@@ -1002,10 +1001,26 @@ const CHART_COLORS = {
   },
 };
 const INDEX_DEFS = [
-  { id: 'HSI', label: '恆生指數', yahoo: '^HSI', canvas: 'sparkHSI', priceEl: 'idxHSIPrice', chgEl: 'idxHSIChg' },
-  { id: 'IXIC', label: '納斯達克', yahoo: '^IXIC', canvas: 'sparkIXIC', priceEl: 'idxIXICPrice', chgEl: 'idxIXICChg' },
-  { id: 'N225', label: '日經 225', yahoo: '^N225', canvas: 'sparkN225', priceEl: 'idxN225Price', chgEl: 'idxN225Chg' },
-  { id: 'BTC', label: '比特幣', yahoo: 'BTC-USD', canvas: 'sparkBTC', priceEl: 'idxBTCPrice', chgEl: 'idxBTCChg' },
+  {
+    id: 'HSI', label: '恆生指數', yahoo: '^HSI', yahooAlt: ['2800.HK'],
+    stooq: '^hkx', tencent: 'r_hkHSI', sina: 'int_hangseng', sinaRt: 'rt_hkHSI',
+    canvas: 'sparkHSI', priceEl: 'idxHSIPrice', chgEl: 'idxHSIChg',
+  },
+  {
+    id: 'IXIC', label: '納斯達克', yahoo: '^IXIC', yahooAlt: ['^COMP', 'QQQ'],
+    stooq: '^ndq', tencent: 'usIXIC', sina: 'int_nasdaq',
+    canvas: 'sparkIXIC', priceEl: 'idxIXICPrice', chgEl: 'idxIXICChg',
+  },
+  {
+    id: 'N225', label: '日經 225', yahoo: '^N225', yahooAlt: ['1321.T'],
+    stooq: '^nkx', sina: 'int_nikkei',
+    canvas: 'sparkN225', priceEl: 'idxN225Price', chgEl: 'idxN225Chg',
+  },
+  {
+    id: 'BTC', label: '比特幣', yahoo: 'BTC-USD', yahooAlt: ['BTCUSD=X'],
+    stooq: 'btc.v', coingecko: true,
+    canvas: 'sparkBTC', priceEl: 'idxBTCPrice', chgEl: 'idxBTCChg',
+  },
 ];
 
 function chartDefaults() {
@@ -1015,17 +1030,231 @@ function chartDefaults() {
   Chart.defaults.font.family = "'Noto Sans TC', Inter, system-ui, sans-serif";
 }
 
+async function fetchTextAny(url, ms = 8000) {
+  try {
+    const r = await fetchWithTimeout(url, ms);
+    return await r.text();
+  } catch (_) {
+    return null;
+  }
+}
+
+async function fetchViaProxiesText(url, ms = 10000) {
+  for (const [, f] of PUBLIC_PROXIES) {
+    try {
+      const r = await fetchWithTimeout(f(url), ms);
+      const t = await r.text();
+      if (t && t.length > 20 && !/^\s*<!DOCTYPE/i.test(t) && !/AuthenticationRequired|captcha|Just a moment/i.test(t)) {
+        return t;
+      }
+    } catch (_) {}
+  }
+  return null;
+}
+
+async function fetchJSONAny(url, ms = 8000) {
+  try { return await fetchJSON(url, ms); } catch (_) { return null; }
+}
+
+async function fetchJSONViaProxies(url, ms = 10000) {
+  for (const [, f] of PUBLIC_PROXIES) {
+    try {
+      const j = await fetchJSON(f(url), ms);
+      if (j) return j;
+    } catch (_) {}
+  }
+  return null;
+}
+
+/** Smooth synthetic path from prevClose → price (only when live series unavailable). */
+function synthesizeSeries(price, prevClose, n = 18, sourceLabel = '估算') {
+  const start = (prevClose > 0 ? prevClose : price) || 0;
+  const end = (price > 0 ? price : start) || 0;
+  if (!(end > 0) && !(start > 0)) throw new Error('no price for synthetic');
+  const now = Date.now();
+  const span = 6.5 * 60 * 60 * 1000;
+  const pts = [];
+  const delta = end - start;
+  for (let i = 0; i < n; i++) {
+    const t = n === 1 ? 1 : i / (n - 1);
+    const eased = t * t * (3 - 2 * t);
+    const wobble = Math.sin(i * 1.7) * 0.12 * Math.abs(delta || end * 0.002) * (1 - Math.abs(2 * t - 1));
+    pts.push({ t: now - span + span * t, c: start + delta * eased + wobble });
+  }
+  // pin ends
+  pts[0].c = start;
+  pts[pts.length - 1].c = end;
+  return {
+    pts,
+    price: end,
+    prevClose: start,
+    changePct: start ? (end - start) / start : 0,
+    _via: sourceLabel,
+    _fallback: true,
+  };
+}
+
+function parseStooqCsv(text, maxPts = 28) {
+  if (!text || !/Date[,;]/i.test(text)) throw new Error('stooq not csv');
+  const lines = text.trim().split(/\r?\n/).filter(Boolean);
+  if (lines.length < 3) throw new Error('stooq short');
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const parts = lines[i].split(',');
+    if (parts.length < 5) continue;
+    const d = parts[0].trim();
+    const close = parseFloat(parts[4]);
+    if (!(close > 0) || !/^\d{4}-\d{2}-\d{2}/.test(d)) continue;
+    const t = Date.parse(d + 'T16:00:00Z');
+    if (!Number.isFinite(t)) continue;
+    rows.push({ t, c: close });
+  }
+  if (rows.length < 2) throw new Error('stooq empty');
+  rows.sort((a, b) => a.t - b.t);
+  const pts = rows.slice(-maxPts);
+  const price = pts[pts.length - 1].c;
+  const prevClose = pts.length >= 2 ? pts[pts.length - 2].c : price;
+  return {
+    pts,
+    price,
+    prevClose,
+    changePct: prevClose ? (price - prevClose) / prevClose : 0,
+    _via: 'Stooq',
+  };
+}
+
+async function stooqDailySeries(sym) {
+  if (!sym) throw new Error('no stooq sym');
+  const url = 'https://stooq.com/q/d/l/?s=' + encodeURIComponent(sym) + '&i=d';
+  let text = await fetchTextAny(url, 6000);
+  if (!text || !/Date[,;]/i.test(text)) text = await fetchViaProxiesText(url, 12000);
+  return parseStooqCsv(text);
+}
+
+async function coinGeckoBtcSeries() {
+  const urls = [
+    'https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=1',
+    'https://api.coingecko.com/api/v3/coins/bitcoin/ohlc?vs_currency=usd&days=1',
+  ];
+  // market_chart
+  let j = await fetchJSONAny(urls[0], 8000);
+  if (!j) j = await fetchJSONViaProxies(urls[0], 10000);
+  if (j && Array.isArray(j.prices) && j.prices.length >= 2) {
+    const pts = j.prices
+      .filter(p => p && p[1] > 0)
+      .map(p => ({ t: p[0], c: p[1] }));
+    if (pts.length >= 2) {
+      const price = pts[pts.length - 1].c;
+      // approx prev as first point of window or 24h-ago style
+      const prevClose = pts[0].c;
+      const chg = prevClose ? (price - prevClose) / prevClose : 0;
+      return { pts, price, prevClose, changePct: chg, _via: 'CoinGecko' };
+    }
+  }
+  // ohlc fallback [[t,o,h,l,c],...]
+  let ohlc = await fetchJSONAny(urls[1], 8000);
+  if (!ohlc) ohlc = await fetchJSONViaProxies(urls[1], 10000);
+  if (Array.isArray(ohlc) && ohlc.length >= 2) {
+    const pts = ohlc.filter(r => r && r[4] > 0).map(r => ({ t: r[0], c: r[4] }));
+    if (pts.length >= 2) {
+      const price = pts[pts.length - 1].c;
+      const prevClose = pts[0].c;
+      return {
+        pts, price, prevClose,
+        changePct: prevClose ? (price - prevClose) / prevClose : 0,
+        _via: 'CoinGecko OHLC',
+      };
+    }
+  }
+  throw new Error('CoinGecko series fail');
+}
+
+async function sinaScriptQuote(listCode) {
+  // JSONP-style: hq_str_<code>
+  const varName = 'hq_str_' + listCode;
+  const url = 'https://hq.sinajs.cn/list=' + listCode;
+  let raw;
+  try {
+    raw = await loadScriptVar(url, varName);
+  } catch (_) {
+    // fetch + parse (may need Referer — often blocked cross-origin)
+    const txt = await fetchTextAny(url, 5000);
+    if (txt) {
+      const m = new RegExp(varName + '="([^"]*)"').exec(txt);
+      if (m) raw = m[1];
+    }
+  }
+  if (raw == null || raw === '') throw new Error('sina empty');
+  const f = String(raw).split(',');
+  // int_*: name, price, change, changePct
+  if (listCode.startsWith('int_')) {
+    const price = parseFloat(f[1]);
+    const chgPct = (parseFloat(f[3]) || 0) / 100;
+    if (!(price > 0)) throw new Error('sina no price');
+    const prevClose = chgPct !== -1 ? price / (1 + chgPct) : price;
+    return { price, prevClose, change: price - prevClose, changePct: chgPct, _via: '新浪' };
+  }
+  // rt_hkHSI: HSI,name,open,prev,high,low,price,change,changePct,...
+  if (listCode.startsWith('rt_')) {
+    const price = parseFloat(f[6]);
+    const prevClose = parseFloat(f[3]) || price;
+    if (!(price > 0)) throw new Error('sina rt no price');
+    return {
+      price, prevClose, change: price - prevClose,
+      changePct: prevClose ? (price - prevClose) / prevClose : 0,
+      _via: '新浪',
+    };
+  }
+  throw new Error('sina format');
+}
+
+async function tencentIndexQuote(tcCode) {
+  if (!tcCode) throw new Error('no tc');
+  // Prefer full quote codes (usIXIC / r_hkHSI) over short s_* 
+  try {
+    const q = await tencentQuote(tcCode);
+    if (q.price > 0) return { ...q, _via: '騰訊財經' };
+  } catch (_) {}
+  // short s_ format: 200~name~code~price~change~changePct~
+  let raw;
+  try {
+    const txt = await fetchGbkText('https://qt.gtimg.cn/q=' + tcCode);
+    raw = (/="([^"]*)"/.exec(txt) || [])[1];
+  } catch (_) {
+    try { raw = await loadScriptVar('https://qt.gtimg.cn/q=' + tcCode, 'v_' + tcCode); } catch (__) {}
+  }
+  if (!raw || raw.indexOf('~') < 0) throw new Error('tencent empty');
+  const f = raw.split('~');
+  const price = parseFloat(f[3]);
+  if (!(price > 0)) throw new Error('tencent no price');
+  // detect short vs full: if f[5] looks like pct and f[4] is small relative change
+  const a = parseFloat(f[4]);
+  const b = parseFloat(f[5]);
+  let prevClose, changePct;
+  if (Number.isFinite(b) && Math.abs(b) < 30 && Number.isFinite(a) && Math.abs(a) < price * 0.2) {
+    // short: change + changePct
+    changePct = b / 100;
+    prevClose = changePct !== -1 ? price / (1 + changePct) : price;
+  } else {
+    prevClose = a > 0 ? a : price;
+    changePct = prevClose ? (price - prevClose) / prevClose : 0;
+  }
+  return { price, prevClose, change: price - prevClose, changePct, _via: '騰訊財經' };
+}
+
 async function yahooIntraday(sym, range = '1d', interval = '5m') {
   const path = `/v8/finance/chart/${encodeURIComponent(sym)}?range=${range}&interval=${interval}&includePrePost=false`;
-  const direct = ['https://query1.finance.yahoo.com' + path, 'https://query2.finance.yahoo.com' + path];
+  const directs = [
+    'https://query1.finance.yahoo.com' + path,
+    'https://query2.finance.yahoo.com' + path,
+  ];
   let j = null;
-  for (const u of direct) {
-    try { j = await fetchJSON(u, 5000); break; } catch (_) {}
+  for (const u of directs) {
+    j = await fetchJSONAny(u, 4500);
+    if (j && j.chart && j.chart.result) break;
+    j = null;
   }
-  if (!j) {
-    const cand = PUBLIC_PROXIES.map(([n, f]) => [n, f(direct[0])]);
-    j = await Promise.any(cand.map(async ([, u]) => fetchJSON(u, 8000)));
-  }
+  if (!j) j = await fetchJSONViaProxies(directs[0], 9000);
   const res = j && j.chart && j.chart.result && j.chart.result[0];
   if (!res || !res.timestamp) throw new Error('no chart');
   const meta = res.meta || {};
@@ -1039,7 +1268,25 @@ async function yahooIntraday(sym, range = '1d', interval = '5m') {
   if (!pts.length) throw new Error('empty series');
   const price = meta.regularMarketPrice || pts[pts.length - 1].c;
   const prevClose = meta.chartPreviousClose || meta.previousClose || pts[0].c;
-  return { pts, price, prevClose, changePct: prevClose ? (price - prevClose) / prevClose : 0, currency: meta.currency };
+  return {
+    pts, price, prevClose,
+    changePct: prevClose ? (price - prevClose) / prevClose : 0,
+    currency: meta.currency,
+    _via: 'Yahoo ' + interval,
+  };
+}
+
+async function yahooIntradayHardened(sym) {
+  const attempts = [
+    ['1d', '5m'], ['1d', '15m'], ['5d', '1h'], ['5d', '1d'],
+  ];
+  let lastErr;
+  for (const [range, interval] of attempts) {
+    try {
+      return await yahooIntraday(sym, range, interval);
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error('yahoo hardened fail');
 }
 
 function destroyChart(ref) {
@@ -1087,6 +1334,9 @@ function ensureSpark(id, canvasId, pts, chg) {
 }
 
 function updateIndexStripUI() {
+  const vias = [];
+  let anyFallback = false;
+  let anyLive = false;
   for (const d of INDEX_DEFS) {
     const s = state.indexSeries[d.id];
     if (!s) continue;
@@ -1096,22 +1346,74 @@ function updateIndexStripUI() {
       ce.textContent = signed(s.changePct * 100, 2) + '%';
       ce.className = `text-[11px] font-num px-1.5 py-0.5 rounded ${badgePL(s.changePct)}`;
     }
-    ensureSpark(d.id, d.canvas, s.pts, s.changePct);
+    if (s.pts && s.pts.length >= 2) ensureSpark(d.id, d.canvas, s.pts, s.changePct);
+    if (s._via) vias.push(d.id + ':' + s._via);
+    if (s._fallback) anyFallback = true; else anyLive = true;
   }
   const meta = $('indexStripMeta');
-  if (meta) meta.textContent = 'Yahoo 盤中 · ' + new Date().toLocaleTimeString('zh-HK', { hour12: false });
+  if (meta) {
+    const src = [...new Set(INDEX_DEFS.map(d => (state.indexSeries[d.id] || {})._via).filter(Boolean))];
+    const label = src.length ? src.join(' · ') : '等待報價';
+    const tag = anyFallback && !anyLive
+      ? '估算走勢'
+      : (anyFallback ? '混合（含估算）' : '即時／歷史序列');
+    meta.textContent = tag + ' · ' + label + ' · ' + new Date().toLocaleTimeString('zh-HK', { hour12: false });
+  }
+}
+
+async function loadOneIndexSeries(d) {
+  // 1) BTC → CoinGecko series first
+  if (d.coingecko) {
+    try { return await coinGeckoBtcSeries(); } catch (_) {}
+  }
+  // 2) Stooq daily history (stable when reachable)
+  if (d.stooq) {
+    try { return await stooqDailySeries(d.stooq); } catch (_) {}
+  }
+  // 3) Live quote from Tencent / Sina → synthetic spark from prev→price
+  let quote = null;
+  if (d.tencent) {
+    try { quote = await tencentIndexQuote(d.tencent); } catch (_) {}
+  }
+  if (!quote && d.sinaRt) {
+    try { quote = await sinaScriptQuote(d.sinaRt); } catch (_) {}
+  }
+  if (!quote && d.sina) {
+    try { quote = await sinaScriptQuote(d.sina); } catch (_) {}
+  }
+  if (!quote && d.coingecko) {
+    try { quote = await coinGeckoBtc(); } catch (_) {}
+  }
+  // 4) Yahoo intraday (last resort for series)
+  const ysyms = [d.yahoo, ...(d.yahooAlt || [])].filter(Boolean);
+  for (const sym of ysyms) {
+    try {
+      const s = await yahooIntradayHardened(sym);
+      if (s && s.pts && s.pts.length >= 2) return s;
+    } catch (_) {}
+  }
+  // 5) Yahoo / existing quote for price then synthetic
+  if (!quote) {
+    for (const sym of ysyms) {
+      try {
+        const q = await yahooQuote(sym);
+        if (q.price > 0) { quote = q; break; }
+      } catch (_) {}
+    }
+  }
+  if (quote && quote.price > 0) {
+    const syn = synthesizeSeries(quote.price, quote.prevClose || quote.price, 20, (quote._via || '報價') + '·估算');
+    return syn;
+  }
+  throw new Error('index ' + d.id + ' fail');
 }
 
 async function loadIndexSeries() {
   await Promise.all(INDEX_DEFS.map(async (d) => {
     try {
-      const s = await yahooIntraday(d.yahoo, '1d', '5m');
-      state.indexSeries[d.id] = s;
-    } catch (_) {
-      try {
-        const s = await yahooIntraday(d.yahoo, '5d', '1h');
-        state.indexSeries[d.id] = s;
-      } catch (__) {}
+      state.indexSeries[d.id] = await loadOneIndexSeries(d);
+    } catch (e) {
+      console.warn('index', d.id, e);
     }
   }));
   updateIndexStripUI();
@@ -1125,56 +1427,84 @@ function pickNavHoldings(rows) {
     .slice(0, 12);
 }
 
+function synthesizeNavPath(c, sourceLabel) {
+  const end = Number(c.net) || 0;
+  const today = Number(c.today) || 0;
+  const start = end - today;
+  if (!(end > 0) && !(start > 0)) return null;
+  const now = Date.now();
+  const span = 6.5 * 60 * 60 * 1000;
+  const n = 24;
+  const path = [];
+  for (let i = 0; i < n; i++) {
+    const t = i / (n - 1);
+    const eased = t * t * (3 - 2 * t);
+    const wobble = Math.sin(i * 0.9) * Math.abs(today || end * 0.001) * 0.08 * (1 - Math.abs(2 * t - 1));
+    path.push({ t: now - span + span * t, nav: start + (end - start) * eased + wobble });
+  }
+  path[0].nav = start;
+  path[path.length - 1].nav = end;
+  state.navSeries = path;
+  state.navSeriesVia = sourceLabel || '報價估算';
+  return path;
+}
+
 async function buildNavPath(c) {
   const picks = pickNavHoldings(c.rows);
   const meta = $('navChartMeta');
-  if (!picks.length) {
-    if (meta) meta.textContent = '等待持倉報價…';
-    return null;
-  }
-  if (meta) meta.textContent = `加權 ${picks.length} 隻主要持倉…`;
-  const seriesList = [];
-  await mapPool(picks, 4, async (h) => {
-    try {
-      const s = await yahooIntraday(h.yahoo, '1d', '5m');
-      seriesList.push({ h, s });
-    } catch (_) {}
-  });
-  if (!seriesList.length) {
-    if (meta) meta.textContent = '暫未能載入盤中走勢';
-    return null;
-  }
-  // Align on union of timestamps (5-min buckets); use last known close per series
-  const allTs = [...new Set(seriesList.flatMap(x => x.s.pts.map(p => p.t)))].sort((a, b) => a - b);
-  if (allTs.length < 2) {
-    if (meta) meta.textContent = '盤中點數不足';
-    return null;
-  }
-  const weightSum = seriesList.reduce((a, x) => a + Math.abs(x.h.mvHKD || 0), 0) || 1;
-  const cash = c.cash || 0;
-  const path = [];
-  const cursors = seriesList.map(x => ({ ...x, i: 0, last: x.s.pts[0].c }));
-  for (const t of allTs) {
-    let mv = 0;
-    for (const cur of cursors) {
-      while (cur.i < cur.s.pts.length && cur.s.pts[cur.i].t <= t) {
-        cur.last = cur.s.pts[cur.i].c;
-        cur.i++;
+  const setMeta = (t) => { if (meta) meta.textContent = t; };
+
+  // Prefer weighted Yahoo intraday when available
+  if (picks.length) {
+    setMeta(`加權 ${picks.length} 隻主要持倉…`);
+    const seriesList = [];
+    await mapPool(picks, 3, async (h) => {
+      try {
+        const s = await yahooIntradayHardened(h.yahoo);
+        if (s && s.pts && s.pts.length >= 2) seriesList.push({ h, s });
+      } catch (_) {}
+    });
+    if (seriesList.length) {
+      const allTs = [...new Set(seriesList.flatMap(x => x.s.pts.map(p => p.t)))].sort((a, b) => a - b);
+      if (allTs.length >= 2) {
+        const cash = c.cash || 0;
+        const path = [];
+        const cursors = seriesList.map(x => ({ ...x, i: 0, last: x.s.pts[0].c }));
+        for (const t of allTs) {
+          let mv = 0;
+          for (const cur of cursors) {
+            while (cur.i < cur.s.pts.length && cur.s.pts[cur.i].t <= t) {
+              cur.last = cur.s.pts[cur.i].c;
+              cur.i++;
+            }
+            const h = cur.h;
+            const px = cur.last;
+            const ratio = h.price > 0 ? px / h.price : 1;
+            mv += (h.mvHKD || 0) * ratio;
+          }
+          const sampleMvNow = seriesList.reduce((a, x) => a + (x.h.mvHKD || 0), 0) || 1;
+          const fullMv = c.mv || sampleMvNow;
+          const scaledMv = mv * (fullMv / sampleMvNow);
+          path.push({ t, nav: cash + scaledMv });
+        }
+        setMeta(`加權 ${seriesList.length}/${picks.length} 隻 · Yahoo 盤中`);
+        state.navSeries = path;
+        state.navSeriesVia = 'Yahoo';
+        return path;
       }
-      const h = cur.h;
-      const px = cur.last;
-      const ratio = h.price > 0 ? px / h.price : 1;
-      mv += (h.mvHKD || 0) * ratio;
     }
-    // Scale sample MV to full portfolio MV + cash
-    const sampleMvNow = seriesList.reduce((a, x) => a + (x.h.mvHKD || 0), 0) || 1;
-    const fullMv = c.mv || sampleMvNow;
-    const scaledMv = mv * (fullMv / sampleMvNow);
-    path.push({ t, nav: cash + scaledMv });
   }
-  if (meta) meta.textContent = `加權 ${seriesList.length}/${picks.length} 隻 · Yahoo 1日`;
-  state.navSeries = path;
-  return path;
+
+  // Fallback: synthesize from KPI today change so chart never stays empty
+  if (Number.isFinite(c.net) && (Number.isFinite(c.today) || c.net > 0)) {
+    const path = synthesizeNavPath(c, '報價估算（Yahoo盤中暫不可用）');
+    if (path) {
+      setMeta('報價估算（Yahoo盤中暫不可用）');
+      return path;
+    }
+  }
+  setMeta('等待持倉報價…');
+  return null;
 }
 
 function renderNavChart(path) {
@@ -1252,7 +1582,13 @@ function allocGroupsFrom(c) {
 function renderAllocDonut(c) {
   const canvas = $('allocDonut');
   if (!canvas || typeof Chart === 'undefined') return;
+  // Ensure parent has layout size (Chart.js needs non-zero box)
+  const wrap = canvas.parentElement;
+  if (wrap && wrap.clientHeight < 40) {
+    wrap.style.minHeight = '220px';
+  }
   const entries = allocGroupsFrom(c);
+  if (!entries.length) return;
   const labels = entries.map(([k]) => k);
   const data = entries.map(([, v]) => v);
   const colors = labels.map(k => CHART_COLORS.alloc[k] || '#64748b');
@@ -1261,6 +1597,7 @@ function renderAllocDonut(c) {
     state.charts.alloc.data.datasets[0].data = data;
     state.charts.alloc.data.datasets[0].backgroundColor = colors;
     state.charts.alloc.update('none');
+    try { state.charts.alloc.resize(); } catch (_) {}
     return;
   }
   state.charts.alloc = new Chart(canvas, {
@@ -1300,7 +1637,6 @@ function renderWlBar(c) {
   const winners = ranked.filter(r => r.todayHKD > 0).slice(0, 5);
   const losers = ranked.filter(r => r.todayHKD < 0).sort((a, b) => a.todayHKD - b.todayHKD).slice(0, 5);
   const mix = [...winners, ...losers.reverse()];
-  // unique by display
   const seen = new Set();
   const items = [];
   for (const r of mix) {
@@ -1359,6 +1695,15 @@ function updateLiveCharts(c) {
   renderAllocDonut(c);
   renderWlBar(c);
   if (state.navSeries) renderNavChart(state.navSeries);
+  else {
+    // Ensure NAV never blank once KPIs exist
+    const path = synthesizeNavPath(c, '報價估算');
+    if (path) {
+      const meta = $('navChartMeta');
+      if (meta) meta.textContent = '報價估算（Yahoo盤中暫不可用）';
+      renderNavChart(path);
+    }
+  }
 }
 
 async function refreshChartSeries() {
@@ -1374,6 +1719,11 @@ async function refreshChartSeries() {
     renderWlBar(c);
   } catch (e) {
     console.warn('charts', e);
+    // last-ditch: still show synthetic NAV + alloc
+    try {
+      const c = compute();
+      updateLiveCharts(c);
+    } catch (_) {}
   } finally {
     state.chartBusy = false;
   }
