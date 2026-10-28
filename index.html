@@ -203,20 +203,29 @@
         }
         #viewPortfolio { display: contents; }
         #viewPortfolio.hidden-view { display: none !important; }
-        #viewCalc {
+        #viewCalc, #viewReports {
             display: none;
             flex: 1 1 auto;
             min-height: 100vh;
             flex-direction: column;
             width: 100%;
         }
-        #viewCalc.active { display: flex; }
-        #calcFrame {
+        #viewCalc.active, #viewReports.active { display: flex; }
+        #calcFrame, #reportFrame {
             flex: 1;
             width: 100%;
             border: 0;
             background: #0b0f14;
             min-height: calc(100vh - 3.5rem);
+        }
+        #reportFrame { min-height: min(78vh, 900px); background: #111827; border-radius: 0.75rem; border: 1px solid #1e2638; }
+        .report-archive-item {
+            display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+            padding: 0.75rem 1rem; border-radius: 0.75rem; border: 1px solid #1e2638;
+            background: rgba(14,18,27,0.85); cursor: pointer; transition: border-color 0.15s, background 0.15s;
+        }
+        .report-archive-item:hover, .report-archive-item.active {
+            border-color: rgba(59,130,246,0.45); background: rgba(59,130,246,0.08);
         }
     </style>
 </head>
@@ -292,6 +301,7 @@
                     <nav class="top-nav" aria-label="主功能">
                         <button type="button" class="top-nav-btn active" id="navPortfolio" onclick="switchAppView('portfolio')">組合</button>
                         <button type="button" class="top-nav-btn" id="navCalc" onclick="switchAppView('calc')">期權計算機</button>
+                        <button type="button" class="top-nav-btn" id="navReports" onclick="switchAppView('reports')">月報</button>
                     </nav>
                 </div>
 
@@ -586,12 +596,59 @@
                 <nav class="top-nav" aria-label="主功能">
                     <button type="button" class="top-nav-btn" onclick="switchAppView('portfolio')">組合</button>
                     <button type="button" class="top-nav-btn active" onclick="switchAppView('calc')">期權計算機</button>
+                    <button type="button" class="top-nav-btn" onclick="switchAppView('reports')">月報</button>
                 </nav>
                 <span class="text-xs text-muted hidden sm:inline">Ricky's Investment · 期權計算機</span>
             </div>
             <button type="button" class="text-xs text-blue-300 hover:text-blue-200" onclick="switchAppView('portfolio')">← 返回組合</button>
         </div>
         <iframe id="calcFrame" title="期權計算機" src="about:blank" loading="lazy"></iframe>
+    </div>
+
+    <div id="viewReports">
+        <div class="bg-[#040609] border-b border-borderDark px-4 md:px-6 py-2 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-3">
+                <nav class="top-nav" aria-label="主功能">
+                    <button type="button" class="top-nav-btn" onclick="switchAppView('portfolio')">組合</button>
+                    <button type="button" class="top-nav-btn" onclick="switchAppView('calc')">期權計算機</button>
+                    <button type="button" class="top-nav-btn active" onclick="switchAppView('reports')">月報</button>
+                </nav>
+                <span class="text-xs text-muted hidden sm:inline">Ricky's Investment · 經濟月報</span>
+            </div>
+            <button type="button" class="text-xs text-blue-300 hover:text-blue-200" onclick="switchAppView('portfolio')">← 返回組合</button>
+        </div>
+        <div class="flex-1 overflow-y-auto px-4 md:px-6 py-5 max-w-[1400px] w-full mx-auto">
+            <div class="mb-5">
+                <h2 class="text-xl md:text-2xl font-bold text-white tracking-tight">每月美國經濟及股市研究報告</h2>
+                <p class="text-sm text-muted mt-1">機構級宏觀月報 · 解鎖後瀏覽 · 每月更新</p>
+            </div>
+            <div class="grid grid-cols-1 xl:grid-cols-[1fr_280px] gap-5">
+                <section class="pro-panel rounded-2xl overflow-hidden flex flex-col min-h-[70vh]">
+                    <div class="pro-panel-header px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                            <h3 class="text-sm font-semibold text-white" id="reportFeatureTitle">載入中…</h3>
+                            <p class="text-[11px] text-muted mt-0.5" id="reportFeatureMeta">—</p>
+                        </div>
+                        <a id="reportDownload" href="#" download class="text-xs px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium transition pointer-events-none opacity-50">下載 PDF</a>
+                    </div>
+                    <div class="p-3 md:p-4 flex-1 flex flex-col">
+                        <iframe id="reportFrame" title="經濟月報 PDF" src="about:blank"></iframe>
+                        <p class="text-[11px] text-muted mt-2">若瀏覽器無法內嵌預覽，請用「下載 PDF」開啟。</p>
+                    </div>
+                </section>
+                <aside class="space-y-3">
+                    <div class="pro-panel rounded-2xl p-4">
+                        <h3 class="text-xs font-semibold text-muted uppercase tracking-wider mb-3">月報存檔</h3>
+                        <div id="reportArchive" class="space-y-2">
+                            <p class="text-xs text-muted">載入中…</p>
+                        </div>
+                    </div>
+                    <div class="pro-panel rounded-2xl p-4 text-[11px] text-muted leading-relaxed">
+                        來源：Stock And Economic Report。每月報告完成後會自動上架到此頁。PDF 連結只喺解鎖後顯示；知道直接 URL 仍可抓取（同持倉快照一樣嘅客戶端閘門限制）。
+                    </div>
+                </aside>
+            </div>
+        </div>
     </div>
 
     <!-- Detail drawer (inside app shell) -->
@@ -625,6 +682,6 @@
       });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-    <script src="app.js?v=20261028c"></script>
+    <script src="app.js?v=20261028d"></script>
 </body>
 </html>

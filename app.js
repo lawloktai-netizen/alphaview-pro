@@ -5,6 +5,7 @@
 const PASS_HASH = '21f3dc4db237caf55464ec97e07ecf20d5031b8e3a934436d00651b1e4b02614';
 const SESSION_KEY = 'ricky_invest_unlocked_v2';
 const HOLDINGS_URL = 'data/snap_a7f3e9c2.json';
+const REPORTS_INDEX_URL = 'reports/index.json';
 const PUBLIC_PROXIES = [
   // corsproxy.io keyless requires API key now — omitted
   ['allorigins', u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u)],
@@ -33,6 +34,9 @@ const state = {
   selectedId: null,
   prevPrices: {},
   view: 'portfolio',
+  reports: [],
+  activeReportId: null,
+  reportsLoaded: false,
   charts: { nav: null, alloc: null, wl: null, sparks: {} },
   indexSeries: {},
   navSeries: null,
@@ -1729,27 +1733,98 @@ async function refreshChartSeries() {
   }
 }
 
+function monthLabel(ym) {
+  const m = String(ym || '').match(/^(\d{4})-(\d{2})$/);
+  if (!m) return ym || '—';
+  return m[1] + '年' + Number(m[2]) + '月';
+}
+
+function reportPdfUrl(file) {
+  return 'reports/' + encodeURIComponent(file) + '?v=20261028d';
+}
+
+function selectReport(id) {
+  const list = state.reports || [];
+  const r = list.find(x => x.id === id) || list[0];
+  if (!r) return;
+  state.activeReportId = r.id;
+  const title = $('reportFeatureTitle');
+  const meta = $('reportFeatureMeta');
+  const frame = $('reportFrame');
+  const dl = $('reportDownload');
+  if (title) title.textContent = (r.title || '美國宏觀經濟與跨資產配置月報') + ' · ' + monthLabel(r.month);
+  if (meta) meta.textContent = monthLabel(r.month) + (r.pages ? (' · ' + r.pages + ' 頁') : '') + ' · PDF';
+  const url = reportPdfUrl(r.file);
+  if (frame) frame.src = url;
+  if (dl) {
+    dl.href = url;
+    dl.setAttribute('download', r.file);
+    dl.classList.remove('pointer-events-none', 'opacity-50');
+  }
+  const arch = $('reportArchive');
+  if (arch) {
+    arch.querySelectorAll('.report-archive-item').forEach(el => {
+      el.classList.toggle('active', el.getAttribute('data-id') === r.id);
+    });
+  }
+}
+
+async function loadReports() {
+  if (state.reportsLoaded) return;
+  const arch = $('reportArchive');
+  try {
+    const data = await fetchJSON(REPORTS_INDEX_URL + '?t=' + Date.now(), 8000);
+    const list = Array.isArray(data && data.reports) ? data.reports.slice() : [];
+    list.sort((a, b) => String(b.month || '').localeCompare(String(a.month || '')));
+    state.reports = list;
+    state.reportsLoaded = true;
+    if (arch) {
+      if (!list.length) {
+        arch.innerHTML = '<p class="text-xs text-muted">暫未有月報。</p>';
+      } else {
+        arch.innerHTML = list.map(r => (
+          '<button type="button" class="report-archive-item w-full text-left" data-id="' + esc(r.id) + '" onclick="selectReport(\'' + esc(r.id) + '\')">' +
+            '<div><div class="text-sm text-white font-medium">' + esc(monthLabel(r.month)) + '</div>' +
+            '<div class="text-[11px] text-muted mt-0.5">' + esc(r.title || '宏觀月報') + (r.pages ? (' · ' + r.pages + '頁') : '') + '</div></div>' +
+            '<span class="text-[10px] text-blue-300 shrink-0">開啓</span>' +
+          '</button>'
+        )).join('');
+      }
+    }
+    if (list.length) selectReport(list[0].id);
+  } catch (e) {
+    console.warn('reports load failed', e);
+    if (arch) arch.innerHTML = '<p class="text-xs text-rose-400">月報目錄載入失敗，請稍後再試。</p>';
+  }
+}
+
+window.selectReport = selectReport;
+
 window.switchAppView = function(view) {
-  state.view = view === 'calc' ? 'calc' : 'portfolio';
+  const allowed = { portfolio: 1, calc: 1, reports: 1 };
+  state.view = allowed[view] ? view : 'portfolio';
   const port = $('viewPortfolio');
   const calc = $('viewCalc');
+  const reports = $('viewReports');
   const frame = $('calcFrame');
   document.querySelectorAll('.top-nav-btn').forEach(btn => {
-    const isCalc = (btn.textContent || '').includes('期權');
-    const active = state.view === 'calc' ? isCalc : !isCalc;
+    const t = (btn.textContent || '').trim();
+    let active = false;
+    if (state.view === 'calc') active = t.includes('期權');
+    else if (state.view === 'reports') active = t.includes('月報');
+    else active = t === '組合';
     btn.classList.toggle('active', active);
   });
+  if (port) port.classList.toggle('hidden-view', state.view !== 'portfolio');
+  if (calc) calc.classList.toggle('active', state.view === 'calc');
+  if (reports) reports.classList.toggle('active', state.view === 'reports');
   if (state.view === 'calc') {
-    if (port) port.classList.add('hidden-view');
-    if (calc) calc.classList.add('active');
     if (frame && (!frame.src || frame.src === 'about:blank' || frame.getAttribute('src') === 'about:blank')) {
       frame.src = 'calc/index.html';
     }
-    // pause quote noise a bit optional — keep running in background
+  } else if (state.view === 'reports') {
+    loadReports();
   } else {
-    if (port) port.classList.remove('hidden-view');
-    if (calc) calc.classList.remove('active');
-    // resize charts after show
     setTimeout(() => {
       try {
         state.charts.nav && state.charts.nav.resize();
