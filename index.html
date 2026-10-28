@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-HK" class="dark">
+<html lang="zh-HK">
 <head>
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow, noarchive">
@@ -15,17 +15,18 @@
             theme: {
                 extend: {
                     colors: {
-                        dark: '#06080c',
-                        panel: '#0e121b',
-                        panelLight: '#151b26',
-                        panelHover: '#1c2331',
-                        borderDark: '#1e2638',
-                        up: '#10b981',
-                        upBg: 'rgba(16, 185, 129, 0.12)',
-                        down: '#f43f5e',
-                        downBg: 'rgba(244, 63, 94, 0.12)',
-                        accent: '#3b82f6',
-                        muted: '#64748b',
+                        dark: '#F4F6F8',
+                        panel: '#FFFFFF',
+                        panelLight: '#F8FAFC',
+                        panelHover: '#EEF2F6',
+                        borderDark: '#E2E8F0',
+                        ink: '#0F172A',
+                        up: '#047857',
+                        upBg: 'rgba(4, 120, 87, 0.10)',
+                        down: '#BE123C',
+                        downBg: 'rgba(190, 18, 60, 0.08)',
+                        accent: '#2563EB',
+                        muted: '#5B677A',
                     },
                     fontFamily: {
                         sans: ['"Noto Sans TC"', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
@@ -36,59 +37,60 @@
         }
     </script>
     <style>
+        html { color-scheme: light; }
         body {
-            background-color: #06080c;
-            color: #e2e8f0;
+            background-color: #F4F6F8;
+            color: #0F172A;
             font-family: 'Noto Sans TC', Inter, system-ui, sans-serif;
-            background-image: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.06) 0%, transparent 50%);
+            background-image: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.06) 0%, transparent 42%);
         }
         .font-num { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
         ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: #06080c; }
-        ::-webkit-scrollbar-thumb { background: #1e2638; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+        ::-webkit-scrollbar-track { background: #F4F6F8; }
+        ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .pro-panel {
-            background: linear-gradient(180deg, rgba(21, 27, 38, 0.75) 0%, rgba(14, 18, 27, 0.9) 100%);
+            background: #FFFFFF;
             backdrop-filter: blur(12px);
-            border: 1px solid #1e2638;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+            border: 1px solid #E2E8F0;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.04);
         }
         .pro-panel-header {
-            background: rgba(10, 14, 23, 0.65);
-            border-bottom: 1px solid #1e2638;
+            background: #F8FAFC;
+            border-bottom: 1px solid #E2E8F0;
         }
         table { width: 100%; text-align: left; border-collapse: collapse; }
         th {
             font-size: 0.7rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            color: #64748b;
+            color: #5B677A;
             padding: 0.65rem 0.85rem;
-            border-bottom: 1px solid #1e2638;
+            border-bottom: 1px solid #E2E8F0;
             font-weight: 600;
             position: sticky;
             top: 0;
-            background: #0e121b;
+            background: #F8FAFC;
             z-index: 10;
         }
         th.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
-        th.sortable:hover { color: #94a3b8; }
-        th.sortable .sort-ind { opacity: 0.35; margin-left: 0.2rem; font-size: 0.65rem; }
-        th.sortable.sort-active { color: #93c5fd; }
-        th.sortable.sort-active .sort-ind { opacity: 1; color: #60a5fa; }
+        th.sortable:hover { color: #334155; }
+        th.sortable .sort-ind { opacity: 0.45; margin-left: 0.2rem; font-size: 0.65rem; }
+        th.sortable.sort-active { color: #1D4ED8; }
+        th.sortable.sort-active .sort-ind { opacity: 1; color: #1D4ED8; }
         td {
             padding: 0.65rem 0.85rem;
-            border-bottom: 1px solid rgba(30, 38, 56, 0.5);
+            border-bottom: 1px solid #EEF2F6;
             font-size: 0.8125rem;
         }
         tr.interactive-row { cursor: pointer; transition: background-color 0.15s ease; }
-        tr.interactive-row:hover { background-color: rgba(59, 130, 246, 0.07); }
-        tr.quote-flash { background-color: rgba(16, 185, 129, 0.12) !important; transition: background-color 0.6s ease; }
-        .badge-up { color: #10b981; background-color: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.25); }
-        .badge-down { color: #f43f5e; background-color: rgba(244, 63, 94, 0.12); border: 1px solid rgba(244, 63, 94, 0.25); }
-        .badge-neutral { color: #94a3b8; background-color: rgba(148, 163, 184, 0.12); border: 1px solid rgba(148, 163, 184, 0.2); }
+        tr.interactive-row:hover { background-color: rgba(37, 99, 235, 0.06); }
+        tr.quote-flash { background-color: rgba(4, 120, 87, 0.12) !important; transition: background-color 0.6s ease; }
+        .badge-up { color: #047857; background-color: rgba(4, 120, 87, 0.10); border: 1px solid rgba(4, 120, 87, 0.22); }
+        .badge-down { color: #BE123C; background-color: rgba(190, 18, 60, 0.08); border: 1px solid rgba(190, 18, 60, 0.20); }
+        .badge-neutral { color: #475569; background-color: rgba(71, 85, 105, 0.08); border: 1px solid rgba(71, 85, 105, 0.16); }
         .tab-btn {
             padding: 0.35rem 0.75rem;
             font-size: 0.75rem;
@@ -96,11 +98,11 @@
             border-radius: 0.375rem;
             transition: all 0.15s;
         }
-        .tab-active { background-color: #3b82f6; color: #ffffff; box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3); }
-        .tab-inactive { color: #64748b; }
-        .tab-inactive:hover { color: #e2e8f0; background-color: rgba(255, 255, 255, 0.04); }
-        .text-up { color: #10b981; }
-        .text-down { color: #f43f5e; }
+        .tab-active { background-color: #2563EB; color: #ffffff; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25); }
+        .tab-inactive { color: #5B677A; }
+        .tab-inactive:hover { color: #0F172A; background-color: #EEF2F6; }
+        .text-up { color: #047857; }
+        .text-down { color: #BE123C; }
         .holdings-shell {
             display: flex;
             flex-direction: column;
@@ -113,7 +115,7 @@
         }
         #detailOverlay {
             position: fixed; inset: 0; z-index: 50;
-            background: rgba(2, 6, 14, 0.72);
+            background: rgba(15, 23, 42, 0.35);
             backdrop-filter: blur(4px);
             display: none;
             align-items: stretch;
@@ -122,9 +124,9 @@
         #detailOverlay.open { display: flex; }
         #detailDrawer {
             width: min(420px, 100vw);
-            background: #0e121b;
-            border-left: 1px solid #1e2638;
-            box-shadow: -12px 0 40px rgba(0,0,0,0.45);
+            background: #FFFFFF;
+            border-left: 1px solid #E2E8F0;
+            box-shadow: -12px 0 40px rgba(15, 23, 42, 0.08);
             display: flex;
             flex-direction: column;
             animation: slideIn 0.2s ease;
@@ -143,18 +145,18 @@
             transition: border-color 0.25s ease, box-shadow 0.25s ease;
         }
         .pro-panel:hover {
-            border-color: rgba(59, 130, 246, 0.35);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(59, 130, 246, 0.08), 0 0 28px rgba(59, 130, 246, 0.06);
+            border-color: rgba(37, 99, 235, 0.35);
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06), 0 0 0 1px rgba(37, 99, 235, 0.08);
         }
         .kpi-card {
-            background: linear-gradient(145deg, rgba(28, 35, 49, 0.95) 0%, rgba(14, 18, 27, 0.98) 100%);
-            border: 1px solid #1e2638;
+            background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+            border: 1px solid #E2E8F0;
             border-radius: 0.5rem;
             transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
         }
         .kpi-card:hover {
-            border-color: rgba(59, 130, 246, 0.4);
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.1);
+            border-color: rgba(37, 99, 235, 0.4);
+            box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
             transform: translateY(-1px);
         }
         .chart-wrap { position: relative; width: 100%; }
@@ -162,11 +164,12 @@
         .chart-wrap.donut { height: 220px; max-width: 260px; margin: 0 auto; }
         .chart-wrap.bars { height: 220px; }
         .tv-index-wrap {
-            background: linear-gradient(160deg, rgba(21, 27, 38, 0.9), rgba(10, 14, 23, 0.95));
-            border: 1px solid #1e2638;
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
             border-radius: 0.75rem;
             overflow: hidden;
             padding: 0.35rem;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
         }
         .tv-index-grid {
             display: grid;
@@ -178,8 +181,8 @@
             min-width: 0;
             overflow: hidden;
             border-radius: 0.4rem;
-            background: rgba(10, 14, 23, 0.55);
-            border: 1px solid rgba(30, 38, 56, 0.85);
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
         }
         .tv-index-cell .tradingview-widget-container,
         .tv-index-cell .tradingview-widget-container__widget {
@@ -216,16 +219,16 @@
             font-size: 10px;
             letter-spacing: 0.06em;
             text-transform: uppercase;
-            color: #64748b;
+            color: #5B677A;
             padding: 0.45rem 0.85rem 0.25rem;
-            border-bottom: 1px solid rgba(30, 38, 56, 0.65);
-            background: rgba(10, 14, 23, 0.45);
+            border-bottom: 1px solid #E2E8F0;
+            background: #F8FAFC;
         }
         .tv-cal-wrap {
             width: 100%;
             height: 420px;
             overflow: hidden;
-            background: #0e121b;
+            background: #FFFFFF;
         }
         .tv-cal-wrap.tall { height: 520px; }
         .tv-cal-wrap .tradingview-widget-container,
@@ -237,15 +240,15 @@
             border-radius: 0.375rem;
             transition: all 0.15s;
         }
-        .cal-tab-active { background-color: #3b82f6; color: #fff; font-weight: 500; }
-        .cal-tab-inactive { background-color: #111827; color: #94a3b8; }
-        .cal-tab-inactive:hover { color: #fff; }
+        .cal-tab-active { background-color: #2563EB; color: #fff; font-weight: 500; }
+        .cal-tab-inactive { background-color: #EEF2F6; color: #475569; }
+        .cal-tab-inactive:hover { color: #0F172A; }
         .num-soft { transition: color 0.35s ease; }
 
         .top-nav {
             display: flex; gap: 0.35rem; align-items: center;
-            background: rgba(6, 8, 12, 0.6);
-            border: 1px solid #1e2638;
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
             border-radius: 0.65rem;
             padding: 0.2rem;
         }
@@ -254,18 +257,18 @@
             font-size: 0.75rem;
             font-weight: 600;
             border-radius: 0.5rem;
-            color: #64748b;
+            color: #5B677A;
             transition: all 0.15s;
             border: none;
             background: transparent;
             cursor: pointer;
             white-space: nowrap;
         }
-        .top-nav-btn:hover { color: #e2e8f0; background: rgba(255,255,255,0.04); }
+        .top-nav-btn:hover { color: #0F172A; background: #EEF2F6; }
         .top-nav-btn.active {
             color: #fff;
-            background: #3b82f6;
-            box-shadow: 0 2px 10px rgba(59,130,246,0.3);
+            background: #2563EB;
+            box-shadow: 0 2px 8px rgba(37,99,235,0.28);
         }
         #viewPortfolio { display: contents; }
         #viewPortfolio.hidden-view { display: none !important; }
@@ -281,39 +284,39 @@
             flex: 1;
             width: 100%;
             border: 0;
-            background: #0b0f14;
+            background: #F4F6F8;
             min-height: calc(100vh - 3.5rem);
         }
-        #reportFrame { min-height: min(78vh, 900px); background: #111827; border-radius: 0.75rem; border: 1px solid #1e2638; }
+        #reportFrame { min-height: min(78vh, 900px); background: #FFFFFF; border-radius: 0.75rem; border: 1px solid #E2E8F0; }
         .report-archive-item {
             display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
-            padding: 0.75rem 1rem; border-radius: 0.75rem; border: 1px solid #1e2638;
-            background: rgba(14,18,27,0.85); cursor: pointer; transition: border-color 0.15s, background 0.15s;
+            padding: 0.75rem 1rem; border-radius: 0.75rem; border: 1px solid #E2E8F0;
+            background: #FFFFFF; cursor: pointer; transition: border-color 0.15s, background 0.15s;
         }
         .report-archive-item:hover, .report-archive-item.active {
-            border-color: rgba(59,130,246,0.45); background: rgba(59,130,246,0.08);
+            border-color: rgba(37,99,235,0.45); background: rgba(37,99,235,0.06);
         }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col selection:bg-blue-500 selection:text-white">
     <!-- Access gate -->
-    <div id="accessGate" class="fixed inset-0 z-[100] flex items-center justify-center bg-[#040609] px-4">
+    <div id="accessGate" class="fixed inset-0 z-[100] flex items-center justify-center bg-[#F4F6F8] px-4">
         <div class="w-full max-w-sm pro-panel rounded-2xl p-6 border border-borderDark shadow-2xl">
             <div class="flex items-center gap-3 mb-4">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center border border-blue-400/30">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                 </div>
                 <div>
-                    <h1 class="text-base font-bold text-white">Ricky's Investment</h1>
+                    <h1 class="text-base font-bold text-ink">Ricky's Investment</h1>
                     <p class="text-[11px] text-muted">私人投資組合 · 請輸入通行密碼</p>
                 </div>
             </div>
             <form id="gateForm" class="space-y-3" autocomplete="current-password">
                 <label class="block text-[11px] text-muted" for="gatePassword">通行密碼</label>
                 <input id="gatePassword" type="password" required autofocus
-                    class="w-full bg-[#06080c] border border-borderDark rounded-lg px-3 py-2.5 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-blue-500 font-num"
+                    class="w-full bg-white border border-borderDark rounded-lg px-3 py-2.5 text-sm text-slate-800 placeholder-slate-500 focus:outline-none focus:border-blue-500 font-num"
                     placeholder="輸入密碼解鎖…">
-                <p id="gateError" class="text-xs text-rose-400 hidden">密碼不正確，請再試。</p>
+                <p id="gateError" class="text-xs text-rose-700 hidden">密碼不正確，請再試。</p>
                 <button type="submit" class="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition">解鎖儀表板</button>
             </form>
             <p class="text-[10px] text-muted mt-4 leading-relaxed">本站僅供 Ricky 本人使用。客戶端密碼只係遮擋，唔係伺服器級保安；請勿公開分享連結。</p>
@@ -323,24 +326,24 @@
 
     <div id="viewPortfolio">
     <!-- Status bar -->
-    <div class="bg-[#040609] border-b border-borderDark px-4 md:px-6 py-1.5 flex flex-wrap justify-between items-center text-[11px] text-muted gap-2">
+    <div class="bg-[#F4F6F8] border-b border-borderDark px-4 md:px-6 py-1.5 flex flex-wrap justify-between items-center text-[11px] text-muted gap-2">
         <div class="flex items-center gap-4 overflow-x-auto hide-scrollbar">
             <span class="flex items-center gap-1.5 shrink-0">
                 <span id="systemDot" class="status-dot live-pulse"></span>
-                <strong class="text-gray-400 font-medium tracking-wide">系統運作中</strong>
+                <strong class="text-slate-600 font-medium tracking-wide">系統運作中</strong>
             </span>
-            <span class="text-gray-700">|</span>
+            <span class="text-slate-300">|</span>
             <span class="shrink-0" id="liveModeLabel">報價即時 · 持倉上次同步 —</span>
-            <span class="text-gray-700 hidden sm:inline">|</span>
+            <span class="text-slate-300 hidden sm:inline">|</span>
             <div class="hidden sm:flex items-center gap-3 shrink-0 font-num" id="fxBar">
-                <span>USD/HKD <strong class="text-gray-300">—</strong></span>
+                <span>USD/HKD <strong class="text-slate-700">—</strong></span>
             </div>
         </div>
         <div class="flex items-center gap-3 ml-auto">
-            <span class="hidden md:inline text-[11px] font-num text-gray-500" id="quoteStat"></span>
-            <span class="text-[11px]">報價更新: <strong class="text-gray-300 font-num" id="quoteUpdateTime">—</strong></span>
-            <button id="refreshBtn" onclick="refreshQuotesNow()" class="px-2 py-1 rounded bg-blue-600/20 border border-blue-500/40 text-blue-300 hover:bg-blue-600/30 text-xs">刷新報價</button>
-            <button id="simToggleBtn" onclick="toggleRealtimeSim()" class="flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition text-xs font-medium cursor-pointer">
+            <span class="hidden md:inline text-[11px] font-num text-slate-600" id="quoteStat"></span>
+            <span class="text-[11px]">報價更新: <strong class="text-slate-700 font-num" id="quoteUpdateTime">—</strong></span>
+            <button id="refreshBtn" onclick="refreshQuotesNow()" class="px-2 py-1 rounded bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 text-xs">刷新報價</button>
+            <button id="simToggleBtn" onclick="toggleRealtimeSim()" class="flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100 transition text-xs font-medium cursor-pointer">
                 <span id="simDot" class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                 <span id="simText">報價自動刷新: 開啟</span>
             </button>
@@ -358,8 +361,8 @@
                         </div>
                         <div>
                             <div class="flex items-center gap-2">
-                                <h1 class="text-lg md:text-xl font-bold text-white tracking-tight">Ricky's <span class="text-blue-500 font-light">Investment</span></h1>
-                                <span id="liveBadge" class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">同步中</span>
+                                <h1 class="text-lg md:text-xl font-bold text-ink tracking-tight">Ricky's <span class="text-blue-500 font-light">Investment</span></h1>
+                                <span id="liveBadge" class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">同步中</span>
                             </div>
                             <p class="text-xs text-muted mt-0.5" id="subtitleCount">持倉載入中…</p>
                         </div>
@@ -376,9 +379,9 @@
                     <div class="kpi-card px-3.5 py-2">
                         <p class="text-[11px] text-muted flex items-center justify-between">
                             <span>合併淨資產 (HKD)</span>
-                            <span class="text-[10px] text-emerald-400 font-num" id="netAssetDiff">—</span>
+                            <span class="text-[10px] text-emerald-700 font-num" id="netAssetDiff">—</span>
                         </p>
-                        <p class="text-lg font-bold text-white font-num mt-0.5" id="totalNetAsset">—</p>
+                        <p class="text-lg font-bold text-ink font-num mt-0.5" id="totalNetAsset">—</p>
                     </div>
                     <div class="kpi-card px-3.5 py-2">
                         <p class="text-[11px] text-muted">今日估算變動</p>
@@ -397,8 +400,8 @@
                     <div class="kpi-card px-3.5 py-2">
                         <p class="text-[11px] text-muted">現金及貨幣基金</p>
                         <div class="flex items-baseline gap-1.5 mt-0.5">
-                            <p class="text-lg font-bold text-white font-num" id="totalCash">—</p>
-                            <span class="text-[11px] text-gray-400 font-num" id="totalCashPct">—</span>
+                            <p class="text-lg font-bold text-ink font-num" id="totalCash">—</p>
+                            <span class="text-[11px] text-slate-600 font-num" id="totalCashPct">—</span>
                         </div>
                     </div>
                 </div>
@@ -406,17 +409,17 @@
 
             <!-- Secondary meta row -->
             <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted border-t border-borderDark/60 pt-2">
-                <span>累計已賺期權金 <strong class="text-emerald-400 font-num ml-1" id="optPremium">—</strong> <span class="text-gray-500" id="optOpenCount"></span></span>
-                <span class="text-gray-700">·</span>
-                <span>持倉同步 <strong class="text-blue-400 font-num ml-1" id="posSyncTime">—</strong></span>
-                <span class="text-gray-700">·</span>
-                <span>IBKR 槓桿 <strong class="text-amber-400 font-num ml-1" id="ibkrLeverage">—</strong></span>
+                <span>累計已賺期權金 <strong class="text-emerald-700 font-num ml-1" id="optPremium">—</strong> <span class="text-slate-600" id="optOpenCount"></span></span>
+                <span class="text-slate-300">·</span>
+                <span>持倉同步 <strong class="text-blue-700 font-num ml-1" id="posSyncTime">—</strong></span>
+                <span class="text-slate-300">·</span>
+                <span>IBKR 槓桿 <strong class="text-amber-700 font-num ml-1" id="ibkrLeverage">—</strong></span>
             </div>
         </div>
     </header>
 
     <!-- Attribution -->
-    <div class="bg-[#090d14] border-b border-borderDark px-4 md:px-6 py-2">
+    <div class="bg-white border-b border-borderDark px-4 md:px-6 py-2">
         <div class="max-w-[1920px] mx-auto flex flex-wrap items-center justify-between gap-2 text-xs">
             <div class="flex items-center gap-2 flex-wrap">
                 <span class="text-muted font-medium">今日盈虧自動歸因 (HKD · 即時報價):</span>
@@ -428,14 +431,14 @@
                 <span class="px-2 py-0.5 rounded font-num" id="contribOPT">期權 —</span>
             </div>
             <div class="text-[11px] text-muted">
-                綠點 = 瀏覽器即時報價 · 黃點 = 券商快照（期權等）· 市況變動<strong class="text-gray-400">唔使重新上架</strong>
+                綠點 = 瀏覽器即時報價 · 黃點 = 券商快照（期權等）· 市況變動<strong class="text-slate-600">唔使重新上架</strong>
             </div>
         </div>
     </div>
 
 
     <!-- Main market indices — TradingView Tickers (live quotes, no custom CORS fetch) -->
-    <div class="bg-[#070a10] border-b border-borderDark px-4 md:px-6 py-3">
+    <div class="bg-[#F8FAFC] border-b border-borderDark px-4 md:px-6 py-3">
         <div class="max-w-[1920px] mx-auto">
             <div class="flex items-center justify-between mb-2">
                 <h2 class="text-[11px] font-medium text-muted tracking-wide">主要指數 · TradingView</h2>
@@ -451,7 +454,7 @@
                         "symbol": "HSI:HSI",
                         "width": "100%",
                         "isTransparent": true,
-                        "colorTheme": "dark",
+                        "colorTheme": "light",
                         "locale": "zh_TW"
                         }
                         </script>
@@ -465,7 +468,7 @@
                         "symbol": "FOREXCOM:NSXUSD",
                         "width": "100%",
                         "isTransparent": true,
-                        "colorTheme": "dark",
+                        "colorTheme": "light",
                         "locale": "zh_TW"
                         }
                         </script>
@@ -479,7 +482,7 @@
                         "symbol": "INDEX:NKY",
                         "width": "100%",
                         "isTransparent": true,
-                        "colorTheme": "dark",
+                        "colorTheme": "light",
                         "locale": "zh_TW"
                         }
                         </script>
@@ -493,7 +496,7 @@
                         "symbol": "BITSTAMP:BTCUSD",
                         "width": "100%",
                         "isTransparent": true,
-                        "colorTheme": "dark",
+                        "colorTheme": "light",
                         "locale": "zh_TW"
                         }
                         </script>
@@ -513,27 +516,27 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="pro-panel rounded-xl p-4">
                     <div class="flex items-center justify-between mb-2">
-                        <h3 class="text-sm font-semibold text-white">富途證券</h3>
-                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">Futu</span>
+                        <h3 class="text-sm font-semibold text-ink">富途證券</h3>
+                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-700 border border-blue-500/20">Futu</span>
                     </div>
                     <p class="text-xs text-muted">帳戶淨值 (HKD · 現金+持倉即時市值)</p>
-                    <p class="text-2xl font-bold text-white font-num mt-1" id="futuNet">—</p>
+                    <p class="text-2xl font-bold text-ink font-num mt-1" id="futuNet">—</p>
                 </div>
                 <div class="pro-panel rounded-xl p-4">
                     <div class="flex items-center justify-between mb-2">
-                        <h3 class="text-sm font-semibold text-white">Interactive Brokers</h3>
-                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">IBKR</span>
+                        <h3 class="text-sm font-semibold text-ink">Interactive Brokers</h3>
+                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-700 border border-amber-500/20">IBKR</span>
                     </div>
                     <p class="text-xs text-muted">帳戶淨值 (HKD · 現金+持倉即時市值)</p>
-                    <p class="text-2xl font-bold text-white font-num mt-1" id="ibkrNet">—</p>
+                    <p class="text-2xl font-bold text-ink font-num mt-1" id="ibkrNet">—</p>
                 </div>
                 <div class="pro-panel rounded-xl p-4">
                     <div class="flex items-center justify-between mb-2">
-                        <h3 class="text-sm font-semibold text-white">富途加密 (BTC)</h3>
-                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-500/10 text-orange-400 border border-orange-500/20">Crypto</span>
+                        <h3 class="text-sm font-semibold text-ink">富途加密 (BTC)</h3>
+                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-500/10 text-orange-700 border border-orange-500/20">Crypto</span>
                     </div>
                     <p class="text-xs text-muted">帳戶淨值 (HKD)</p>
-                    <p class="text-2xl font-bold text-white font-num mt-1" id="btcNet">—</p>
+                    <p class="text-2xl font-bold text-ink font-num mt-1" id="btcNet">—</p>
                     <div class="mt-2 text-xs">
                         <span class="text-muted">今日估算變動:</span>
                         <span id="btcToday">—</span>
@@ -545,7 +548,7 @@
             <div class="pro-panel rounded-xl p-4">
                 <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
                     <div>
-                        <h2 class="font-semibold text-white text-sm">組合今日走勢估算</h2>
+                        <h2 class="font-semibold text-ink text-sm">組合今日走勢估算</h2>
                         <p class="text-[10px] text-muted mt-0.5">優先加權盤中走勢；Yahoo 不可用時以今日盈虧估算（非完整交易記錄）</p>
                     </div>
                     <span class="text-[10px] text-muted font-num" id="navChartMeta">載入中…</span>
@@ -555,11 +558,11 @@
 
             <!-- Allocation -->
             <div class="pro-panel rounded-xl p-5">
-                <h2 class="font-semibold text-white text-sm mb-4" id="allocTitle">資產配置結構</h2>
+                <h2 class="font-semibold text-ink text-sm mb-4" id="allocTitle">資產配置結構</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
                     <div class="chart-wrap donut"><canvas id="allocDonut"></canvas></div>
                     <div>
-                        <div class="w-full h-3 rounded-full overflow-hidden flex mb-4 bg-gray-900 p-0.5 gap-0.5" id="allocBar"></div>
+                        <div class="w-full h-3 rounded-full overflow-hidden flex mb-4 bg-slate-200 p-0.5 gap-0.5" id="allocBar"></div>
                         <div class="grid grid-cols-1 gap-x-4 gap-y-1 text-xs font-num" id="allocList"></div>
                     </div>
                 </div>
@@ -568,20 +571,20 @@
             <!-- Today's winners / losers + bar chart -->
             <div class="pro-panel rounded-xl p-4">
                 <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-                    <h2 class="font-semibold text-white text-sm">今日贏家 / 輸家</h2>
+                    <h2 class="font-semibold text-ink text-sm">今日贏家 / 輸家</h2>
                     <span class="text-[10px] text-muted">按今日盈虧 (HKD) · 即時報價</span>
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
                     <div class="chart-wrap bars"><canvas id="wlBarChart"></canvas></div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <p class="text-[11px] text-emerald-400 font-medium mb-2">貢獻最大 Top 5</p>
+                            <p class="text-[11px] text-emerald-700 font-medium mb-2">貢獻最大 Top 5</p>
                             <ul class="space-y-1.5 text-xs" id="winnersList">
                                 <li class="text-muted">載入中…</li>
                             </ul>
                         </div>
                         <div>
-                            <p class="text-[11px] text-rose-400 font-medium mb-2">拖累最大 Top 5</p>
+                            <p class="text-[11px] text-rose-700 font-medium mb-2">拖累最大 Top 5</p>
                             <ul class="space-y-1.5 text-xs" id="losersList">
                                 <li class="text-muted">載入中…</li>
                             </ul>
@@ -594,8 +597,8 @@
             <div class="pro-panel rounded-xl overflow-hidden">
                 <div class="pro-panel-header px-5 py-3 flex flex-wrap justify-between items-center gap-2">
                     <div class="flex items-center gap-2">
-                        <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                        <h2 class="font-semibold text-white text-sm">未平倉期權策略簿</h2>
+                        <svg class="w-4 h-4 text-purple-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                        <h2 class="font-semibold text-ink text-sm">未平倉期權策略簿</h2>
                     </div>
                     <div class="flex items-center gap-3 text-xs font-num" id="optTodayPL">
                         今日期權盈虧: —
@@ -627,12 +630,12 @@
             <div class="pro-panel rounded-xl holdings-shell">
                 <div class="pro-panel-header px-4 py-3 flex flex-col gap-2 shrink-0">
                     <div class="flex justify-between items-center">
-                        <h2 class="font-semibold text-white text-sm">全部持倉 (<span id="totalHoldingCount">0</span>)</h2>
-                        <span class="text-[10px] text-emerald-400">報價即時加總 · 撳列睇詳情</span>
+                        <h2 class="font-semibold text-ink text-sm">全部持倉 (<span id="totalHoldingCount">0</span>)</h2>
+                        <span class="text-[10px] text-emerald-700">報價即時加總 · 撳列睇詳情</span>
                     </div>
                     <div class="relative">
                         <svg class="w-3.5 h-3.5 absolute left-2 top-1.5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        <input type="text" id="holdingSearch" oninput="handleSearchHoldings()" placeholder="搜尋代碼/名稱/券商..." class="w-full bg-[#06080c] border border-borderDark rounded-md pl-7 pr-2 py-1 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500">
+                        <input type="text" id="holdingSearch" oninput="handleSearchHoldings()" placeholder="搜尋代碼/名稱/券商..." class="w-full bg-white border border-borderDark rounded-md pl-7 pr-2 py-1 text-xs text-slate-800 placeholder-slate-500 focus:outline-none focus:border-blue-500">
                     </div>
                     <div class="flex gap-1 overflow-x-auto hide-scrollbar">
                         <button class="tab-btn tab-active shrink-0" onclick="filterHoldings('All', this)">全部</button>
@@ -661,8 +664,8 @@
             <div class="pro-panel rounded-xl tv-cal-panel" id="econCalendarPanel">
                 <div class="pro-panel-header px-4 py-3 flex justify-between items-center gap-2 shrink-0">
                     <div class="flex items-center gap-2 min-w-0">
-                        <svg class="w-4 h-4 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        <h2 class="font-semibold text-white text-sm truncate">經濟數據與業績日曆</h2>
+                        <svg class="w-4 h-4 text-blue-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <h2 class="font-semibold text-ink text-sm truncate">經濟數據與業績日曆</h2>
                     </div>
                     <div class="flex gap-1 shrink-0" role="tablist" aria-label="日曆篩選">
                         <button type="button" onclick="filterCalendar('all', this)" class="cal-tab cal-tab-active" data-cal-tab="all">全部</button>
@@ -679,7 +682,7 @@
                                 <div class="tradingview-widget-container__widget"></div>
                                 <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-events.js" async>
                                 {
-                                "colorTheme": "dark",
+                                "colorTheme": "light",
                                 "isTransparent": true,
                                 "width": "100%",
                                 "height": "100%",
@@ -706,7 +709,7 @@
                                 "defaultScreen": "earnings_this_week",
                                 "market": "america",
                                 "showToolbar": true,
-                                "colorTheme": "dark",
+                                "colorTheme": "light",
                                 "isTransparent": true,
                                 "locale": "zh_TW"
                                 }
@@ -719,24 +722,24 @@
             </div>
 
             <div class="pro-panel rounded-xl p-4 text-[11px] text-muted leading-relaxed">
-                <p class="text-gray-300 font-medium mb-1">資料說明</p>
+                <p class="text-slate-700 font-medium mb-1">資料說明</p>
                 <ul class="list-disc pl-4 space-y-1">
-                    <li><strong class="text-gray-400">報價</strong>：瀏覽器每 ~45 秒經 Yahoo／騰訊 CORS 拉即時價，自動重算淨資產、今日變動、未實現盈虧。</li>
-                    <li><strong class="text-gray-400">持倉</strong>：數量／成本來自解鎖後載入嘅持倉快照（富途＋IBKR）。買賣改倉後要再同步一次先更新。</li>
-                    <li><strong class="text-gray-400">私隱</strong>：進入需通行密碼；<code class="text-blue-300">持倉快照</code> 只喺解鎖後先拉。客戶端閘門係遮擋而非伺服器級保安。</li>
+                    <li><strong class="text-slate-600">報價</strong>：瀏覽器每 ~45 秒經 Yahoo／騰訊 CORS 拉即時價，自動重算淨資產、今日變動、未實現盈虧。</li>
+                    <li><strong class="text-slate-600">持倉</strong>：數量／成本來自解鎖後載入嘅持倉快照（富途＋IBKR）。買賣改倉後要再同步一次先更新。</li>
+                    <li><strong class="text-slate-600">私隱</strong>：進入需通行密碼；<code class="text-blue-700">持倉快照</code> 只喺解鎖後先拉。客戶端閘門係遮擋而非伺服器級保安。</li>
                 </ul>
             </div>
         </div>
     </main>
 
     <footer class="border-t border-borderDark px-4 py-3 text-center text-[11px] text-muted">
-        Ricky's Investment · 報價即時 · 持倉快照同步於 <span id="footerSync" class="text-gray-400">—</span>
+        Ricky's Investment · 報價即時 · 持倉快照同步於 <span id="footerSync" class="text-slate-600">—</span>
     </footer>
 
     </div><!-- /viewPortfolio -->
 
     <div id="viewCalc">
-        <div class="bg-[#040609] border-b border-borderDark px-4 md:px-6 py-2 flex flex-wrap items-center justify-between gap-2">
+        <div class="bg-[#F4F6F8] border-b border-borderDark px-4 md:px-6 py-2 flex flex-wrap items-center justify-between gap-2">
             <div class="flex items-center gap-3">
                 <nav class="top-nav" aria-label="主功能">
                     <button type="button" class="top-nav-btn" onclick="switchAppView('portfolio')">組合</button>
@@ -745,13 +748,13 @@
                 </nav>
                 <span class="text-xs text-muted hidden sm:inline">Ricky's Investment · 期權計算機</span>
             </div>
-            <button type="button" class="text-xs text-blue-300 hover:text-blue-200" onclick="switchAppView('portfolio')">← 返回組合</button>
+            <button type="button" class="text-xs text-blue-700 hover:text-blue-800" onclick="switchAppView('portfolio')">← 返回組合</button>
         </div>
         <iframe id="calcFrame" title="期權計算機" src="about:blank" loading="lazy"></iframe>
     </div>
 
     <div id="viewReports">
-        <div class="bg-[#040609] border-b border-borderDark px-4 md:px-6 py-2 flex flex-wrap items-center justify-between gap-2">
+        <div class="bg-[#F4F6F8] border-b border-borderDark px-4 md:px-6 py-2 flex flex-wrap items-center justify-between gap-2">
             <div class="flex items-center gap-3">
                 <nav class="top-nav" aria-label="主功能">
                     <button type="button" class="top-nav-btn" onclick="switchAppView('portfolio')">組合</button>
@@ -760,18 +763,18 @@
                 </nav>
                 <span class="text-xs text-muted hidden sm:inline">Ricky's Investment · 經濟月報</span>
             </div>
-            <button type="button" class="text-xs text-blue-300 hover:text-blue-200" onclick="switchAppView('portfolio')">← 返回組合</button>
+            <button type="button" class="text-xs text-blue-700 hover:text-blue-800" onclick="switchAppView('portfolio')">← 返回組合</button>
         </div>
         <div class="flex-1 overflow-y-auto px-4 md:px-6 py-5 max-w-[1400px] w-full mx-auto">
             <div class="mb-5">
-                <h2 class="text-xl md:text-2xl font-bold text-white tracking-tight">每月美國經濟及股市研究報告</h2>
+                <h2 class="text-xl md:text-2xl font-bold text-ink tracking-tight">每月美國經濟及股市研究報告</h2>
                 <p class="text-sm text-muted mt-1">機構級宏觀月報 · 解鎖後瀏覽 · 每月更新</p>
             </div>
             <div class="grid grid-cols-1 xl:grid-cols-[1fr_280px] gap-5">
                 <section class="pro-panel rounded-2xl overflow-hidden flex flex-col min-h-[70vh]">
                     <div class="pro-panel-header px-4 py-3 flex flex-wrap items-center justify-between gap-2">
                         <div>
-                            <h3 class="text-sm font-semibold text-white" id="reportFeatureTitle">載入中…</h3>
+                            <h3 class="text-sm font-semibold text-ink" id="reportFeatureTitle">載入中…</h3>
                             <p class="text-[11px] text-muted mt-0.5" id="reportFeatureMeta">—</p>
                         </div>
                         <a id="reportDownload" href="#" download class="text-xs px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium transition pointer-events-none opacity-50">下載 PDF</a>
@@ -801,10 +804,10 @@
         <aside id="detailDrawer" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
             <div class="pro-panel-header px-4 py-3 flex items-center justify-between shrink-0">
                 <div>
-                    <h3 class="text-sm font-semibold text-white font-num" id="detailTitle">—</h3>
+                    <h3 class="text-sm font-semibold text-ink font-num" id="detailTitle">—</h3>
                     <p class="text-[11px] text-muted mt-0.5" id="detailSubtitle">—</p>
                 </div>
-                <button type="button" onclick="closeHoldingDetail()" class="w-8 h-8 rounded-lg border border-borderDark text-gray-400 hover:text-white hover:bg-panelHover flex items-center justify-center text-lg leading-none" aria-label="關閉">×</button>
+                <button type="button" onclick="closeHoldingDetail()" class="w-8 h-8 rounded-lg border border-borderDark text-slate-600 hover:text-slate-900 hover:bg-panelHover flex items-center justify-center text-lg leading-none" aria-label="關閉">×</button>
             </div>
             <div class="p-4 overflow-y-auto flex-1 text-sm space-y-3" id="detailBody"></div>
         </aside>
@@ -844,6 +847,6 @@
       });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-    <script src="app.js?v=20261028cal"></script>
+    <script src="app.js?v=20261028light"></script>
 </body>
 </html>

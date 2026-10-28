@@ -1,9 +1,6 @@
 :root{color-scheme:light;--bg:#F5F7FA;--card:#fff;--ink:#0F172A;--muted:#667085;--line:#E4E7EC;
 --brand:#0B6E4F;--brand2:#12A16B;--pos:#0B8A4B;--warn:#B54708;--neg:#B42318;--blue:#2563EB;--orange:#EA580C;--purple:#7C3AED;
 --field:#fff;--fieldline:#D0D5DD;--shadow:0 1px 3px rgba(16,24,40,.06),0 1px 2px rgba(16,24,40,.04);--radius:16px}
-@media (prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#0B1220;--card:#131C2E;--ink:#EAF0F8;--muted:#93A1B5;--line:#233046;
---brand:#3DDC97;--brand2:#7BE8BC;--pos:#4ADE80;--warn:#FDB022;--neg:#F97066;--blue:#60A5FA;--orange:#FB923C;--purple:#A78BFA;
---field:#0F1829;--fieldline:#2A3A55;--shadow:0 1px 3px rgba(0,0,0,.4)}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
 body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Microsoft JhengHei","Noto Sans TC","Noto Sans CJK TC",sans-serif;
@@ -36,7 +33,6 @@ input[type=range]{padding:0;border:0;min-height:28px;background:transparent;acce
 background:var(--field);color:var(--ink);cursor:pointer;white-space:nowrap;transition:transform .08s}
 .btn:active{transform:scale(.97)}
 .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
-@media(prefers-color-scheme:dark){.btn.primary{color:#062}}
 .btn.ghost{background:transparent}.btn.danger{color:var(--neg)}
 .btn:disabled{opacity:.5}
 .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
@@ -60,7 +56,6 @@ background:var(--field);color:var(--ink);cursor:pointer;white-space:nowrap}
 .tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
 .tab{font:inherit;font-size:13px;font-weight:700;padding:7px 12px;border-radius:9px;border:0;background:var(--bg);color:var(--muted);cursor:pointer;white-space:nowrap}
 .tab.on{background:var(--brand);color:#fff}
-@media(prefers-color-scheme:dark){.tab.on{color:#062}}
 .tplgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:10px}
 .tpl{font:inherit;text-align:left;padding:9px 11px;border-radius:11px;border:1.5px solid var(--fieldline);background:var(--field);color:var(--ink);cursor:pointer}
 .tpl b{display:block;font-size:13.5px}.tpl span{font-size:11.5px;color:var(--muted)}

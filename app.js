@@ -53,7 +53,7 @@ const signed = (v, d = 0) => {
   if (v == null || !Number.isFinite(v)) return '—';
   return (v > 0 ? '+' : '') + fmt(v, d);
 };
-const clsPL = v => (v > 0.5 ? 'text-up' : v < -0.5 ? 'text-down' : 'text-gray-300');
+const clsPL = v => (v > 0.5 ? 'text-up' : v < -0.5 ? 'text-down' : 'text-slate-600');
 const badgePL = v => (v > 0.5 ? 'badge-up' : v < -0.5 ? 'badge-down' : 'badge-neutral');
 
 async function sha256Hex(text) {
@@ -399,10 +399,10 @@ function updateLiveBadge() {
   if (!badge) return;
   if (!state.quotesReady) {
     badge.textContent = '同步中';
-    badge.className = 'text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20';
+    badge.className = 'text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200';
   } else {
     badge.textContent = '報價即時';
-    badge.className = 'text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+    badge.className = 'text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200';
   }
 }
 
@@ -426,9 +426,9 @@ function renderStatus(c) {
   const fxBar = $('fxBar');
   if (fxBar) {
     fxBar.innerHTML = `
-      <span>USD/HKD <strong class="text-gray-300">${state.fx.USDHKD.toFixed(4)}</strong></span>
-      <span>CNY/HKD <strong class="text-gray-300">${state.fx.CNYHKD.toFixed(4)}</strong></span>
-      <span>JPY/HKD <strong class="text-gray-300">${state.fx.JPYHKD.toFixed(5)}</strong></span>`;
+      <span>USD/HKD <strong class="text-slate-800">${state.fx.USDHKD.toFixed(4)}</strong></span>
+      <span>CNY/HKD <strong class="text-slate-800">${state.fx.CNYHKD.toFixed(4)}</strong></span>
+      <span>JPY/HKD <strong class="text-slate-800">${state.fx.JPYHKD.toFixed(5)}</strong></span>`;
   }
   const qStat = $('quoteStat');
   if (qStat) {
@@ -464,7 +464,7 @@ function renderKPIs(c) {
   const cashPct = $('totalCashPct');
   if (cashPct) cashPct.textContent = c.net ? (c.cash / c.net * 100).toFixed(1) + '%' : '—';
 
-  set('optPremium', signed(c.optPremium, 0), 'text-emerald-400 font-num');
+  set('optPremium', signed(c.optPremium, 0), 'text-emerald-700 font-num');
   const optOpen = $('optOpenCount');
   if (optOpen) optOpen.textContent = '· ' + c.optOpen + ' 張未平倉';
 
@@ -476,10 +476,10 @@ function renderKPIs(c) {
     // Never show quote count as P&L — clarify as quote status only after ready
     if (!state.quotesReady) {
       diff.textContent = '拉取中';
-      diff.className = 'text-[10px] text-amber-400 font-num';
+      diff.className = 'text-[10px] text-amber-700 font-num';
     } else {
       diff.textContent = '報價就緒';
-      diff.className = 'text-[10px] text-emerald-400 font-num';
+      diff.className = 'text-[10px] text-emerald-700 font-num';
     }
   }
 
@@ -555,8 +555,8 @@ function renderAllocation(c) {
     list.innerHTML = Object.entries(groups).filter(([, v]) => v > 0).map(([k, v]) => {
       const pct = (v / total * 100).toFixed(1);
       return `<div class="flex justify-between items-center py-1 border-b border-borderDark/50">
-        <span class="flex items-center gap-1.5 text-gray-300"><span class="w-2 h-2 rounded-sm ${colors[k]}"></span>${esc(k)}</span>
-        <span class="text-white font-semibold">${pct}% <span class="text-muted text-[10px]">(${fmt(v / 1000, 0)}k)</span></span>
+        <span class="flex items-center gap-1.5 text-slate-700"><span class="w-2 h-2 rounded-sm ${colors[k]}"></span>${esc(k)}</span>
+        <span class="text-ink font-semibold">${pct}% <span class="text-muted text-[10px]">(${fmt(v / 1000, 0)}k)</span></span>
       </div>`;
     }).join('');
   }
@@ -575,7 +575,7 @@ function renderWinnersLosers(c) {
   const rowHtml = (r, emptyMsg) => {
     if (!r) return `<li class="text-muted">${emptyMsg}</li>`;
     return `<li class="flex items-center justify-between gap-2 py-1 border-b border-borderDark/40">
-      <button type="button" class="text-left truncate text-gray-200 hover:text-white font-num" onclick="openHoldingDetail('${esc(r.id)}')" title="${esc(r.name)}">
+      <button type="button" class="text-left truncate text-slate-800 hover:text-ink font-num" onclick="openHoldingDetail('${esc(r.id)}')" title="${esc(r.name)}">
         ${esc(r.display)} <span class="text-muted font-sans text-[10px]">${esc(r.name)}</span>
       </button>
       <span class="font-num shrink-0 ${clsPL(r.todayHKD)}">${signed(r.todayHKD, 0)}</span>
@@ -675,16 +675,16 @@ function renderHoldings(c) {
     const priceStr = r.price == null ? '—' : fmt(r.price, r.price < 10 ? 3 : 2);
     return `<tr class="interactive-row ${flashed ? 'quote-flash' : ''}" data-id="${esc(r.id)}" onclick="openHoldingDetail('${esc(r.id)}')">
       <td>
-        <div class="font-bold text-white font-num flex items-center">${liveDot}${esc(r.display)}</div>
+        <div class="font-bold text-ink font-num flex items-center">${liveDot}${esc(r.display)}</div>
         <div class="text-[11px] text-muted truncate max-w-[140px]">${esc(r.name)} · ${esc(r.broker)}</div>
       </td>
       <td class="text-right font-num whitespace-nowrap">
-        <div class="font-semibold text-gray-100">${priceStr}</div>
+        <div class="font-semibold text-slate-800">${priceStr}</div>
         <div class="text-[10px] text-muted">${esc(r.currency)} × ${fmt(r.qty, r.qty % 1 ? 4 : 0)}</div>
       </td>
       <td class="text-right font-num whitespace-nowrap">${chg}</td>
       <td class="text-right font-num whitespace-nowrap">
-        <div class="text-gray-100">${mvStr}</div>
+        <div class="text-slate-800">${mvStr}</div>
         <div class="text-[10px] ${clsPL(r.plHKD || 0)}">${plStr}</div>
       </td>
     </tr>`;
@@ -713,12 +713,12 @@ function renderOptions(c) {
       const pct = (undPrice - strike) / strike * 100;
       if (r.right === 'C') {
         moneyness = pct < 0
-          ? `<span class="text-emerald-400">價外 ${signed(-pct, 1)}%</span>`
-          : `<span class="text-amber-400">價內 ${signed(pct, 1)}%</span>`;
+          ? `<span class="text-emerald-700">價外 ${signed(-pct, 1)}%</span>`
+          : `<span class="text-amber-700">價內 ${signed(pct, 1)}%</span>`;
       } else {
         moneyness = pct > 0
-          ? `<span class="text-emerald-400">價外 ${signed(pct, 1)}%</span>`
-          : `<span class="text-amber-400">價內 ${signed(-pct, 1)}%</span>`;
+          ? `<span class="text-emerald-700">價外 ${signed(pct, 1)}%</span>`
+          : `<span class="text-amber-700">價內 ${signed(-pct, 1)}%</span>`;
       }
     }
     const premNative = Math.abs((r.cost || 0) * r.qty * (r.multiplier || 1));
@@ -727,19 +727,19 @@ function renderOptions(c) {
       ? Math.max(0, Math.min(100, (1 - nowNative / premNative) * 100)) : 0;
     const side = r.right === 'P' ? 'SHORT PUT' : 'SHORT CALL';
     const sideCls = r.right === 'P'
-      ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
-      : 'bg-purple-500/15 text-purple-300 border-purple-500/30';
+      ? 'bg-amber-50 text-amber-800 border-amber-200'
+      : 'bg-purple-50 text-purple-800 border-purple-200';
     const undStr = undPrice != null
       ? `${fmt(undPrice, 2)} / ${fmt(strike, 2)}`
       : `— / ${fmt(strike, 2)}`;
     const quoteLabel = r.failed
-      ? '<span class="text-rose-400">報價失敗</span>'
+      ? '<span class="text-rose-700">報價失敗</span>'
       : (r.live ? '即時' : '快照') + ' · ' + esc(r.via || '');
     const plCell = r.plHKD == null ? '—' : signed(r.plHKD, 0);
 
     return `<tr class="hover:bg-panelHover/50">
       <td class="whitespace-nowrap">
-        <div class="font-bold text-white">${esc(r.display)}</div>
+        <div class="font-bold text-ink">${esc(r.display)}</div>
         <div class="text-[11px] text-muted">${esc(r.broker)} · 乘數 ${r.multiplier}</div>
       </td>
       <td class="whitespace-nowrap">
@@ -747,14 +747,14 @@ function renderOptions(c) {
         <div class="text-[11px] text-muted mt-0.5">${esc(r.expiry || '')}</div>
       </td>
       <td class="text-right whitespace-nowrap">
-        <div class="text-gray-200">${undStr}</div>
+        <div class="text-slate-800">${undStr}</div>
         <div class="text-[11px]">${moneyness}</div>
       </td>
       <td class="text-right font-num whitespace-nowrap">${fmt(premNative, 0)} → ${nowNative == null ? '—' : fmt(nowNative, 0)}</td>
       <td class="text-right font-num font-bold whitespace-nowrap ${clsPL(r.plHKD || 0)}">${plCell}</td>
       <td class="whitespace-nowrap">
         <div class="flex justify-between text-[11px] mb-1"><span>已賺 ${fmt(recovered, 0)}%</span></div>
-        <div class="w-full bg-gray-800 rounded-full h-1.5"><div class="bg-emerald-500 h-1.5 rounded-full" style="width:${recovered.toFixed(0)}%"></div></div>
+        <div class="w-full bg-slate-200 rounded-full h-1.5"><div class="bg-emerald-600 h-1.5 rounded-full" style="width:${recovered.toFixed(0)}%"></div></div>
       </td>
       <td class="text-right text-[11px] text-muted whitespace-nowrap">${quoteLabel}</td>
     </tr>`;
@@ -805,7 +805,7 @@ function fillDetail(r, c) {
   $('detailBody').innerHTML = rows.map(([k, v]) => `
     <div class="flex justify-between gap-3 py-2 border-b border-borderDark/50">
       <span class="text-muted text-xs shrink-0">${esc(k)}</span>
-      <span class="text-gray-100 text-right font-num text-xs break-all">${esc(String(v))}</span>
+      <span class="text-slate-800 text-right font-num text-xs break-all">${esc(String(v))}</span>
     </div>`).join('');
 }
 
@@ -944,12 +944,12 @@ function updateToggleUI() {
   if (state.auto) {
     if (dot) dot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400';
     if (text) text.textContent = '報價自動刷新: 開啟';
-    btn.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition text-xs font-medium cursor-pointer';
+    btn.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100 transition text-xs font-medium cursor-pointer';
     if (sys) sys.className = 'status-dot live-pulse';
   } else {
     if (dot) dot.className = 'w-1.5 h-1.5 rounded-full bg-gray-500';
     if (text) text.textContent = '報價自動刷新: 暫停';
-    btn.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700 transition text-xs font-medium cursor-pointer';
+    btn.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-100 border border-slate-300 text-slate-600 hover:bg-slate-200 transition text-xs font-medium cursor-pointer';
     if (sys) sys.className = 'status-dot paused';
   }
 }
@@ -997,8 +997,8 @@ async function boot() {
 
 /* ===== Charts (Chart.js) + multi-source series (Stooq / Tencent / Sina / CoinGecko; Yahoo last) ===== */
 const CHART_COLORS = {
-  up: '#10b981', down: '#f43f5e', accent: '#3b82f6', muted: '#64748b',
-  grid: 'rgba(30, 38, 56, 0.85)', text: '#94a3b8',
+  up: '#047857', down: '#be123c', accent: '#2563eb', muted: '#5B677A',
+  grid: 'rgba(148, 163, 184, 0.35)', text: '#1e293b',
   alloc: {
     '收益型': '#3b82f6', '現金': '#10b981', '港股': '#a855f7', '美股': '#f59e0b',
     '日本': '#06b6d4', 'A股': '#f43f5e', 'BTC': '#fb923c', '期權': '#818cf8',
@@ -1483,7 +1483,7 @@ function renderAllocDonut(c) {
     data: {
       labels,
       datasets: [{
-        data, backgroundColor: colors, borderColor: '#0e121b', borderWidth: 2,
+        data, backgroundColor: colors, borderColor: '#ffffff', borderWidth: 2,
         hoverOffset: 6,
       }],
     },
@@ -1657,9 +1657,9 @@ async function loadReports() {
       } else {
         arch.innerHTML = list.map(r => (
           '<button type="button" class="report-archive-item w-full text-left" data-id="' + esc(r.id) + '" onclick="selectReport(\'' + esc(r.id) + '\')">' +
-            '<div><div class="text-sm text-white font-medium">' + esc(monthLabel(r.month)) + '</div>' +
+            '<div><div class="text-sm text-ink font-medium">' + esc(monthLabel(r.month)) + '</div>' +
             '<div class="text-[11px] text-muted mt-0.5">' + esc(r.title || '宏觀月報') + (r.pages ? (' · ' + r.pages + '頁') : '') + '</div></div>' +
-            '<span class="text-[10px] text-blue-300 shrink-0">開啓</span>' +
+            '<span class="text-[10px] text-blue-700 shrink-0">開啓</span>' +
           '</button>'
         )).join('');
       }
@@ -1667,7 +1667,7 @@ async function loadReports() {
     if (list.length) selectReport(list[0].id);
   } catch (e) {
     console.warn('reports load failed', e);
-    if (arch) arch.innerHTML = '<p class="text-xs text-rose-400">月報目錄載入失敗，請稍後再試。</p>';
+    if (arch) arch.innerHTML = '<p class="text-xs text-rose-700">月報目錄載入失敗，請稍後再試。</p>';
   }
 }
 
