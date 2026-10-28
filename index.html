@@ -2,12 +2,13 @@
 <html lang="zh-HK" class="dark">
 <head>
     <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow, noarchive">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AlphaView Pro | 機構級投資組合監察終端</title>
+    <title>Ricky's Investment | 機構級投資組合監察終端</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -27,8 +28,8 @@
                         muted: '#64748b',
                     },
                     fontFamily: {
-                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
+                        sans: ['"Noto Sans TC"', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
                     }
                 }
             }
@@ -38,7 +39,7 @@
         body {
             background-color: #06080c;
             color: #e2e8f0;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Noto Sans TC', Inter, system-ui, sans-serif;
             background-image: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.06) 0%, transparent 50%);
         }
         .font-num { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
@@ -72,13 +73,19 @@
             background: #0e121b;
             z-index: 10;
         }
+        th.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
+        th.sortable:hover { color: #94a3b8; }
+        th.sortable .sort-ind { opacity: 0.35; margin-left: 0.2rem; font-size: 0.65rem; }
+        th.sortable.sort-active { color: #93c5fd; }
+        th.sortable.sort-active .sort-ind { opacity: 1; color: #60a5fa; }
         td {
             padding: 0.65rem 0.85rem;
             border-bottom: 1px solid rgba(30, 38, 56, 0.5);
             font-size: 0.8125rem;
         }
-        tr.interactive-row { cursor: pointer; transition: all 0.15s ease; }
+        tr.interactive-row { cursor: pointer; transition: background-color 0.15s ease; }
         tr.interactive-row:hover { background-color: rgba(59, 130, 246, 0.07); }
+        tr.quote-flash { background-color: rgba(16, 185, 129, 0.12) !important; transition: background-color 0.6s ease; }
         .badge-up { color: #10b981; background-color: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.25); }
         .badge-down { color: #f43f5e; background-color: rgba(244, 63, 94, 0.12); border: 1px solid rgba(244, 63, 94, 0.25); }
         .badge-neutral { color: #94a3b8; background-color: rgba(148, 163, 184, 0.12); border: 1px solid rgba(148, 163, 184, 0.2); }
@@ -94,16 +101,77 @@
         .tab-inactive:hover { color: #e2e8f0; background-color: rgba(255, 255, 255, 0.04); }
         .text-up { color: #10b981; }
         .text-down { color: #f43f5e; }
+        .holdings-shell {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            max-height: calc(100vh - 10.5rem);
+            min-height: 420px;
+        }
+        @media (max-width: 1023px) {
+            .holdings-shell { max-height: none; min-height: 360px; height: min(70vh, 640px); }
+        }
+        #detailOverlay {
+            position: fixed; inset: 0; z-index: 50;
+            background: rgba(2, 6, 14, 0.72);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: stretch;
+            justify-content: flex-end;
+        }
+        #detailOverlay.open { display: flex; }
+        #detailDrawer {
+            width: min(420px, 100vw);
+            background: #0e121b;
+            border-left: 1px solid #1e2638;
+            box-shadow: -12px 0 40px rgba(0,0,0,0.45);
+            display: flex;
+            flex-direction: column;
+            animation: slideIn 0.2s ease;
+        }
+        @keyframes slideIn { from { transform: translateX(24px); opacity: 0.6; } to { transform: translateX(0); opacity: 1; } }
+        .status-dot { width: 7px; height: 7px; border-radius: 9999px; background: #10b981; }
+        .status-dot.paused { background: #64748b; }
+        .status-dot.live-pulse { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); animation: softPulse 2.8s ease-out infinite; }
+        @keyframes softPulse {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.45); }
+            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col selection:bg-blue-500 selection:text-white">
+    <!-- Access gate -->
+    <div id="accessGate" class="fixed inset-0 z-[100] flex items-center justify-center bg-[#040609] px-4">
+        <div class="w-full max-w-sm pro-panel rounded-2xl p-6 border border-borderDark shadow-2xl">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center border border-blue-400/30">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                </div>
+                <div>
+                    <h1 class="text-base font-bold text-white">Ricky's Investment</h1>
+                    <p class="text-[11px] text-muted">私人投資組合 · 請輸入通行密碼</p>
+                </div>
+            </div>
+            <form id="gateForm" class="space-y-3" autocomplete="current-password">
+                <label class="block text-[11px] text-muted" for="gatePassword">通行密碼</label>
+                <input id="gatePassword" type="password" required autofocus
+                    class="w-full bg-[#06080c] border border-borderDark rounded-lg px-3 py-2.5 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-blue-500 font-num"
+                    placeholder="輸入密碼解鎖…">
+                <p id="gateError" class="text-xs text-rose-400 hidden">密碼不正確，請再試。</p>
+                <button type="submit" class="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition">解鎖儀表板</button>
+            </form>
+            <p class="text-[10px] text-muted mt-4 leading-relaxed">本站僅供 Ricky 本人使用。客戶端密碼只係遮擋，唔係伺服器級保安；請勿公開分享連結。</p>
+        </div>
+    </div>
+    <div id="appShell" style="display:none">
 
     <!-- Status bar -->
     <div class="bg-[#040609] border-b border-borderDark px-4 md:px-6 py-1.5 flex flex-wrap justify-between items-center text-[11px] text-muted gap-2">
         <div class="flex items-center gap-4 overflow-x-auto hide-scrollbar">
             <span class="flex items-center gap-1.5 shrink-0">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <strong class="text-gray-300">SYSTEM ONLINE</strong>
+                <span id="systemDot" class="status-dot live-pulse"></span>
+                <strong class="text-gray-400 font-medium tracking-wide">系統運作中</strong>
             </span>
             <span class="text-gray-700">|</span>
             <span class="shrink-0" id="liveModeLabel">報價即時 · 持倉上次同步 —</span>
@@ -117,74 +185,69 @@
             <span class="text-[11px]">報價更新: <strong class="text-gray-300 font-num" id="quoteUpdateTime">—</strong></span>
             <button id="refreshBtn" onclick="refreshQuotesNow()" class="px-2 py-1 rounded bg-blue-600/20 border border-blue-500/40 text-blue-300 hover:bg-blue-600/30 text-xs">刷新報價</button>
             <button id="simToggleBtn" onclick="toggleRealtimeSim()" class="flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition text-xs font-medium cursor-pointer">
-                <span id="simDot" class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                <span id="simDot" class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                 <span id="simText">報價自動刷新: 開啟</span>
             </button>
         </div>
     </div>
 
     <!-- Header KPIs -->
-    <header class="bg-panel/90 backdrop-blur-md border-b border-borderDark px-4 md:px-6 py-4 sticky top-0 z-30">
-        <div class="max-w-[1920px] mx-auto flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-blue-500/20 border border-blue-400/30">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                </div>
-                <div>
-                    <div class="flex items-center gap-2">
-                        <h1 class="text-lg md:text-xl font-bold text-white tracking-tight">ALPHAVIEW <span class="text-blue-500 font-light">PRO</span></h1>
-                        <span class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">LIVE QUOTES</span>
+    <header class="bg-panel/90 backdrop-blur-md border-b border-borderDark px-4 md:px-6 py-3 sticky top-0 z-30">
+        <div class="max-w-[1920px] mx-auto flex flex-col gap-2.5">
+            <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-blue-500/20 border border-blue-400/30">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                     </div>
-                    <p class="text-xs text-muted mt-0.5" id="subtitleCount">持倉載入中…</p>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h1 class="text-lg md:text-xl font-bold text-white tracking-tight">Ricky's <span class="text-blue-500 font-light">Investment</span></h1>
+                            <span id="liveBadge" class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">同步中</span>
+                        </div>
+                        <p class="text-xs text-muted mt-0.5" id="subtitleCount">持倉載入中…</p>
+                    </div>
+                </div>
+
+                <!-- 4 primary KPIs -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 w-full xl:w-auto xl:min-w-[720px]">
+                    <div class="bg-panelLight/80 border border-borderDark rounded-lg px-3.5 py-2">
+                        <p class="text-[11px] text-muted flex items-center justify-between">
+                            <span>合併淨資產 (HKD)</span>
+                            <span class="text-[10px] text-emerald-400 font-num" id="netAssetDiff">—</span>
+                        </p>
+                        <p class="text-lg font-bold text-white font-num mt-0.5" id="totalNetAsset">—</p>
+                    </div>
+                    <div class="bg-panelLight/80 border border-borderDark rounded-lg px-3.5 py-2">
+                        <p class="text-[11px] text-muted">今日估算變動</p>
+                        <div class="flex items-baseline gap-1.5 mt-0.5">
+                            <p class="text-lg font-bold font-num" id="todayChangeAmt">—</p>
+                            <span class="text-xs font-num px-1.5 rounded" id="todayChangePct">—</span>
+                        </div>
+                    </div>
+                    <div class="bg-panelLight/80 border border-borderDark rounded-lg px-3.5 py-2">
+                        <p class="text-[11px] text-muted">總未實現盈虧</p>
+                        <div class="flex items-baseline gap-1.5 mt-0.5">
+                            <p class="text-lg font-bold font-num" id="totalUnrealizedPL">—</p>
+                            <span class="text-xs font-num px-1.5 rounded" id="totalUnrealizedPct">—</span>
+                        </div>
+                    </div>
+                    <div class="bg-panelLight/80 border border-borderDark rounded-lg px-3.5 py-2">
+                        <p class="text-[11px] text-muted">現金及貨幣基金</p>
+                        <div class="flex items-baseline gap-1.5 mt-0.5">
+                            <p class="text-lg font-bold text-white font-num" id="totalCash">—</p>
+                            <span class="text-[11px] text-gray-400 font-num" id="totalCashPct">—</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 w-full xl:w-auto">
-                <div class="bg-panelLight/80 border border-borderDark rounded-lg px-3.5 py-2">
-                    <p class="text-[11px] text-muted flex items-center justify-between">
-                        <span>合併淨資產 (HKD)</span>
-                        <span class="text-[10px] text-emerald-400 font-num" id="netAssetDiff">—</span>
-                    </p>
-                    <p class="text-lg font-bold text-white font-num mt-0.5" id="totalNetAsset">—</p>
-                </div>
-                <div class="bg-panelLight/80 border border-borderDark rounded-lg px-3.5 py-2">
-                    <p class="text-[11px] text-muted">今日估算變動</p>
-                    <div class="flex items-baseline gap-1.5 mt-0.5">
-                        <p class="text-lg font-bold font-num" id="todayChangeAmt">—</p>
-                        <span class="text-xs font-num px-1.5 rounded" id="todayChangePct">—</span>
-                    </div>
-                </div>
-                <div class="bg-panelLight/80 border border-borderDark rounded-lg px-3.5 py-2">
-                    <p class="text-[11px] text-muted">總未實現盈虧</p>
-                    <div class="flex items-baseline gap-1.5 mt-0.5">
-                        <p class="text-lg font-bold font-num" id="totalUnrealizedPL">—</p>
-                        <span class="text-xs font-num px-1.5 rounded" id="totalUnrealizedPct">—</span>
-                    </div>
-                </div>
-                <div class="bg-panelLight/80 border border-borderDark rounded-lg px-3.5 py-2">
-                    <p class="text-[11px] text-muted">現金及貨幣基金</p>
-                    <div class="flex items-baseline gap-1.5 mt-0.5">
-                        <p class="text-lg font-bold text-white font-num" id="totalCash">—</p>
-                        <span class="text-[11px] text-gray-400 font-num" id="totalCashPct">—</span>
-                    </div>
-                </div>
-                <div class="bg-panelLight/80 border border-borderDark rounded-lg px-3.5 py-2">
-                    <p class="text-[11px] text-muted">累計已賺期權金</p>
-                    <div class="flex items-baseline gap-1.5 mt-0.5">
-                        <p class="text-lg font-bold text-emerald-400 font-num" id="optPremium">—</p>
-                        <span class="text-[10px] text-gray-400" id="optOpenCount">—</span>
-                    </div>
-                </div>
-                <div class="bg-panelLight/80 border border-borderDark rounded-lg px-3.5 py-2">
-                    <p class="text-[11px] text-muted flex justify-between">
-                        <span>持倉同步</span>
-                        <span>IBKR 槓桿</span>
-                    </p>
-                    <div class="flex items-baseline justify-between mt-0.5 font-num">
-                        <p class="text-sm font-bold text-blue-400" id="posSyncTime">—</p>
-                        <p class="text-sm font-semibold text-amber-400" id="ibkrLeverage">—</p>
-                    </div>
-                </div>
+            <!-- Secondary meta row -->
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted border-t border-borderDark/60 pt-2">
+                <span>累計已賺期權金 <strong class="text-emerald-400 font-num ml-1" id="optPremium">—</strong> <span class="text-gray-500" id="optOpenCount"></span></span>
+                <span class="text-gray-700">·</span>
+                <span>持倉同步 <strong class="text-blue-400 font-num ml-1" id="posSyncTime">—</strong></span>
+                <span class="text-gray-700">·</span>
+                <span>IBKR 槓桿 <strong class="text-amber-400 font-num ml-1" id="ibkrLeverage">—</strong></span>
             </div>
         </div>
     </header>
@@ -207,7 +270,7 @@
         </div>
     </div>
 
-    <main class="flex-1 p-4 md:p-6 max-w-[1920px] w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <main class="flex-1 p-4 md:p-6 max-w-[1920px] w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 lg:items-start">
 
         <!-- Left -->
         <div class="lg:col-span-8 flex flex-col gap-6">
@@ -244,6 +307,28 @@
                 </div>
             </div>
 
+            <!-- Today's winners / losers -->
+            <div class="pro-panel rounded-xl p-4">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <h2 class="font-semibold text-white text-sm">今日贏家 / 輸家</h2>
+                    <span class="text-[10px] text-muted">按今日盈虧 (HKD) · 即時報價</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-[11px] text-emerald-400 font-medium mb-2">貢獻最大 Top 5</p>
+                        <ul class="space-y-1.5 text-xs" id="winnersList">
+                            <li class="text-muted">載入中…</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <p class="text-[11px] text-rose-400 font-medium mb-2">拖累最大 Top 5</p>
+                        <ul class="space-y-1.5 text-xs" id="losersList">
+                            <li class="text-muted">載入中…</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
             <!-- Options book -->
             <div class="pro-panel rounded-xl overflow-hidden">
                 <div class="pro-panel-header px-5 py-3 flex flex-wrap justify-between items-center gap-2">
@@ -256,10 +341,10 @@
                     </div>
                 </div>
                 <div class="overflow-x-auto">
-                    <table>
+                    <table class="options-table min-w-[860px]">
                         <thead>
                             <tr>
-                                <th>期權合約</th>
+                                <th class="whitespace-nowrap">期權合約</th>
                                 <th>方向 / 到期日</th>
                                 <th class="text-right">正股現價 vs 行使價</th>
                                 <th class="text-right">收取權利金 → 現值</th>
@@ -282,12 +367,12 @@
         </div>
 
         <!-- Right: holdings -->
-        <div class="lg:col-span-4 flex flex-col gap-6">
-            <div class="pro-panel rounded-xl flex flex-col overflow-hidden h-[780px]">
-                <div class="pro-panel-header px-4 py-3 flex flex-col gap-2">
+        <div class="lg:col-span-4 flex flex-col gap-6 lg:sticky lg:top-[7.5rem]">
+            <div class="pro-panel rounded-xl holdings-shell">
+                <div class="pro-panel-header px-4 py-3 flex flex-col gap-2 shrink-0">
                     <div class="flex justify-between items-center">
                         <h2 class="font-semibold text-white text-sm">全部持倉 (<span id="totalHoldingCount">0</span>)</h2>
-                        <span class="text-[10px] text-emerald-400">報價即時加總</span>
+                        <span class="text-[10px] text-emerald-400">報價即時加總 · 撳列睇詳情</span>
                     </div>
                     <div class="relative">
                         <svg class="w-3.5 h-3.5 absolute left-2 top-1.5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
@@ -301,14 +386,14 @@
                         <button class="tab-btn tab-inactive shrink-0" onclick="filterHoldings('OPT', this)">期權</button>
                     </div>
                 </div>
-                <div class="overflow-auto flex-1">
+                <div class="overflow-auto flex-1 min-h-0">
                     <table>
                         <thead>
                             <tr>
-                                <th>代碼</th>
+                                <th class="sortable sort-active" data-sort="display" onclick="sortHoldings('display')">代碼 <span class="sort-ind" data-ind="display">↕</span></th>
                                 <th class="text-right">現價 / 數量</th>
-                                <th class="text-right">日變%</th>
-                                <th class="text-right hidden sm:table-cell">市值HKD / 盈虧</th>
+                                <th class="text-right sortable" data-sort="changePct" onclick="sortHoldings('changePct')">日變% <span class="sort-ind" data-ind="changePct">↕</span></th>
+                                <th class="text-right sortable sort-active whitespace-nowrap" data-sort="mvHKD" onclick="sortHoldings('mvHKD')">市值/盈虧 <span class="sort-ind" data-ind="mvHKD">↓</span></th>
                             </tr>
                         </thead>
                         <tbody id="holdingsBody"></tbody>
@@ -320,19 +405,34 @@
                 <p class="text-gray-300 font-medium mb-1">資料說明</p>
                 <ul class="list-disc pl-4 space-y-1">
                     <li><strong class="text-gray-400">報價</strong>：瀏覽器每 ~45 秒經 Yahoo／騰訊 CORS 拉即時價，自動重算淨資產、今日變動、未實現盈虧。</li>
-                    <li><strong class="text-gray-400">持倉</strong>：數量／成本來自 <code class="text-blue-300">holdings.json</code>（富途＋IBKR 同步快照）。買賣改倉後要再同步一次先更新。</li>
-                    <li><strong class="text-gray-400">公開站</strong>：任何人有連結都睇到持倉，請謹慎分享。</li>
+                    <li><strong class="text-gray-400">持倉</strong>：數量／成本來自解鎖後載入嘅持倉快照（富途＋IBKR）。買賣改倉後要再同步一次先更新。</li>
+                    <li><strong class="text-gray-400">私隱</strong>：進入需通行密碼；<code class="text-blue-300">持倉快照</code> 只喺解鎖後先拉。客戶端閘門係遮擋而非伺服器級保安。</li>
                 </ul>
             </div>
         </div>
     </main>
 
     <footer class="border-t border-borderDark px-4 py-3 text-center text-[11px] text-muted">
-        AlphaView Pro · 報價即時 · 持倉快照同步於 <span id="footerSync" class="text-gray-400">—</span>
+        Ricky's Investment · 報價即時 · 持倉快照同步於 <span id="footerSync" class="text-gray-400">—</span>
     </footer>
 
+    <!-- Detail drawer (inside app shell) -->
+    <div id="detailOverlay" onclick="if(event.target===this) closeHoldingDetail()">
+        <aside id="detailDrawer" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+            <div class="pro-panel-header px-4 py-3 flex items-center justify-between shrink-0">
+                <div>
+                    <h3 class="text-sm font-semibold text-white font-num" id="detailTitle">—</h3>
+                    <p class="text-[11px] text-muted mt-0.5" id="detailSubtitle">—</p>
+                </div>
+                <button type="button" onclick="closeHoldingDetail()" class="w-8 h-8 rounded-lg border border-borderDark text-gray-400 hover:text-white hover:bg-panelHover flex items-center justify-center text-lg leading-none" aria-label="關閉">×</button>
+            </div>
+            <div class="p-4 overflow-y-auto flex-1 text-sm space-y-3" id="detailBody"></div>
+        </aside>
+    </div>
+
+    </div><!-- /appShell -->
+
     <script>
-      // mirror sync time into footer when app updates #posSyncTime via MutationObserver-lite
       const _obs = new MutationObserver(() => {
         const a = document.getElementById('posSyncTime');
         const b = document.getElementById('footerSync');
@@ -341,6 +441,9 @@
       document.addEventListener('DOMContentLoaded', () => {
         const a = document.getElementById('posSyncTime');
         if (a) _obs.observe(a, { childList: true, characterData: true, subtree: true });
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') window.closeHoldingDetail && window.closeHoldingDetail();
+        });
       });
     </script>
     <script src="app.js"></script>
