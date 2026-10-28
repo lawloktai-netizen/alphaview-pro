@@ -158,21 +158,39 @@
             transform: translateY(-1px);
         }
         .chart-wrap { position: relative; width: 100%; }
-        .chart-wrap.spark { height: 48px; }
         .chart-wrap.nav { height: 180px; }
         .chart-wrap.donut { height: 220px; max-width: 260px; margin: 0 auto; }
         .chart-wrap.bars { height: 220px; }
-        .index-chip {
+        .index-table-wrap {
             background: linear-gradient(160deg, rgba(21, 27, 38, 0.9), rgba(10, 14, 23, 0.95));
             border: 1px solid #1e2638;
             border-radius: 0.75rem;
-            padding: 0.65rem 0.85rem;
-            min-width: 0;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            overflow: hidden;
         }
-        .index-chip:hover {
-            border-color: rgba(59, 130, 246, 0.35);
-            box-shadow: 0 0 18px rgba(59, 130, 246, 0.08);
+        .index-table-wrap table { width: 100%; }
+        .index-table-wrap th {
+            background: rgba(8, 12, 20, 0.95);
+            padding: 0.55rem 0.9rem;
+            font-size: 0.65rem;
+        }
+        .index-table-wrap td {
+            padding: 0.7rem 0.9rem;
+            border-bottom: 1px solid rgba(30, 38, 56, 0.55);
+            vertical-align: middle;
+        }
+        .index-table-wrap tbody tr:last-child td { border-bottom: none; }
+        .index-table-wrap tbody tr:hover { background-color: rgba(59, 130, 246, 0.06); }
+        .index-code {
+            display: inline-block;
+            font-size: 0.65rem;
+            font-family: 'JetBrains Mono', ui-monospace, monospace;
+            color: #64748b;
+            background: rgba(148, 163, 184, 0.08);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            border-radius: 0.3rem;
+            padding: 0.1rem 0.4rem;
+            margin-left: 0.45rem;
+            vertical-align: middle;
         }
         .num-soft { transition: color 0.35s ease; }
 
@@ -368,53 +386,68 @@
     </div>
 
 
-    <!-- Mini index strip -->
+    <!-- Main market indices (table — fast live quotes) -->
     <div class="bg-[#070a10] border-b border-borderDark px-4 md:px-6 py-3">
         <div class="max-w-[1920px] mx-auto">
             <div class="flex items-center justify-between mb-2">
-                <h2 class="text-[11px] font-medium text-muted tracking-wide">主要指數 · 即時走勢</h2>
+                <h2 class="text-[11px] font-medium text-muted tracking-wide">主要指數 · 即時報價</h2>
                 <span class="text-[10px] text-muted font-num" id="indexStripMeta">多源報價載入中…</span>
             </div>
-            <div class="grid grid-cols-2 xl:grid-cols-4 gap-3" id="indexStrip">
-                <div class="index-chip" data-idx="HSI">
-                    <div class="flex justify-between items-start gap-2">
-                        <div>
-                            <p class="text-[11px] text-muted">恆生指數</p>
-                            <p class="text-sm font-bold text-white font-num num-soft" id="idxHSIPrice">—</p>
-                        </div>
-                        <span class="text-[11px] font-num px-1.5 py-0.5 rounded" id="idxHSIChg">—</span>
-                    </div>
-                    <div class="chart-wrap spark mt-1"><canvas id="sparkHSI"></canvas></div>
-                </div>
-                <div class="index-chip" data-idx="IXIC">
-                    <div class="flex justify-between items-start gap-2">
-                        <div>
-                            <p class="text-[11px] text-muted">納斯達克</p>
-                            <p class="text-sm font-bold text-white font-num num-soft" id="idxIXICPrice">—</p>
-                        </div>
-                        <span class="text-[11px] font-num px-1.5 py-0.5 rounded" id="idxIXICChg">—</span>
-                    </div>
-                    <div class="chart-wrap spark mt-1"><canvas id="sparkIXIC"></canvas></div>
-                </div>
-                <div class="index-chip" data-idx="N225">
-                    <div class="flex justify-between items-start gap-2">
-                        <div>
-                            <p class="text-[11px] text-muted">日經 225</p>
-                            <p class="text-sm font-bold text-white font-num num-soft" id="idxN225Price">—</p>
-                        </div>
-                        <span class="text-[11px] font-num px-1.5 py-0.5 rounded" id="idxN225Chg">—</span>
-                    </div>
-                    <div class="chart-wrap spark mt-1"><canvas id="sparkN225"></canvas></div>
-                </div>
-                <div class="index-chip" data-idx="BTC">
-                    <div class="flex justify-between items-start gap-2">
-                        <div>
-                            <p class="text-[11px] text-muted">比特幣 (USD)</p>
-                            <p class="text-sm font-bold text-white font-num num-soft" id="idxBTCPrice">—</p>
-                        </div>
-                        <span class="text-[11px] font-num px-1.5 py-0.5 rounded" id="idxBTCChg">—</span>
-                    </div>
-                    <div class="chart-wrap spark mt-1"><canvas id="sparkBTC"></canvas></div>
+            <div class="index-table-wrap" id="indexStrip">
+                <div class="overflow-x-auto">
+                    <table class="min-w-[560px]">
+                        <thead>
+                            <tr>
+                                <th>指數</th>
+                                <th class="text-right">最新價</th>
+                                <th class="text-right">漲跌</th>
+                                <th class="text-right">漲跌%</th>
+                                <th class="text-right hidden sm:table-cell">來源</th>
+                            </tr>
+                        </thead>
+                        <tbody class="font-num text-sm">
+                            <tr data-idx="HSI">
+                                <td>
+                                    <span class="text-white font-medium text-[13px]">恆生指數</span>
+                                    <span class="index-code">HSI</span>
+                                </td>
+                                <td class="text-right text-white font-semibold num-soft" id="idxHSIPrice">—</td>
+                                <td class="text-right" id="idxHSIChange">—</td>
+                                <td class="text-right"><span class="text-[11px] font-num px-1.5 py-0.5 rounded" id="idxHSIChg">—</span></td>
+                                <td class="text-right text-[10px] text-muted hidden sm:table-cell" id="idxHSIVia">—</td>
+                            </tr>
+                            <tr data-idx="IXIC">
+                                <td>
+                                    <span class="text-white font-medium text-[13px]">納斯達克</span>
+                                    <span class="index-code">IXIC</span>
+                                </td>
+                                <td class="text-right text-white font-semibold num-soft" id="idxIXICPrice">—</td>
+                                <td class="text-right" id="idxIXICChange">—</td>
+                                <td class="text-right"><span class="text-[11px] font-num px-1.5 py-0.5 rounded" id="idxIXICChg">—</span></td>
+                                <td class="text-right text-[10px] text-muted hidden sm:table-cell" id="idxIXICVia">—</td>
+                            </tr>
+                            <tr data-idx="N225">
+                                <td>
+                                    <span class="text-white font-medium text-[13px]">日經 225</span>
+                                    <span class="index-code">N225</span>
+                                </td>
+                                <td class="text-right text-white font-semibold num-soft" id="idxN225Price">—</td>
+                                <td class="text-right" id="idxN225Change">—</td>
+                                <td class="text-right"><span class="text-[11px] font-num px-1.5 py-0.5 rounded" id="idxN225Chg">—</span></td>
+                                <td class="text-right text-[10px] text-muted hidden sm:table-cell" id="idxN225Via">—</td>
+                            </tr>
+                            <tr data-idx="BTC">
+                                <td>
+                                    <span class="text-white font-medium text-[13px]">比特幣</span>
+                                    <span class="index-code">BTC-USD</span>
+                                </td>
+                                <td class="text-right text-white font-semibold num-soft" id="idxBTCPrice">—</td>
+                                <td class="text-right" id="idxBTCChange">—</td>
+                                <td class="text-right"><span class="text-[11px] font-num px-1.5 py-0.5 rounded" id="idxBTCChg">—</span></td>
+                                <td class="text-right text-[10px] text-muted hidden sm:table-cell" id="idxBTCVia">—</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -682,6 +715,6 @@
       });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-    <script src="app.js?v=20261028d"></script>
+    <script src="app.js?v=20261028e"></script>
 </body>
 </html>

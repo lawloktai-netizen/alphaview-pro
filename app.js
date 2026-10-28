@@ -1007,23 +1007,23 @@ const CHART_COLORS = {
 const INDEX_DEFS = [
   {
     id: 'HSI', label: '恆生指數', yahoo: '^HSI', yahooAlt: ['2800.HK'],
-    stooq: '^hkx', tencent: 'r_hkHSI', sina: 'int_hangseng', sinaRt: 'rt_hkHSI',
-    canvas: 'sparkHSI', priceEl: 'idxHSIPrice', chgEl: 'idxHSIChg',
+    tencent: 'r_hkHSI', sina: 'int_hangseng', sinaRt: 'rt_hkHSI',
+    priceEl: 'idxHSIPrice', changeEl: 'idxHSIChange', chgEl: 'idxHSIChg', viaEl: 'idxHSIVia',
   },
   {
     id: 'IXIC', label: '納斯達克', yahoo: '^IXIC', yahooAlt: ['^COMP', 'QQQ'],
-    stooq: '^ndq', tencent: 'usIXIC', sina: 'int_nasdaq',
-    canvas: 'sparkIXIC', priceEl: 'idxIXICPrice', chgEl: 'idxIXICChg',
+    tencent: 'usIXIC', sina: 'int_nasdaq',
+    priceEl: 'idxIXICPrice', changeEl: 'idxIXICChange', chgEl: 'idxIXICChg', viaEl: 'idxIXICVia',
   },
   {
     id: 'N225', label: '日經 225', yahoo: '^N225', yahooAlt: ['1321.T'],
-    stooq: '^nkx', sina: 'int_nikkei',
-    canvas: 'sparkN225', priceEl: 'idxN225Price', chgEl: 'idxN225Chg',
+    sina: 'int_nikkei',
+    priceEl: 'idxN225Price', changeEl: 'idxN225Change', chgEl: 'idxN225Chg', viaEl: 'idxN225Via',
   },
   {
     id: 'BTC', label: '比特幣', yahoo: 'BTC-USD', yahooAlt: ['BTCUSD=X'],
-    stooq: 'btc.v', coingecko: true,
-    canvas: 'sparkBTC', priceEl: 'idxBTCPrice', chgEl: 'idxBTCChg',
+    coingecko: true,
+    priceEl: 'idxBTCPrice', changeEl: 'idxBTCChange', chgEl: 'idxBTCChg', viaEl: 'idxBTCVia',
   },
 ];
 
@@ -1300,81 +1300,40 @@ function destroyChart(ref) {
   return null;
 }
 
-function sparkColor(chg) {
-  return chg >= 0 ? CHART_COLORS.up : CHART_COLORS.down;
-}
-
-function ensureSpark(id, canvasId, pts, chg) {
-  const canvas = $(canvasId);
-  if (!canvas || typeof Chart === 'undefined') return;
-  const labels = pts.map(p => p.t);
-  const data = pts.map(p => p.c);
-  const color = sparkColor(chg);
-  const existing = state.charts.sparks[id];
-  if (existing) {
-    existing.data.labels = labels;
-    existing.data.datasets[0].data = data;
-    existing.data.datasets[0].borderColor = color;
-    existing.data.datasets[0].backgroundColor = color + '22';
-    existing.update('none');
-    return;
-  }
-  state.charts.sparks[id] = new Chart(canvas, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [{
-        data, borderColor: color, backgroundColor: color + '22',
-        borderWidth: 1.5, pointRadius: 0, fill: true, tension: 0.35,
-      }],
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false, animation: false,
-      plugins: { legend: { display: false }, tooltip: { enabled: false } },
-      scales: { x: { display: false }, y: { display: false } },
-      elements: { line: { borderJoinStyle: 'round' } },
-    },
-  });
+function textPL(v) {
+  return v > 0 ? 'text-up' : v < 0 ? 'text-down' : 'text-muted';
 }
 
 function updateIndexStripUI() {
-  const vias = [];
-  let anyFallback = false;
-  let anyLive = false;
   for (const d of INDEX_DEFS) {
     const s = state.indexSeries[d.id];
-    if (!s) continue;
-    const pe = $(d.priceEl), ce = $(d.chgEl);
-    if (pe) pe.textContent = fmt(s.price, s.price >= 1000 ? 0 : (s.price >= 100 ? 1 : 2));
-    if (ce) {
-      ce.textContent = signed(s.changePct * 100, 2) + '%';
-      ce.className = `text-[11px] font-num px-1.5 py-0.5 rounded ${badgePL(s.changePct)}`;
+    if (!s || !(s.price > 0)) continue;
+    const pe = $(d.priceEl), ce = $(d.chgEl), chEl = $(d.changeEl), viaEl = $(d.viaEl);
+    const decimals = s.price >= 1000 ? 0 : (s.price >= 100 ? 1 : 2);
+    const change = Number.isFinite(s.change) ? s.change : (s.prevClose ? s.price - s.prevClose : 0);
+    const chgPct = Number.isFinite(s.changePct) ? s.changePct : (s.prevClose ? (s.price - s.prevClose) / s.prevClose : 0);
+    if (pe) pe.textContent = fmt(s.price, decimals);
+    if (chEl) {
+      chEl.textContent = signed(change, decimals);
+      chEl.className = `text-right font-num ${textPL(change)}`;
     }
-    if (s.pts && s.pts.length >= 2) ensureSpark(d.id, d.canvas, s.pts, s.changePct);
-    if (s._via) vias.push(d.id + ':' + s._via);
-    if (s._fallback) anyFallback = true; else anyLive = true;
+    if (ce) {
+      ce.textContent = signed(chgPct * 100, 2) + '%';
+      ce.className = `text-[11px] font-num px-1.5 py-0.5 rounded ${badgePL(chgPct)}`;
+    }
+    if (viaEl) viaEl.textContent = s._via || '—';
   }
   const meta = $('indexStripMeta');
   if (meta) {
     const src = [...new Set(INDEX_DEFS.map(d => (state.indexSeries[d.id] || {})._via).filter(Boolean))];
+    const n = INDEX_DEFS.filter(d => state.indexSeries[d.id] && state.indexSeries[d.id].price > 0).length;
     const label = src.length ? src.join(' · ') : '等待報價';
-    const tag = anyFallback && !anyLive
-      ? '估算走勢'
-      : (anyFallback ? '混合（含估算）' : '即時／歷史序列');
-    meta.textContent = tag + ' · ' + label + ' · ' + new Date().toLocaleTimeString('zh-HK', { hour12: false });
+    meta.textContent = `${n}/${INDEX_DEFS.length} 已更新 · ${label} · ` + new Date().toLocaleTimeString('zh-HK', { hour12: false });
   }
 }
 
-async function loadOneIndexSeries(d) {
-  // 1) BTC → CoinGecko series first
-  if (d.coingecko) {
-    try { return await coinGeckoBtcSeries(); } catch (_) {}
-  }
-  // 2) Stooq daily history (stable when reachable)
-  if (d.stooq) {
-    try { return await stooqDailySeries(d.stooq); } catch (_) {}
-  }
-  // 3) Live quote from Tencent / Sina → synthetic spark from prev→price
+/** Fast live quotes only (no intraday series / sparklines). */
+async function loadOneIndexQuote(d) {
   let quote = null;
   if (d.tencent) {
     try { quote = await tencentIndexQuote(d.tencent); } catch (_) {}
@@ -1388,34 +1347,37 @@ async function loadOneIndexSeries(d) {
   if (!quote && d.coingecko) {
     try { quote = await coinGeckoBtc(); } catch (_) {}
   }
-  // 4) Yahoo intraday (last resort for series)
-  const ysyms = [d.yahoo, ...(d.yahooAlt || [])].filter(Boolean);
-  for (const sym of ysyms) {
-    try {
-      const s = await yahooIntradayHardened(sym);
-      if (s && s.pts && s.pts.length >= 2) return s;
-    } catch (_) {}
-  }
-  // 5) Yahoo / existing quote for price then synthetic
   if (!quote) {
+    const ysyms = [d.yahoo, ...(d.yahooAlt || [])].filter(Boolean);
     for (const sym of ysyms) {
       try {
         const q = await yahooQuote(sym);
-        if (q.price > 0) { quote = q; break; }
+        if (q && q.price > 0) {
+          quote = { ...q, _via: q._via || 'Yahoo' };
+          break;
+        }
       } catch (_) {}
     }
   }
-  if (quote && quote.price > 0) {
-    const syn = synthesizeSeries(quote.price, quote.prevClose || quote.price, 20, (quote._via || '報價') + '·估算');
-    return syn;
-  }
-  throw new Error('index ' + d.id + ' fail');
+  if (!quote || !(quote.price > 0)) throw new Error('index ' + d.id + ' quote fail');
+  const prevClose = quote.prevClose > 0 ? quote.prevClose : quote.price;
+  const change = Number.isFinite(quote.change) ? quote.change : (quote.price - prevClose);
+  const changePct = Number.isFinite(quote.changePct)
+    ? quote.changePct
+    : (prevClose ? (quote.price - prevClose) / prevClose : 0);
+  return {
+    price: quote.price,
+    prevClose,
+    change,
+    changePct,
+    _via: quote._via || '報價',
+  };
 }
 
 async function loadIndexSeries() {
   await Promise.all(INDEX_DEFS.map(async (d) => {
     try {
-      state.indexSeries[d.id] = await loadOneIndexSeries(d);
+      state.indexSeries[d.id] = await loadOneIndexQuote(d);
     } catch (e) {
       console.warn('index', d.id, e);
     }
@@ -1830,7 +1792,6 @@ window.switchAppView = function(view) {
         state.charts.nav && state.charts.nav.resize();
         state.charts.alloc && state.charts.alloc.resize();
         state.charts.wl && state.charts.wl.resize();
-        Object.values(state.charts.sparks || {}).forEach(ch => ch && ch.resize && ch.resize());
       } catch (_) {}
     }, 50);
   }
