@@ -3,7 +3,7 @@
 'use strict';
 
 const PASS_HASH = '21f3dc4db237caf55464ec97e07ecf20d5031b8e3a934436d00651b1e4b02614';
-const SESSION_KEY = 'ricky_invest_unlocked_v1';
+const SESSION_KEY = 'ricky_invest_unlocked_v2';
 const HOLDINGS_URL = 'data/snap_a7f3e9c2.json';
 const PUBLIC_PROXIES = [
   ['corsproxy.io', u => 'https://corsproxy.io/?url=' + encodeURIComponent(u)],
@@ -53,8 +53,12 @@ const clsPL = v => (v > 0.5 ? 'text-up' : v < -0.5 ? 'text-down' : 'text-gray-30
 const badgePL = v => (v > 0.5 ? 'badge-up' : v < -0.5 ? 'badge-down' : 'badge-neutral');
 
 async function sha256Hex(text) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+  const normalized = String(text ?? '').normalize('NFKC').trim();
+  if (globalThis.crypto && crypto.subtle) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(normalized));
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+  throw new Error('secure-hash-unavailable');
 }
 
 function showApp() {
@@ -88,13 +92,16 @@ function setupGate() {
       if (h === PASS_HASH) {
         sessionStorage.setItem(SESSION_KEY, PASS_HASH);
         state.unlocked = true;
-        if (err) err.classList.add('hidden');
+        if (err) { err.classList.add('hidden'); err.textContent = '密碼不正確，請再試。'; }
         showApp();
         boot();
       } else {
-        if (err) err.classList.remove('hidden');
+        if (err) { err.textContent = '密碼不正確，請再試。'; err.classList.remove('hidden'); }
         if (input) { input.value = ''; input.focus(); }
       }
+    } catch (ex) {
+      if (err) { err.textContent = '此瀏覽器無法驗證密碼，請用最新 Chrome／Safari（需 HTTPS）。'; err.classList.remove('hidden'); }
+      console.error(ex);
     } finally {
       if (btn) { btn.disabled = false; btn.textContent = '解鎖儀表板'; }
     }
