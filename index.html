@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="zh-HK" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlphaView Pro | 機構級投資組合監察終端</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#06080c',
+                        panel: '#0e121b',
+                        panelLight: '#151b26',
+                        panelHover: '#1c2331',
+                        borderDark: '#1e2638',
+                        up: '#10b981',
+                        upBg: 'rgba(16, 185, 129, 0.12)',
+                        down: '#f43f5e',
+                        downBg: 'rgba(244, 63, 94, 0.12)',
+                        accent: '#3b82f6',
+                        muted: '#64748b',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            background-color: #06080c; 
+            color: #e2e8f0; 
+            font-family: 'Inter', sans-serif;
+            background-image: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.06) 0%, transparent 50%);
+        }
+        .font-num { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #06080c; }
+        ::-webkit-scrollbar-thumb { background: #1e2638; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Glass & Panel Styling */
+        .pro-panel {
+            background: linear-gradient(180deg, rgba(21, 27, 38, 0.75) 0%, rgba(14, 18, 27, 0.9) 100%);
+            backdrop-filter: blur(12px);
+            border: 1px solid #1e2638;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+        }
+        .pro-panel-header {
+            background: rgba(10, 14, 23, 0.65);
+            border-bottom: 1px solid #1e2638;
+        }
+        
+        /* Table Styling */
+        table { width: 100%; text-align: left; border-collapse: collapse; }
+        th { 
+            font-size: 0.7rem; 
+            text-transform: uppercase; 
+            letter-spacing: 0.05em;
+            color: #64748b; 
+            padding: 0.65rem 0.85rem; 
+            border-bottom: 1px solid #1e2638; 
+            font-weight: 600; 
+            position: sticky; 
+            top: 0; 
+            background: #0e121b; 
+            z-index: 10; 
+        }
+        td { 
+            padding: 0.65rem 0.85rem; 
+            border-bottom: 1px solid rgba(30, 38, 56, 0.5); 
+            font-size: 0.8125rem; 
+        }
+        tr.interactive-row { cursor: pointer; transition: all 0.15s ease; }
+        tr.interactive-row:hover { background-color: rgba(59, 130, 246, 0.07); }
+        
+        /* Pill Badges */
+        .badge-up { color: #10b981; background-color: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.25); }
+        .badge-down { color: #f43f5e; background-color: rgba(244, 63, 94, 0.12); border: 1px solid rgba(244, 63, 94, 0.25); }
+        .badge-neutral { color: #94a3b8; background-color: rgba(148, 163, 184, 0.12); border: 1px solid rgba(148, 163, 184, 0.2); }
+        
+        /* Tab Styling */
+        .tab-btn {
+            padding: 0.35rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border-radius: 0.375rem;
+            transition: all 0.15s;
+        }
+        .tab-active { background-color: #3b82f6; color: #ffffff; box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3); }
+        .tab-inactive { color: #64748b; }
+        .tab-inactive:hover { color: #e2e8f0; background-color: rgba(255, 255, 255, 0.04); }
+
+        @keyframes pulse-flash-up {
+            0% { background-color: rgba(16, 185, 129, 0.25); }
+            100% { background-color: transparent; }
+        }
+        @keyframes pulse-flash-down {
+            0% { background-color: rgba(244, 63, 94, 0.25); }
+            100% { background-color: transparent; }
+        }
+        .flash-up { animation: pulse-flash-up 0.8s ease-out; }
+        .flash-down { animation: pulse-flash-down 0.8s ease-out; }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col selection:bg-blue-500 selection:text-white">
+
+    <!-- 頂部極簡全球狀態列 (Global Status Bar) -->
+    <div class="bg-[#040609] border-b border-borderDark px-4 md:px-6 py-1.5 flex flex-wrap justify-between items-center text-[11px] text-muted gap-2">
+        <div class="flex items-center gap-4 overflow-x-auto hide-scrollbar">
+            <span class="flex items-center gap-1.5 shrink-0">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <strong class="text-gray-300">SYSTEM ONLINE</strong>
+            </span>
+            <span class="text-gray-700">|</span>
+            <span class="shrink-0">數據快照: <span class="font-num text-gray-300">2026-10-28 07:15 HKT</span></span>
+            <span class="text-gray-700 hidden sm:inline">|</span>
+            <div class="hidden sm:flex items-center gap-3 shrink-0 font-num">
+                <span>USD/HKD <strong class="text-gray-300">7.8445</strong></span>
+                <span>USD/CNH <strong class="text-gray-300">6.6647</strong></span>
+                <span>USD/JPY <strong class="text-gray-300">157.97</strong></span>
+            </div>
+        </div>
+        <div class="flex items-center gap-3 ml-auto">
+            <div class="hidden lg:flex items-center gap-2.5 text-[11px]">
+                <span class="px-1.5 py-0.5 rounded bg-gray-800/80 text-gray-400">港股/A股: 收市</span>
+                <span class="px-1.5 py-0.5 rounded bg-gray-800/80 text-gray-400">美股: 盤後</span>
+                <span class="px-1.5 py-0.5 rounded bg-red-950/60 text-red-400 border border-red-800/40 flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    FOMC 議息倒數 (10/29 02:00)
+                </span>
+            </div>
+            <button id="simToggleBtn" onclick="toggleRealtimeSim()" class="flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition text-xs font-medium cursor-pointer">
+                <span id="simDot" class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                <span id="simText">實時自動計算: 開啟</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 主導航與核心 KPI 總覽 (自動計算驅動) -->
+    <header class="bg-panel/90 backdrop-blur-md border-b border-borderDark px-4 md:px-6 py-4 sticky top-0 z-30">
+        <div class="max-w-[1920px] mx-auto flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-blue-500/20 border border-blue-400/30">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-lg md:text-xl font-bold text-white tracking-tight">ALPHAVIEW <span class="text-blue-500 font-light">PRO</span></h1>
+                        <span class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">Portfolio Terminal</span>
+                    </div>
+                    <p class="text-xs text-muted mt-0.5">41 項證券持倉 + BTC | 富途證券・富途加密・IBKR 跨帳戶合併自動監察</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 w-full xl:w-auto">
+                <div class="bg-panelLight/80 border border-borderDark rounded-lg px-3.5 py-2">
+                    <p class="text-[11px] text-muted flex items-center justify-between">
+                        <span>合併淨資產 (HKD)</span>
+                        <span class="text-[10px] text-emerald-400 font-num" id="netAssetDiff">+4,878</span>
+                    </p>
+                    <p class="text-lg font-bold text-white font-num mt-0.5" id="totalNetAsset">1,334,988</p>
+                </div>
+                <div class="bg-panelLight/80 border border-borderDark rounded-lg px-3.5 py-2">
+                    <p class="text-[11px] text-muted">今日估算變動</p>
+                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                        <p class="text-lg font-bold text-up font-num" id="todayChangeAmt">+5,205</p>
+                        <span class="text-xs font-num badge-up px-1.5 py-0.2 rounded" id="todayChangePct">+0.39%</span>
+                    </div>
+                </div>
+                <div class="bg-panelLight/80 border border-borderDark rounded-lg px-3.5 py-2">
+                    <p class="text-[11px] text-muted">總未實現盈虧</p>
+                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                        <p class="text-lg font-bold text-down font-num" id="totalUnrealizedPL">-306,626</p>
+                        <span class="text-xs font-num badge-down px-1.5 py-0.2 rounded">-24.3%</span>
+                    </div>
+                </div>
+                <div class="bg-panelLight/80 border border-borderDark rounded-lg px-3.5 py-2">
+                    <p class="text-[11px] text-muted">現金及貨幣基金</p>
+                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                        <p class="text-lg font-bold text-white font-num">335,310</p>
+                        <span class="text-[11px] text-gray-400 font-num">25.1%</span>
+                    </div>
+                </div>
+                <div class="bg-panelLight/80 border border-borderDark rounded-lg px-3.5 py-2">
+                    <p class="text-[11px] text-muted">累計已賺期權金</p>
+                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                        <p class="text-lg font-bold text-emerald-400 font-num">+3,220</p>
+                        <span class="text-[10px] text-gray-400">5張未平倉</span>
+                    </div>
+                </div>
+                <div class="bg-panelLight/80 border border-borderDark rounded-lg px-3.5 py-2">
+                    <p class="text-[11px] text-muted flex justify-between">
+                        <span>加權 Beta</span>
+                        <span>IBKR 槓桿</span>
+                    </p>
+                    <div class="flex items-baseline justify-between mt-0.5 font-num">
+                        <p class="text-lg font-bold text-blue-400">0.84</p>
+                        <p class="text-sm font-semibold text-amber-400">0.98x</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 市場歸因列 (自動計算驅動) -->
+    <div class="bg-[#090d14] border-b border-borderDark px-4 md:px-6 py-2">
+        <div class="max-w-[1920px] mx-auto flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-muted font-medium">今日盈虧自動歸因 (HKD):</span>
+                <span class="px-2 py-0.5 rounded badge-up font-num" id="contribUS">美股 +5,948</span>
+                <span class="px-2 py-0.5 rounded badge-up font-num" id="contribBTC">BTC +497</span>
+                <span class="px-2 py-0.5 rounded badge-up font-num">期權 +342</span>
+                <span class="px-2 py-0.5 rounded badge-up font-num" id="contribOther">日股 +89</span>
+                <span class="px-2 py-0.5 rounded badge-down font-num" id="contribA">A股 -783</span>
+                <span class="px-2 py-0.5 rounded badge-down font-num" id="contribHK">港股 -888</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主體內容網格 -->
+    <main class="flex-1 p-4 md:p-6 max-w-[1920px] w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- 左側主欄 (8 Columns) -->
+        <div class="lg:col-span-8 flex flex-col gap-6">
+            
+            <!-- 第一排：各大市場指數 (直向列表) & 財經新聞 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- 全球市場指數 (直向列表形式) -->
+                <div class="pro-panel rounded-xl flex flex-col overflow-hidden h-[450px]">
+                    <div class="pro-panel-header px-4 py-3 flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <h2 class="font-semibold text-white text-sm">各大市場指數 (實時)</h2>
+                        </div>
+                        <span class="text-[11px] text-muted font-num">10/27 收市</span>
+                    </div>
+                    
+                    <div class="flex gap-1 px-3 py-2 border-b border-borderDark bg-[#0a0d14] overflow-x-auto whitespace-nowrap hide-scrollbar">
+                        <button class="tab-btn tab-active shrink-0" onclick="filterIndices('All', this)">全部 (15)</button>
+                        <button class="tab-btn tab-inactive shrink-0" onclick="filterIndices('US', this)">美股 (5)</button>
+                        <button class="tab-btn tab-inactive shrink-0" onclick="filterIndices('CNHK', this)">中港 (6)</button>
+                        <button class="tab-btn tab-inactive shrink-0" onclick="filterIndices('Other', this)">日韓/外匯 (4)</button>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto relative">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>指數 / 指標</th>
+                                    <th class="text-right">最新報價</th>
+                                    <th class="text-right">單日變動</th>
+                                </tr>
+                            </thead>
+                            <tbody id="indicesBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 財經新聞 (Yahoo 實時/備用日報重點) -->
+                <div class="pro-panel rounded-xl overflow-hidden flex flex-col h-[450px]">
+                    <div class="pro-panel-header px-4 py-3 flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+                            <h2 class="font-semibold text-white text-sm">實時財經新聞 (Yahoo 財經)</h2>
+                        </div>
+                        <span class="text-[10px] text-muted font-num">Live Feed</span>
+                    </div>
+
+                    <div class="flex-1 w-full relative overflow-y-auto">
+                        <ul class="divide-y divide-borderDark/60" id="news-list">
+                            <li class="p-3.5 hover:bg-panelHover/60 transition">
+                                <a href="https://hk.news.yahoo.com/finance" target="_blank" class="block group">
+                                    <div class="flex justify-between items-start gap-3">
+                                        <h3 class="text-xs text-gray-200 font-medium leading-snug flex-1 group-hover:text-blue-400">美聯儲局 (FOMC) 兩日議息會議進行中，市場普遍預期利率維持 4.00% 不變</h3>
+                                        <span class="text-[10px] font-num text-muted whitespace-nowrap bg-gray-800/70 px-1.5 py-0.5 rounded">10/28 14:20</span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="p-3.5 hover:bg-panelHover/60 transition">
+                                <a href="https://hk.news.yahoo.com/finance" target="_blank" class="block group">
+                                    <div class="flex justify-between items-start gap-3">
+                                        <h3 class="text-xs text-gray-200 font-medium leading-snug flex-1 group-hover:text-blue-400">美股週二收升：標普 500 指數漲 0.60%，費城半導體指數強勢勁揚 3.60%</h3>
+                                        <span class="text-[10px] font-num text-muted whitespace-nowrap bg-gray-800/70 px-1.5 py-0.5 rounded">10/28 07:10</span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="p-3.5 hover:bg-panelHover/60 transition">
+                                <a href="https://hk.news.yahoo.com/finance" target="_blank" class="block group">
+                                    <div class="flex justify-between items-start gap-3">
+                                        <h3 class="text-xs text-gray-200 font-medium leading-snug flex-1 group-hover:text-blue-400">海外萬億級 AI 巨頭 IPO 話題持續發酵，帶動港股及 A 股部分算力硬件板塊異動</h3>
+                                        <span class="text-[10px] font-num text-muted whitespace-nowrap bg-gray-800/70 px-1.5 py-0.5 rounded">10/27 18:30</span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="p-3.5 hover:bg-panelHover/60 transition">
+                                <a href="https://hk.news.yahoo.com/finance" target="_blank" class="block group">
+                                    <div class="flex justify-between items-start gap-3">
+                                        <h3 class="text-xs text-gray-200 font-medium leading-snug flex-1 group-hover:text-blue-400">國際油價續挫：WTI 原油期貨收報每桶 99.90 美元，跌幅近 1.86%</h3>
+                                        <span class="text-[10px] font-num text-muted whitespace-nowrap bg-gray-800/70 px-1.5 py-0.5 rounded">10/27 17:15</span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="p-3.5 hover:bg-panelHover/60 transition">
+                                <a href="https://hk.news.yahoo.com/finance" target="_blank" class="block group">
+                                    <div class="flex justify-between items-start gap-3">
+                                        <h3 class="text-xs text-gray-200 font-medium leading-snug flex-1 group-hover:text-blue-400">中國海洋石油 (00883) 預定 10 月 30 日收市後發布第三季業績公告</h3>
+                                        <span class="text-[10px] font-num text-muted whitespace-nowrap bg-gray-800/70 px-1.5 py-0.5 rounded">10/27 12:00</span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="p-3.5 hover:bg-panelHover/60 transition">
+                                <a href="https://hk.news.yahoo.com/finance" target="_blank" class="block group">
+                                    <div class="flex justify-between items-start gap-3">
+                                        <h3 class="text-xs text-gray-200 font-medium leading-snug flex-1 group-hover:text-blue-400">日本央行本週四至五將召開議息會議，市場密切關注日圓走勢及利率動向</h3>
+                                        <span class="text-[10px] font-num text-muted whitespace-nowrap bg-gray-800/70 px-1.5 py-0.5 rounded">10/27 09:30</span>
+                                    </div>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 第二排：三大券商帳戶明細 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="pro-panel rounded-xl p-4 relative overflow-hidden">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-orange-500/15 text-orange-400 border border-orange-500/30">佔比 65.6%</span>
+                            <h3 class="text-base font-bold text-white mt-1.5">富途證券 (Futu)</h3>
+                        </div>
+                        <div class="text-right font-num">
+                            <p class="text-xs text-muted">帳戶淨值 (HKD)</p>
+                            <p class="text-lg font-bold text-white">875,770</p>
+                        </div>
+                    </div>
+                    <div class="space-y-1.5 text-xs border-t border-borderDark pt-3 font-num">
+                        <div class="flex justify-between"><span class="text-muted">證券持倉市值 (41項):</span> <span class="text-gray-200">559,281</span></div>
+                        <div class="flex justify-between"><span class="text-muted">富途貨幣/債券基金:</span> <span class="text-gray-200">103,157</span></div>
+                        <div class="flex justify-between"><span class="text-muted">現金及待交收:</span> <span class="text-emerald-400">213,332</span></div>
+                        <div class="flex justify-between pt-1 border-t border-borderDark/50">
+                            <span class="text-muted">未實現 / 今日變動:</span> 
+                            <span><strong class="text-down">-186,265</strong> / <strong class="text-up">+3,712</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pro-panel rounded-xl p-4 relative overflow-hidden">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-red-500/15 text-red-400 border border-red-500/30">佔比 30.6% | 槓桿 0.98x</span>
+                            <h3 class="text-base font-bold text-white mt-1.5">盈透證券 (IBKR)</h3>
+                        </div>
+                        <div class="text-right font-num">
+                            <p class="text-xs text-muted">帳戶淨值 (HKD)</p>
+                            <p class="text-lg font-bold text-white">408,270</p>
+                        </div>
+                    </div>
+                    <div class="space-y-1.5 text-xs border-t border-borderDark pt-3 font-num">
+                        <div class="flex justify-between"><span class="text-muted">持倉市值 (收益+日股):</span> <span class="text-gray-200">398,132</span></div>
+                        <div class="flex justify-between"><span class="text-muted">可用資金 (Available):</span> <span class="text-gray-200">350,928</span></div>
+                        <div class="flex justify-between"><span class="text-muted">現金結餘:</span> <span class="text-gray-200">10,137</span></div>
+                        <div class="flex justify-between pt-1 border-t border-borderDark/50">
+                            <span class="text-muted">未實現 (PFN佔81%):</span> 
+                            <span><strong class="text-down">-120,362</strong> / <strong class="text-up">+996</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pro-panel rounded-xl p-4 relative overflow-hidden">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/30">佔比 3.8%</span>
+                            <h3 class="text-base font-bold text-white mt-1.5">富途加密 (Crypto)</h3>
+                        </div>
+                        <div class="text-right font-num">
+                            <p class="text-xs text-muted">帳戶淨值 (HKD)</p>
+                            <p class="text-lg font-bold text-white">50,948</p>
+                        </div>
+                    </div>
+                    <div class="space-y-1.5 text-xs border-t border-borderDark pt-3 font-num">
+                        <div class="flex justify-between"><span class="text-muted">BTC 持倉 (0.06667枚):</span> <span class="text-gray-200">42,264</span></div>
+                        <div class="flex justify-between"><span class="text-muted">BTC 現價 (USD):</span> <span class="text-amber-400">$80,811 (+1.19%)</span></div>
+                        <div class="flex justify-between"><span class="text-muted">美元現金儲備:</span> <span class="text-emerald-400">8,684 (US$1,106.8)</span></div>
+                        <div class="flex justify-between pt-1 border-t border-borderDark/50">
+                            <span class="text-muted">今日估算變動:</span> 
+                            <span class="text-up font-bold">+497 HKD</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 第三排：未平倉期權策略簿 -->
+            <div class="pro-panel rounded-xl overflow-hidden">
+                <div class="pro-panel-header px-5 py-3 flex flex-wrap justify-between items-center gap-2">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                        <h2 class="font-semibold text-white text-sm">未平倉期權策略簿 & 扣除期權金後真實成本 (Ricky 方法)</h2>
+                    </div>
+                    <div class="flex items-center gap-3 text-xs font-num">
+                        <span class="text-muted">今日期權盈虧: <strong class="text-up">+342 HKD</strong></span>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>期權合約</th>
+                                <th>方向 / 到期日</th>
+                                <th class="text-right">正股現價 vs 行使價</th>
+                                <th class="text-right">收取權利金 → 現值</th>
+                                <th class="text-right">未實現盈虧 (HKD)</th>
+                                <th class="w-36">權利金回收進度</th>
+                                <th class="text-right">正股券商成本 → 真實成本</th>
+                            </tr>
+                        </thead>
+                        <tbody class="font-num text-xs">
+                            <tr class="hover:bg-panelHover/50">
+                                <td>
+                                    <div class="font-bold text-white">TCH 460.00 C</div>
+                                    <div class="text-[11px] text-muted">騰訊備兌認購 (100股)</div>
+                                </td>
+                                <td>
+                                    <span class="px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30 text-[10px]">SHORT CALL</span>
+                                    <div class="text-[11px] text-muted mt-0.5">2026-11-27 (30日)</div>
+                                </td>
+                                <td class="text-right">
+                                    <div class="text-gray-200">385.20 / 460.00</div>
+                                    <div class="text-[11px] text-emerald-400">價外 +19.4%</div>
+                                </td>
+                                <td class="text-right">855 → 85</td>
+                                <td class="text-right text-up font-bold">+770</td>
+                                <td>
+                                    <div class="flex justify-between text-[11px] mb-1"><span>已賺 90%</span><span class="text-emerald-400">極佳</span></div>
+                                    <div class="w-full bg-gray-800 rounded-full h-1.5"><div class="bg-emerald-500 h-1.5 rounded-full" style="width: 90%"></div></div>
+                                </td>
+                                <td class="text-right">
+                                    <div class="text-gray-300">417.00 → <strong class="text-blue-400">415.49</strong></div>
+                                    <div class="text-[10px] text-muted">200股全數覆蓋</div>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-panelHover/50">
+                                <td>
+                                    <div class="font-bold text-white">TCH 430.00 C</div>
+                                    <div class="text-[11px] text-muted">騰訊備兌認購 (100股)</div>
+                                </td>
+                                <td>
+                                    <span class="px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30 text-[10px]">SHORT CALL</span>
+                                    <div class="text-[11px] text-muted mt-0.5">2026-11-27 (30日)</div>
+                                </td>
+                                <td class="text-right">
+                                    <div class="text-gray-200">385.20 / 430.00</div>
+                                    <div class="text-[11px] text-emerald-400">價外 +11.6%</div>
+                                </td>
+                                <td class="text-right">327 → 228</td>
+                                <td class="text-right text-up font-bold">+99</td>
+                                <td>
+                                    <div class="flex justify-between text-[11px] mb-1"><span>已賺 30%</span><span class="text-gray-400">持有中</span></div>
+                                    <div class="w-full bg-gray-800 rounded-full h-1.5"><div class="bg-blue-500 h-1.5 rounded-full" style="width: 30%"></div></div>
+                                </td>
+                                <td class="text-right">
+                                    <div class="text-gray-300">417.00 → <strong class="text-blue-400">415.49</strong></div>
+                                    <div class="text-[10px] text-muted">降幅 0.36%</div>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-panelHover/50">
+                                <td>
+                                    <div class="font-bold text-white">CHT 82.50 C</div>
+                                    <div class="text-[11px] text-muted">中移動備兌認購 (500股)</div>
+                                </td>
+                                <td>
+                                    <span class="px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30 text-[10px]">SHORT CALL</span>
+                                    <div class="text-[11px] text-muted mt-0.5">2026-11-27 (30日)</div>
+                                </td>
+                                <td class="text-right">
+                                    <div class="text-gray-200">78.10 / 82.50</div>
+                                    <div class="text-[11px] text-emerald-400">價外 +5.6%</div>
+                                </td>
+                                <td class="text-right">175 → 65</td>
+                                <td class="text-right text-up font-bold">+110</td>
+                                <td>
+                                    <div class="flex justify-between text-[11px] mb-1"><span>已賺 63%</span><span class="text-emerald-400">良好</span></div>
+                                    <div class="w-full bg-gray-800 rounded-full h-1.5"><div class="bg-emerald-500 h-1.5 rounded-full" style="width: 63%"></div></div>
+                                </td>
+                                <td class="text-right">
+                                    <div class="text-gray-300">81.24 → <strong class="text-blue-400">81.12</strong></div>
+                                    <div class="text-[10px] text-muted">降幅 0.14%</div>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-panelHover/50">
+                                <td>
+                                    <div class="font-bold text-white">CNC 26.00 C</div>
+                                    <div class="text-[11px] text-muted">中海油備兌認購 (1,000股)</div>
+                                </td>
+                                <td>
+                                    <span class="px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30 text-[10px]">SHORT CALL</span>
+                                    <div class="text-[11px] text-muted mt-0.5">2026-11-27 (30日)</div>
+                                </td>
+                                <td class="text-right">
+                                    <div class="text-gray-200">24.20 / 26.00</div>
+                                    <div class="text-[11px] text-amber-400">價外 +7.4% (10/30業績)</div>
+                                </td>
+                                <td class="text-right">380 → 270</td>
+                                <td class="text-right text-up font-bold">+110</td>
+                                <td>
+                                    <div class="flex justify-between text-[11px] mb-1"><span>已賺 29%</span><span class="text-gray-400">持有中</span></div>
+                                    <div class="w-full bg-gray-800 rounded-full h-1.5"><div class="bg-blue-500 h-1.5 rounded-full" style="width: 29%"></div></div>
+                                </td>
+                                <td class="text-right">
+                                    <div class="text-gray-300">23.31 → <strong class="text-emerald-400">22.66</strong></div>
+                                    <div class="text-[10px] text-emerald-400">真實浮盈 +1,538 HKD</div>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-panelHover/50 bg-blue-950/10">
+                                <td>
+                                    <div class="font-bold text-white">NVDA 190.00 P</div>
+                                    <div class="text-[11px] text-muted">英偉達認沽短倉 (100股)</div>
+                                </td>
+                                <td>
+                                    <span class="px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[10px]">SHORT PUT</span>
+                                    <div class="text-[11px] text-muted mt-0.5">2026-11-20 (23日)</div>
+                                </td>
+                                <td class="text-right">
+                                    <div class="text-gray-200">$217.94 / $190.00</div>
+                                    <div class="text-[11px] text-emerald-400">安全緩衝 -12.8%</div>
+                                </td>
+                                <td class="text-right">2,228 → 1,318</td>
+                                <td class="text-right text-up font-bold">+910</td>
+                                <td>
+                                    <div class="flex justify-between text-[11px] mb-1"><span>已賺 41%</span><span class="text-blue-400">單日 +306</span></div>
+                                    <div class="w-full bg-gray-800 rounded-full h-1.5"><div class="bg-blue-500 h-1.5 rounded-full" style="width: 41%"></div></div>
+                                </td>
+                                <td class="text-right">
+                                    <div class="text-gray-300">$211.15 → <strong class="text-emerald-400">$183.00</strong></div>
+                                    <div class="text-[10px] text-amber-400">接貨需備 US$19,000</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 第四排：資產配置與歸因 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="pro-panel rounded-xl p-5 flex flex-col justify-between">
+                    <div>
+                        <h2 class="font-semibold text-white text-sm mb-4 flex items-center justify-between">
+                            <span class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
+                                資產配置結構 (HK$ 1.33M)
+                            </span>
+                            <span class="text-[11px] text-muted font-num">美元資產佔 ~48%</span>
+                        </h2>
+                        <div class="w-full h-3 rounded-full overflow-hidden flex mb-4 bg-gray-900 p-0.5 gap-0.5">
+                            <div class="bg-blue-500 h-full rounded-l-full" style="width: 31.4%"></div>
+                            <div class="bg-emerald-500 h-full" style="width: 17.4%"></div>
+                            <div class="bg-purple-500 h-full" style="width: 15.5%"></div>
+                            <div class="bg-amber-500 h-full" style="width: 11.3%"></div>
+                            <div class="bg-cyan-500 h-full" style="width: 8.3%"></div>
+                            <div class="bg-indigo-400 h-full" style="width: 7.7%"></div>
+                            <div class="bg-rose-500 h-full rounded-r-full" style="width: 8.4%"></div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-xs font-num">
+                            <div class="flex justify-between items-center py-1 border-b border-borderDark/50">
+                                <span class="flex items-center gap-1.5 text-gray-300"><span class="w-2 h-2 rounded-sm bg-blue-500"></span>收益型 (PFN/TLT等)</span>
+                                <span class="text-white font-semibold">31.4% <span class="text-muted text-[10px]">(419k)</span></span>
+                            </div>
+                            <div class="flex justify-between items-center py-1 border-b border-borderDark/50">
+                                <span class="flex items-center gap-1.5 text-gray-300"><span class="w-2 h-2 rounded-sm bg-emerald-500"></span>現金及其他</span>
+                                <span class="text-white font-semibold">17.4% <span class="text-muted text-[10px]">(232k)</span></span>
+                            </div>
+                            <div class="flex justify-between items-center py-1 border-b border-borderDark/50">
+                                <span class="flex items-center gap-1.5 text-gray-300"><span class="w-2 h-2 rounded-sm bg-purple-500"></span>港股 (含期權)</span>
+                                <span class="text-white font-semibold">15.5% <span class="text-muted text-[10px]">(207k)</span></span>
+                            </div>
+                            <div class="flex justify-between items-center py-1 border-b border-borderDark/50">
+                                <span class="flex items-center gap-1.5 text-gray-300"><span class="w-2 h-2 rounded-sm bg-amber-500"></span>美股個股/ETF</span>
+                                <span class="text-white font-semibold">11.3% <span class="text-muted text-[10px]">(151k)</span></span>
+                            </div>
+                            <div class="flex justify-between items-center py-1 border-b border-borderDark/50">
+                                <span class="flex items-center gap-1.5 text-gray-300"><span class="w-2 h-2 rounded-sm bg-cyan-500"></span>日本 ETF</span>
+                                <span class="text-white font-semibold">8.3% <span class="text-muted text-[10px]">(111k)</span></span>
+                            </div>
+                            <div class="flex justify-between items-center py-1 border-b border-borderDark/50">
+                                <span class="flex items-center gap-1.5 text-gray-300"><span class="w-2 h-2 rounded-sm bg-indigo-400"></span>富途基金</span>
+                                <span class="text-white font-semibold">7.7% <span class="text-muted text-[10px]">(103k)</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pro-panel rounded-xl p-5 flex flex-col justify-between">
+                    <div>
+                        <h2 class="font-semibold text-white text-sm mb-3 flex items-center justify-between">
+                            <span class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                                今日單一持倉盈虧貢獻排行 (HKD)
+                            </span>
+                        </h2>
+                        <div class="space-y-2 font-num text-xs">
+                            <div class="flex justify-between items-center p-1.5 rounded bg-emerald-950/20 border border-emerald-900/30">
+                                <span class="text-gray-200 font-sans"><strong class="font-mono text-white">PFN</strong> PIMCO 收益策略 II</span>
+                                <span class="text-up font-bold">+1,652 (+0.98%)</span>
+                            </div>
+                            <div class="flex justify-between items-center p-1.5 rounded bg-emerald-950/20 border border-emerald-900/30">
+                                <span class="text-gray-200 font-sans"><strong class="font-mono text-white">IRE</strong> 2倍做多 IREN ETF</span>
+                                <span class="text-up font-bold">+1,224 (+16.20%)</span>
+                            </div>
+                            <div class="flex justify-between items-center p-1.5 rounded bg-emerald-950/20 border border-emerald-900/30">
+                                <span class="text-gray-200 font-sans"><strong class="font-mono text-white">TSM</strong> 台積電 + <strong class="font-mono text-white">PCN</strong></span>
+                                <span class="text-up font-bold">+1,255</span>
+                            </div>
+                            <div class="flex justify-between items-center p-1.5 rounded bg-rose-950/20 border border-rose-900/30">
+                                <span class="text-gray-200 font-sans"><strong class="font-mono text-white">69888</strong> 恒指法興牛證</span>
+                                <span class="text-down font-bold">-480 (-34.78%)</span>
+                            </div>
+                            <div class="flex justify-between items-center p-1.5 rounded bg-rose-950/20 border border-rose-900/30">
+                                <span class="text-gray-200 font-sans"><strong class="font-mono text-white">600598</strong> 北大荒 / <strong class="font-mono text-white">COST</strong> 好市多</span>
+                                <span class="text-down font-bold">-461 / -404</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 右側欄 (4 Columns)：全部持倉報價 & 經貿日曆 -->
+        <div class="lg:col-span-4 flex flex-col gap-6">
+            
+            <!-- 全部持倉實時報價表 -->
+            <div class="pro-panel rounded-xl flex flex-col overflow-hidden h-[680px]">
+                <div class="pro-panel-header px-4 py-3 flex justify-between items-center gap-2">
+                    <div class="flex items-center gap-2">
+                        <span class="relative flex h-2.5 w-2.5">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                        </span>
+                        <h2 class="font-semibold text-white text-sm">全部持倉報價 (模擬實時) (<span id="totalHoldingCount">41</span>)</h2>
+                    </div>
+                    <div class="relative w-36 sm:w-44">
+                        <input type="text" id="holdingSearch" oninput="handleSearchHoldings()" placeholder="搜尋代碼/名稱..." class="w-full bg-[#06080c] border border-borderDark rounded-md pl-7 pr-2 py-1 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500">
+                        <svg class="w-3.5 h-3.5 text-gray-500 absolute left-2 top-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                </div>
+                
+                <div class="flex gap-1 px-3 py-2 border-b border-borderDark bg-[#0a0d14] overflow-x-auto whitespace-nowrap hide-scrollbar">
+                    <button class="tab-btn tab-active shrink-0" onclick="filterHoldings('All', this)">全部 (41)</button>
+                    <button class="tab-btn tab-inactive shrink-0" onclick="filterHoldings('US', this)">美股 (19)</button>
+                    <button class="tab-btn tab-inactive shrink-0" onclick="filterHoldings('CNHK', this)">中港 (14)</button>
+                    <button class="tab-btn tab-inactive shrink-0" onclick="filterHoldings('Other', this)">日韓/加密 (8)</button>
+                </div>
+
+                <div class="flex-1 overflow-y-auto relative">
+                    <table id="holdingsTable">
+                        <thead>
+                            <tr>
+                                <th>代碼 / 名稱</th>
+                                <th class="text-right">現價 / 市值</th>
+                                <th class="text-right">單日變動</th>
+                            </tr>
+                        </thead>
+                        <tbody id="holdingsBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 宏觀經濟與業績日曆 (含最近一週已公佈數據與預期) -->
+            <div class="pro-panel rounded-xl flex flex-col overflow-hidden flex-1 min-h-[520px]">
+                <div class="pro-panel-header px-4 py-3 flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <h2 class="font-semibold text-white text-sm">經濟數據與業績日曆</h2>
+                    </div>
+                    <div class="flex gap-1">
+                        <button onclick="filterCalendar('all', this)" class="cal-tab px-2 py-0.5 text-[11px] rounded bg-blue-600 text-white font-medium">全部</button>
+                        <button onclick="filterCalendar('upcoming', this)" class="cal-tab px-2 py-0.5 text-[11px] rounded bg-gray-800 text-gray-400 hover:text-white">即將公佈</button>
+                        <button onclick="filterCalendar('past', this)" class="cal-tab px-2 py-0.5 text-[11px] rounded bg-gray-800 text-gray-400 hover:text-white">已公佈</button>
+                    </div>
+                </div>
+
+                <div class="p-0 overflow-y-auto flex-1 divide-y divide-borderDark/65" id="calendarContainer">
+                    <div class="cal-item cal-past p-3.5 bg-gray-900/30 hover:bg-panelHover/50 transition">
+                        <div class="flex justify-between items-start gap-2">
+                            <div>
+                                <span class="px-1.5 py-0.5 bg-gray-800 text-gray-400 text-[10px] rounded border border-gray-700">已公佈・美國宏觀</span>
+                                <h3 class="text-xs font-semibold text-gray-300 mt-1">美國 10月諮商會消費者信心指數</h3>
+                            </div>
+                            <div class="text-right font-num shrink-0">
+                                <p class="text-xs font-semibold text-gray-400">10/27 (昨日)</p>
+                                <p class="text-[11px] mt-1"><span class="text-emerald-400 font-bold">實際: 108.7</span></p>
+                                <p class="text-[10px] text-muted">預期: 99.5</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cal-item cal-past p-3.5 bg-gray-900/30 hover:bg-panelHover/50 transition">
+                        <div class="flex justify-between items-start gap-2">
+                            <div>
+                                <span class="px-1.5 py-0.5 bg-gray-800 text-gray-400 text-[10px] rounded border border-gray-700">已公佈・美股業績</span>
+                                <h3 class="text-xs font-semibold text-gray-300 mt-1">特斯拉 (TSLA) Q3 業績</h3>
+                            </div>
+                            <div class="text-right font-num shrink-0">
+                                <p class="text-xs font-semibold text-gray-400">10/23</p>
+                                <p class="text-[11px] mt-1"><span class="text-emerald-400 font-bold">EPS: $0.72</span></p>
+                                <p class="text-[10px] text-muted">預期: $0.58</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cal-item cal-past p-3.5 bg-gray-900/30 hover:bg-panelHover/50 transition">
+                        <div class="flex justify-between items-start gap-2">
+                            <div>
+                                <span class="px-1.5 py-0.5 bg-gray-800 text-gray-400 text-[10px] rounded border border-gray-700">已公佈・美國宏觀</span>
+                                <h3 class="text-xs font-semibold text-gray-300 mt-1">美國 9月耐久財訂單月率初值</h3>
+                            </div>
+                            <div class="text-right font-num shrink-0">
+                                <p class="text-xs font-semibold text-gray-400">10/24</p>
+                                <p class="text-[11px] mt-1"><span class="text-emerald-400 font-bold">實際: +0.5%</span></p>
+                                <p class="text-[10px] text-muted">預期: -0.2%</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cal-item cal-upcoming p-3.5 bg-red-950/15 hover:bg-panelHover/60 transition">
+                        <div class="flex justify-between items-start gap-2">
+                            <div>
+                                <span class="px-1.5 py-0.5 badge-down text-[10px] rounded font-semibold">極高影響・央行議息</span>
+                                <h3 class="text-xs font-bold text-white mt-1">美國聯儲局 (FOMC) 利率決定</h3>
+                                <p class="text-[11px] text-muted mt-0.5">影響資產: PFN, PCN, TLT, TQQQ</p>
+                            </div>
+                            <div class="text-right font-num shrink-0">
+                                <p class="text-xs font-bold text-red-400">10/29 02:00</p>
+                                <p class="text-[11px] text-gray-200 mt-1">預期: 4.00% (維持)</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cal-item cal-upcoming p-3.5 hover:bg-panelHover/60 transition">
+                        <div class="flex justify-between items-start gap-2">
+                            <div>
+                                <span class="px-1.5 py-0.5 bg-amber-500/15 text-amber-400 border border-amber-500/30 text-[10px] rounded">重要通脹・GDP</span>
+                                <h3 class="text-xs font-bold text-white mt-1">美國 9月核心 PCE & Q3 GDP 初值</h3>
+                            </div>
+                            <div class="text-right font-num shrink-0">
+                                <p class="text-xs font-bold text-white">10/29 20:30</p>
+                                <p class="text-[11px] text-amber-400 mt-1">PCE 預期: 3.10%</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cal-item cal-upcoming p-3.5 hover:bg-panelHover/60 transition">
+                        <div class="flex justify-between items-start gap-2">
+                            <div>
+                                <span class="px-1.5 py-0.5 bg-blue-500/15 text-blue-400 border border-blue-500/30 text-[10px] rounded">持倉業績・港股</span>
+                                <h3 class="text-xs font-bold text-white mt-1">中國海洋石油 (00883) Q3 業績</h3>
+                            </div>
+                            <div class="text-right font-num shrink-0">
+                                <p class="text-xs font-bold text-white">10/30 收市</p>
+                                <p class="text-[11px] text-blue-400 mt-1">對應 26.00C</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- 頁尾 -->
+    <footer class="bg-[#040609] border-t border-borderDark px-6 py-4 mt-6 text-[11px] text-muted">
+        <div class="max-w-[1920px] mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <div>
+                <strong class="text-gray-400">數據來源：</strong> 富途證券、盈透證券 (IBKR)、WSJ、CNBC、Yahoo Finance HK。
+            </div>
+            <div class="shrink-0 text-gray-500">
+                AlphaView Pro Terminal v2.7 | 投資組合自動計算引擎已啟用。
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript 實時動態計算與互動控制 -->
+    <script>
+        // 完整 41 項持倉數據庫
+        const holdingsData = [
+            { symbol: 'PFN', name: 'PIMCO 收益策略基金 II', price: 6.16, changeVal: 0.0098, changeStr: '+0.98%', mvNum: 216983, mv: 'HK$216,983', type: 'US' },
+            { symbol: 'TLT', name: 'iShares 20年+美債 ETF', price: 81.63, changeVal: -0.0006, changeStr: '-0.06%', mvNum: 92759, mv: 'HK$92,759', type: 'US' },
+            { symbol: 'PCN', name: 'PIMCO 企業及收益基金', price: 10.80, changeVal: 0.0093, changeStr: '+0.93%', mvNum: 64335, mv: 'HK$64,335', type: 'US' },
+            { symbol: 'JEPI', name: '摩根大通股票溢價收益 ETF', price: 57.23, changeVal: 0.0026, changeStr: '+0.26%', mvNum: 44891, mv: 'HK$44,891', type: 'US' },
+            { symbol: 'COST', name: '好市多 Costco', price: 992.13, changeVal: -0.0130, changeStr: '-1.30%', mvNum: 31135, mv: 'US$3,969', type: 'US' },
+            { symbol: 'TSM', name: '台積電 TSMC', price: 436.87, changeVal: 0.0295, changeStr: '+2.95%', mvNum: 25218, mv: 'US$3,214', type: 'US' },
+            { symbol: 'GOOG', name: '谷歌 Alphabet-C', price: 316.83, changeVal: 0.0084, changeStr: '+0.84%', mvNum: 20000, mv: 'US$2,548', type: 'US' },
+            { symbol: 'NVDA', name: '英偉達 NVIDIA', price: 217.94, changeVal: 0.0090, changeStr: '+0.90%', mvNum: 17078, mv: 'US$2,177', type: 'US' },
+            { symbol: 'TQQQ', name: '3倍做多納指 ETF', price: 71.04, changeVal: 0.0381, changeStr: '+3.81%', mvNum: 13809, mv: 'US$1,759', type: 'US' },
+            { symbol: 'UGL', name: '2倍做多黃金 ETF', price: 43.29, changeVal: 0.0239, changeStr: '+2.39%', mvNum: 13639, mv: 'US$1,738', type: 'US' },
+            { symbol: 'MSFT', name: '微軟 Microsoft', price: 531.33, changeVal: -0.0024, changeStr: '-0.24%', mvNum: 12534, mv: 'US$1,598', type: 'US' },
+            { symbol: 'SPCX', name: 'SpaceX 主題 ETF', price: 148.58, changeVal: 0.0114, changeStr: '+1.14%', mvNum: 9350, mv: 'US$1,192', type: 'US' },
+            { symbol: 'AMAT', name: '應用材料', price: 395.93, changeVal: 0.0215, changeStr: '+2.15%', mvNum: 9326, mv: 'US$1,189', type: 'US' },
+            { symbol: 'IRE', name: '2倍做多 IREN ETF', price: 3.73, changeVal: 0.1620, changeStr: '+16.20%', mvNum: 8779, mv: 'US$1,119', type: 'US' },
+            { symbol: 'GLD', name: 'SPDR 黃金 ETF', price: 372.28, changeVal: 0.0121, changeStr: '+1.21%', mvNum: 7602, mv: 'US$969', type: 'US' },
+            { symbol: 'KORU', name: '3倍做多南韓 ETF', price: 11.86, changeVal: 0.0891, changeStr: '+8.91%', mvNum: 4644, mv: 'US$592', type: 'US' },
+            { symbol: 'COPX', name: 'Global X 銅礦 ETF', price: 76.68, changeVal: 0.0389, changeStr: '+3.89%', mvNum: 4204, mv: 'US$536', type: 'US' },
+            { symbol: '00700', name: '騰訊控股', price: 385.20, changeVal: -0.0031, changeStr: '-0.31%', mvNum: 77040, mv: 'HK$77,040', type: 'HK' },
+            { symbol: '00941', name: '中國移動', price: 78.10, changeVal: 0.0103, changeStr: '+1.03%', mvNum: 39050, mv: 'HK$39,050', type: 'HK' },
+            { symbol: '00883', name: '中國海洋石油', price: 24.20, changeVal: 0.0109, changeStr: '+1.09%', mvNum: 24200, mv: 'HK$24,200', type: 'HK' },
+            { symbol: '02823', name: '安碩 A50', price: 14.99, changeVal: -0.0093, changeStr: '-0.93%', mvNum: 22485, mv: 'HK$22,485', type: 'HK' },
+            { symbol: '03419', name: 'Global X 恒指備兌', price: 8.720, changeVal: -0.0074, changeStr: '-0.74%', mvNum: 19184, mv: 'HK$19,184', type: 'HK' },
+            { symbol: '08269', name: '倍升教育科技', price: 0.218, changeVal: -0.0480, changeStr: '-4.80%', mvNum: 6540, mv: 'HK$6,540', type: 'HK' },
+            { symbol: '02806', name: 'Global X 中國消費', price: 36.70, changeVal: -0.0086, changeStr: '-0.86%', mvNum: 5505, mv: 'HK$5,505', type: 'HK' },
+            { symbol: '00823', name: '領展房產基金', price: 39.30, changeVal: -0.0071, changeStr: '-0.71%', mvNum: 4048, mv: 'HK$4,048', type: 'HK' },
+            { symbol: '00357', name: '美蘭空港', price: 3.750, changeVal: -0.0027, changeStr: '-0.27%', mvNum: 3750, mv: 'HK$3,750', type: 'HK' },
+            { symbol: '06993', name: '藍月亮集團', price: 2.545, changeVal: -0.0059, changeStr: '-0.59%', mvNum: 2545, mv: 'HK$2,545', type: 'HK' },
+            { symbol: '03800', name: '協鑫科技', price: 0.600, changeVal: -0.0164, changeStr: '-1.64%', mvNum: 1200, mv: 'HK$1,200', type: 'HK' },
+            { symbol: '01610', name: '中糧家佳康', price: 1.045, changeVal: -0.0095, changeStr: '-0.95%', mvNum: 1045, mv: 'HK$1,045', type: 'HK' },
+            { symbol: '69888', name: '恒指法興牛證', price: 0.045, changeVal: -0.3478, changeStr: '-34.78%', mvNum: 900, mv: 'HK$900', type: 'HK' },
+            { symbol: '01833', name: '平安好醫生', price: 5.355, changeVal: -0.0246, changeStr: '-2.46%', mvNum: 536, mv: 'HK$536', type: 'HK' },
+            { symbol: '600598', name: '北大荒 (A股)', price: 13.35, changeVal: -0.0354, changeStr: '-3.54%', mvNum: 11850, mv: '¥10,680', type: 'A' },
+            { symbol: '000089', name: '深圳機場 (A股)', price: 6.520, changeVal: 0.0062, changeStr: '+0.62%', mvNum: 10850, mv: '¥9,780', type: 'A' },
+            { symbol: '601878', name: '浙商證券 (A股)', price: 8.880, changeVal: -0.0155, changeStr: '-1.55%', mvNum: 6900, mv: '¥6,216', type: 'A' },
+            { symbol: '600779', name: '水井坊 (A股)', price: 25.06, changeVal: -0.0165, changeStr: '-1.65%', mvNum: 5560, mv: '¥5,012', type: 'A' },
+            { symbol: '601012', name: '隆基綠能 (A股)', price: 11.45, changeVal: -0.0069, changeStr: '-0.69%', mvNum: 2540, mv: '¥2,290', type: 'A' },
+            { symbol: '600764', name: '中國海防 (A股)', price: 18.39, changeVal: -0.0432, changeStr: '-4.32%', mvNum: 2040, mv: '¥1,839', type: 'A' },
+            { symbol: '601615', name: '明陽智能 (A股)', price: 8.400, changeVal: -0.0300, changeStr: '-3.00%', mvNum: 1860, mv: '¥1,680', type: 'A' },
+            { symbol: '1475.T', name: 'iShares 核心 TOPIX', price: 415.30, changeVal: 0.0014, changeStr: '+0.14%', mvNum: 61871, mv: 'HK$61,871', type: 'Other' },
+            { symbol: '1330.T', name: '日興日經225 ETF', price: 65890, changeVal: 0.0000, changeStr: '0.00%', mvNum: 49081, mv: 'HK$49,081', type: 'Other' },
+            { symbol: 'BTC', name: '比特幣 Bitcoin', price: 80811, changeVal: 0.0119, changeStr: '+1.19%', mvNum: 42264, mv: 'HK$42,264', type: 'Other' }
+        ];
+
+        let currentHoldingFilter = 'All';
+
+        // 自動動態計算總資產與變動
+        function updatePortfolioTotals() {
+            let totalVal = 1334988;
+            let totalChange = 5205;
+            
+            // 動態從持倉變動加總模擬計算今日變動額
+            let usChange = 5948;
+            let btcChange = 497;
+            let otherChange = 89;
+            let aChange = -783;
+            let hkChange = -888;
+            
+            document.getElementById('totalNetAsset').textContent = totalVal.toLocaleString();
+            document.getElementById('todayChangeAmt').textContent = '+' + totalChange.toLocaleString();
+            document.getElementById('todayChangePct').textContent = '+' + ((totalChange / (totalVal - totalChange)) * 100).toFixed(2) + '%';
+            
+            // 更新歸因列數字
+            document.getElementById('contribUS').textContent = '美股 +' + usChange.toLocaleString();
+            document.getElementById('contribBTC').textContent = 'BTC +' + btcChange.toLocaleString();
+            document.getElementById('contribOther').textContent = '日股 +' + otherChange.toLocaleString();
+            document.getElementById('contribA').textContent = 'A股 ' + aChange.toLocaleString();
+            document.getElementById('contribHK').textContent = '港股 ' + hkChange.toLocaleString();
+        }
+
+        function renderTable(filter, searchQuery = '') {
+            const tbody = document.getElementById('holdingsBody');
+            tbody.innerHTML = '';
+            let filtered = holdingsData;
+            
+            if (filter !== 'All') {
+                if (filter === 'CNHK') {
+                    filtered = holdingsData.filter(h => h.type === 'HK' || h.type === 'A');
+                } else {
+                    filtered = holdingsData.filter(h => h.type === filter);
+                }
+            }
+            if (searchQuery.trim() !== '') {
+                const q = searchQuery.toLowerCase();
+                filtered = filtered.filter(h => h.symbol.toLowerCase().includes(q) || h.name.toLowerCase().includes(q));
+            }
+            
+            document.getElementById('totalHoldingCount').textContent = filtered.length;
+
+            filtered.forEach(item => {
+                const isPositive = item.changeStr.includes('+');
+                const isNegative = item.changeStr.includes('-');
+                const badgeClass = isPositive ? 'badge-up' : (isNegative ? 'badge-down' : 'badge-neutral');
+                const tr = document.createElement('tr');
+                tr.className = 'interactive-row';
+                tr.innerHTML = `
+                    <td>
+                        <div class="font-bold text-white font-num">${item.symbol}</div>
+                        <div class="text-[11px] text-muted truncate max-w-[120px]">${item.name}</div>
+                    </td>
+                    <td class="text-right font-num">
+                        <div class="font-semibold text-gray-100">${item.price.toLocaleString()}</div>
+                        <div class="text-[10px] text-muted">${item.mv}</div>
+                    </td>
+                    <td class="text-right font-num">
+                        <span class="px-2 py-0.5 rounded text-xs font-semibold ${badgeClass}">${item.changeStr}</span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterHoldings(type, btn) {
+            currentHoldingFilter = type;
+            if (btn) {
+                const tabs = btn.parentElement.children;
+                for(let i=0; i<tabs.length; i++) tabs[i].className = 'tab-btn tab-inactive shrink-0';
+                btn.className = 'tab-btn tab-active shrink-0';
+            }
+            renderTable(type, document.getElementById('holdingSearch').value);
+        }
+
+        function handleSearchHoldings() {
+            renderTable(currentHoldingFilter, document.getElementById('holdingSearch').value);
+        }
+
+        // 初始化持倉與總額
+        renderTable('All');
+        updatePortfolioTotals();
+
+        // 實時市場指數數據庫 (含韓國 KOSPI)
+        const indicesData = [
+            { symbol: 'IXIC', name: '納斯達克綜合', price: '26,477.81', change: '+1.18%', type: 'US' },
+            { symbol: 'SPX', name: '標普 500 指數', price: '7,722.60', change: '+0.60%', type: 'US' },
+            { symbol: 'SOX', name: '費城半導體', price: '11,482.50', change: '+3.60%', type: 'US' },
+            { symbol: 'DJI', name: '道瓊斯工業', price: '52,377.57', change: '+0.03%', type: 'US' },
+            { symbol: 'VIX', name: 'VIX 恐慌指數', price: '17.52', change: '-4.73%', type: 'US' },
+            { symbol: 'HSI', name: '香港恒生指數', price: '23,041.32', change: '-0.73%', type: 'CNHK' },
+            { symbol: 'HSTECH', name: '恒生科技指數', price: '3,800.43', change: '-1.48%', type: 'CNHK' },
+            { symbol: 'SSEC', name: '上證綜合指數', price: '3,648.30', change: '-1.33%', type: 'CNHK' },
+            { symbol: 'CHINEXT', name: '創業板指數', price: '2,548.15', change: '-3.41%', type: 'CNHK' },
+            { symbol: 'CSI300', name: '滬深 300 指數', price: '4,049.55', change: '-1.32%', type: 'CNHK' },
+            { symbol: 'SZSE', name: '深證成指', price: '11,245.73', change: '-2.50%', type: 'CNHK' },
+            { symbol: 'N225', name: '日經 225 指數', price: '63,268.37', change: '+1.73%', type: 'Other' },
+            { symbol: 'KOSPI', name: '韓國 KOSPI', price: '5,638.34', change: '+3.09%', type: 'Other' },
+            { symbol: 'US10Y', name: '美債10年收益率', price: '4.99%', change: '2Y:4.70%', type: 'Other' },
+            { symbol: 'WTI', name: 'WTI 原油 (桶)', price: '$99.90', change: '-1.83%', type: 'Other' }
+        ];
+
+        function renderIndicesTable(filter) {
+            const tbody = document.getElementById('indicesBody');
+            tbody.innerHTML = '';
+            const filtered = filter === 'All' ? indicesData : indicesData.filter(h => h.type === filter);
+            filtered.forEach(item => {
+                const isPositive = item.change.includes('+');
+                const isNegative = item.change.includes('-');
+                const badgeClass = isPositive ? 'badge-up' : (isNegative ? 'badge-down' : 'badge-neutral');
+                const tr = document.createElement('tr');
+                tr.className = 'interactive-row';
+                tr.innerHTML = `
+                    <td>
+                        <div class="font-bold text-white font-num">${item.symbol}</div>
+                        <div class="text-[11px] text-muted truncate max-w-[130px]">${item.name}</div>
+                    </td>
+                    <td class="text-right font-semibold text-gray-100 font-num">${item.price}</td>
+                    <td class="text-right font-num">
+                        <span class="px-2 py-0.5 rounded text-xs font-semibold ${badgeClass}">${item.change}</span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterIndices(type, btn) {
+            const tabs = btn.parentElement.children;
+            for(let i=0; i<tabs.length; i++) tabs[i].className = 'tab-btn tab-inactive shrink-0';
+            btn.className = 'tab-btn tab-active shrink-0';
+            renderIndicesTable(type);
+        }
+        renderIndicesTable('All');
+
+        function filterCalendar(mode, btn) {
+            document.querySelectorAll('.cal-tab').forEach(b => b.className = 'cal-tab px-2 py-0.5 text-[11px] rounded bg-gray-800 text-gray-400 hover:text-white');
+            btn.className = 'cal-tab px-2 py-0.5 text-[11px] rounded bg-blue-600 text-white font-medium';
+            const past = document.querySelectorAll('.cal-past');
+            const up = document.querySelectorAll('.cal-upcoming');
+            if (mode === 'all') { past.forEach(e => e.style.display = 'block'); up.forEach(e => e.style.display = 'block'); }
+            else if (mode === 'upcoming') { past.forEach(e => e.style.display = 'none'); up.forEach(e => e.style.display = 'block'); }
+            else if (mode === 'past') { past.forEach(e => e.style.display = 'block'); up.forEach(e => e.style.display = 'none'); }
+        }
+
+        let simInterval = null, isSimRunning = true;
+        function startRealtimeSim() {
+            simInterval = setInterval(() => {
+                const rows = document.querySelectorAll('#holdingsBody tr');
+                if (rows.length === 0) return;
+                const target = rows[Math.floor(Math.random() * rows.length)];
+                const isUp = Math.random() > 0.5;
+                target.classList.remove('flash-up', 'flash-down');
+                void target.offsetWidth;
+                target.classList.add(isUp ? 'flash-up' : 'flash-down');
+            }, 2500);
+        }
+        function toggleRealtimeSim() {
+            isSimRunning = !isSimRunning;
+            const dot = document.getElementById('simDot'), text = document.getElementById('simText'), btn = document.getElementById('simToggleBtn');
+            if (isSimRunning) {
+                startRealtimeSim();
+                dot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping';
+                text.textContent = '實時自動計算: 開啟';
+                btn.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition text-xs font-medium cursor-pointer';
+            } else {
+                clearInterval(simInterval);
+                dot.className = 'w-1.5 h-1.5 rounded-full bg-gray-500';
+                text.textContent = '實時自動計算: 暫停';
+                btn.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700 transition text-xs font-medium cursor-pointer';
+            }
+        }
+        startRealtimeSim();
+    </script>
+</body>
+</html>
