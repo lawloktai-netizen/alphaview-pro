@@ -165,12 +165,34 @@
             background: linear-gradient(160deg, rgba(21, 27, 38, 0.9), rgba(10, 14, 23, 0.95));
             border: 1px solid #1e2638;
             border-radius: 0.75rem;
-            overflow: hidden;
-            min-height: 72px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            min-height: 54px;
         }
-        .tv-index-wrap .tradingview-widget-container { width: 100%; }
-        .tv-index-wrap .tradingview-widget-copyright {
-            display: none;
+        .tv-index-wrap .tradingview-widget-container { width: 100%; min-width: 520px; }
+        .tv-index-wrap .tradingview-widget-container__widget { min-height: 48px; }
+        .tv-index-wrap .tradingview-widget-copyright { display: none; }
+        /* Phone / iPad: shrink tickers so all four (incl. BTC) fit */
+        @media (max-width: 1024px) {
+            .tv-index-wrap {
+                min-height: 44px;
+                border-radius: 0.5rem;
+            }
+            .tv-index-wrap .tradingview-widget-container {
+                transform: scale(0.72);
+                transform-origin: top left;
+                width: 138.9%; /* 100 / 0.72 */
+                min-width: 640px;
+            }
+            .tv-index-wrap .tradingview-widget-container__widget { min-height: 40px; }
+        }
+        @media (max-width: 480px) {
+            .tv-index-wrap .tradingview-widget-container {
+                transform: scale(0.62);
+                width: 161.3%;
+                min-width: 680px;
+            }
         }
         .tv-cal-panel {
             display: flex;
@@ -417,12 +439,12 @@
                     <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-tickers.js" async>
                     {
                     "symbols": [
-                      { "proName": "HSI:HSI", "title": "恆生指數" },
-                      { "proName": "FOREXCOM:NSXUSD", "title": "納斯達克100" },
-                      { "proName": "INDEX:NKY", "title": "日經225" },
-                      { "proName": "BITSTAMP:BTCUSD", "title": "比特幣" }
+                      { "proName": "HSI:HSI", "title": "恆生" },
+                      { "proName": "FOREXCOM:NSXUSD", "title": "納指100" },
+                      { "proName": "INDEX:NKY", "title": "日經" },
+                      { "proName": "BITSTAMP:BTCUSD", "title": "BTC" }
                     ],
-                    "showSymbolLogo": true,
+                    "showSymbolLogo": false,
                     "colorTheme": "dark",
                     "isTransparent": true,
                     "locale": "zh_TW"
