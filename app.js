@@ -2,7 +2,7 @@
 (() => {
 'use strict';
 
-const PASS_HASH = 'e6719af80a93bd2e0925b1a6674c3e5165c030c4ef07864242152217b8196911';
+const PASS_HASH = '21f3dc4db237caf55464ec97e07ecf20d5031b8e3a934436d00651b1e4b02614';
 const SESSION_KEY = 'ricky_invest_unlocked_v1';
 const HOLDINGS_URL = 'data/snap_a7f3e9c2.json';
 const PUBLIC_PROXIES = [
