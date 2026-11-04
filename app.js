@@ -10,6 +10,7 @@ const PUBLIC_PROXIES = [
   // corsproxy.io keyless requires API key now — omitted
   ['allorigins', u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u)],
   ['codetabs', u => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u)],
+  ['corslol', u => 'https://api.cors.lol/?url=' + encodeURIComponent(u)],
 ];
 const REFRESH_MS = 45000;
 const BATCH = 6;
@@ -140,14 +141,22 @@ function parseYahooChart(j) {
   };
 }
 
-async function yahooQuote(sym) {
-  const path = `/v8/finance/chart/${encodeURIComponent(sym)}?range=5d&interval=1d`;
+async function yahooQuote(sym, opts = {}) {
+  // range=1d is smaller/faster through flaky CORS proxies (JP .T especially).
+  const range = opts.range || '1d';
+  const skipDirect = !!opts.skipDirect;
+  const path = `/v8/finance/chart/${encodeURIComponent(sym)}?range=${range}&interval=1d`;
   const direct = ['https://query1.finance.yahoo.com' + path, 'https://query2.finance.yahoo.com' + path];
-  for (const u of direct) {
-    try { return { ...parseYahooChart(await fetchJSON(u, 4000)), _via: 'Yahoo直連' }; } catch (_) {}
+  if (!skipDirect) {
+    for (const u of direct) {
+      try { return { ...parseYahooChart(await fetchJSON(u, 2500)), _via: 'Yahoo直連' }; } catch (_) {}
+    }
   }
-  const cand = PUBLIC_PROXIES.map(([n, f]) => [n, f(direct[0])]);
-  return Promise.any(cand.map(async ([n, u]) => ({ ...parseYahooChart(await fetchJSON(u, 7000)), _via: 'Yahoo/' + n })))
+  const urls = [];
+  for (const base of direct) {
+    for (const [n, f] of PUBLIC_PROXIES) urls.push([n, f(base)]);
+  }
+  return Promise.any(urls.map(async ([n, u]) => ({ ...parseYahooChart(await fetchJSON(u, 10000)), _via: 'Yahoo/' + n })))
     .catch(() => { throw new Error('Yahoo fail ' + sym); });
 }
 
@@ -239,6 +248,29 @@ async function getQuoteForHolding(h) {
     try { return await coinGeckoBtc(); } catch (_) {}
   }
 
+  const isJp = h.market === 'JP' || (h.yahoo && /\.T$/i.test(h.yahoo));
+
+  // JP equities: Tencent has no TSE feed (tencent=null). Browser Yahoo is CORS-blocked,
+  // so go straight to CORS proxies (query1+query2) with a compact 1d chart payload.
+  if (isJp && h.yahoo) {
+    try {
+      const q = await yahooQuote(h.yahoo, { skipDirect: true, range: '1d' });
+      if (q.price > 0) return q;
+    } catch (_) {}
+    try {
+      const series = await stooqDailySeries(String(h.yahoo).replace(/\.T$/i, '.jp').toLowerCase());
+      if (series && series.price > 0) {
+        return {
+          price: series.price,
+          prevClose: series.prevClose || series.price,
+          change: series.price - (series.prevClose || series.price),
+          changePct: series.changePct || 0,
+          _via: series._via || 'Stooq',
+        };
+      }
+    } catch (_) {}
+  }
+
   if (h.yahoo) {
     try {
       const q = await yahooQuote(h.yahoo);
@@ -250,19 +282,25 @@ async function getQuoteForHolding(h) {
       return await tencentQuote(h.tencent);
     } catch (_) {}
   }
-  // JP ETFs sometimes need bare code
-  if (h.yahoo && /\.T$/.test(h.yahoo)) {
-    try {
-      const q = await yahooQuote(h.yahoo.replace('.T', '.T'));
-      if (q.price > 0) return q;
-    } catch (_) {}
-  }
   if (h.seedPrice > 0) {
+    const price = h.seedPrice;
+    let prevClose = price;
+    let change = 0;
+    let changePct = 0;
+    // If broker snapshot carried today's P&L, infer a day move instead of freezing at 0.
+    const qty = Number(h.qty);
+    const mult = Number(h.multiplier) || 1;
+    const todayPl = Number(h.seedTodayPl);
+    if (Number.isFinite(qty) && qty !== 0 && Number.isFinite(todayPl) && todayPl !== 0) {
+      change = todayPl / (qty * mult);
+      prevClose = price - change;
+      changePct = prevClose ? change / prevClose : 0;
+    }
     return {
-      price: h.seedPrice,
-      prevClose: h.seedPrice,
-      change: 0,
-      changePct: 0,
+      price,
+      prevClose,
+      change,
+      changePct,
       _via: '券商快照',
       _seed: true,
     };
