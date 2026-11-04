@@ -333,7 +333,7 @@
                 <strong class="text-slate-600 font-medium tracking-wide">系統運作中</strong>
             </span>
             <span class="text-slate-300">|</span>
-            <span class="shrink-0" id="liveModeLabel">報價即時 · 持倉上次同步 —</span>
+            <span class="shrink-0" id="liveModeLabel">持倉券商快照 · 同步 —</span>
             <span class="text-slate-300 hidden sm:inline">|</span>
             <div class="hidden sm:flex items-center gap-3 shrink-0 font-num" id="fxBar">
                 <span>USD/HKD <strong class="text-slate-700">—</strong></span>
@@ -341,11 +341,11 @@
         </div>
         <div class="flex items-center gap-3 ml-auto">
             <span class="hidden md:inline text-[11px] font-num text-slate-600" id="quoteStat"></span>
-            <span class="text-[11px]">報價更新: <strong class="text-slate-700 font-num" id="quoteUpdateTime">—</strong></span>
-            <button id="refreshBtn" onclick="refreshQuotesNow()" class="px-2 py-1 rounded bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 text-xs">刷新報價</button>
+            <span class="text-[11px]">快照載入: <strong class="text-slate-700 font-num" id="quoteUpdateTime">—</strong></span>
+            <button id="refreshBtn" onclick="refreshQuotesNow()" class="px-2 py-1 rounded bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 text-xs">重新載入快照</button>
             <button id="simToggleBtn" onclick="toggleRealtimeSim()" class="flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100 transition text-xs font-medium cursor-pointer">
                 <span id="simDot" class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                <span id="simText">報價自動刷新: 開啟</span>
+                <span id="simText">自動補拉缺價: 關閉</span>
             </button>
         </div>
     </div>
@@ -422,7 +422,7 @@
     <div class="bg-white border-b border-borderDark px-4 md:px-6 py-2">
         <div class="max-w-[1920px] mx-auto flex flex-wrap items-center justify-between gap-2 text-xs">
             <div class="flex items-center gap-2 flex-wrap">
-                <span class="text-muted font-medium">今日盈虧自動歸因 (HKD · 即時報價):</span>
+                <span class="text-muted font-medium">今日盈虧自動歸因 (HKD · 券商快照):</span>
                 <span class="px-2 py-0.5 rounded font-num" id="contribUS">美股 —</span>
                 <span class="px-2 py-0.5 rounded font-num" id="contribHK">港股 —</span>
                 <span class="px-2 py-0.5 rounded font-num" id="contribA">A股 —</span>
@@ -431,7 +431,7 @@
                 <span class="px-2 py-0.5 rounded font-num" id="contribOPT">期權 —</span>
             </div>
             <div class="text-[11px] text-muted">
-                綠點 = 瀏覽器即時報價 · 黃點 = 券商快照（期權等）· 市況變動<strong class="text-slate-600">唔使重新上架</strong>
+                黃點 = 富途／IB 券商快照價（打開頁面即用）· 綠點 = 缺價時軟後備 · 新鮮度取決於上次同步時間
             </div>
         </div>
     </div>
@@ -572,7 +572,7 @@
             <div class="pro-panel rounded-xl p-4">
                 <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
                     <h2 class="font-semibold text-ink text-sm">今日贏家 / 輸家</h2>
-                    <span class="text-[10px] text-muted">按今日盈虧 (HKD) · 即時報價</span>
+                    <span class="text-[10px] text-muted">按今日盈虧 (HKD) · 券商快照</span>
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
                     <div class="chart-wrap bars"><canvas id="wlBarChart"></canvas></div>
@@ -631,7 +631,7 @@
                 <div class="pro-panel-header px-4 py-3 flex flex-col gap-2 shrink-0">
                     <div class="flex justify-between items-center">
                         <h2 class="font-semibold text-ink text-sm">全部持倉 (<span id="totalHoldingCount">0</span>)</h2>
-                        <span class="text-[10px] text-emerald-700">報價即時加總 · 撳列睇詳情</span>
+                        <span class="text-[10px] text-emerald-700">券商快照加總 · 撳列睇詳情</span>
                     </div>
                     <div class="relative">
                         <svg class="w-3.5 h-3.5 absolute left-2 top-1.5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
@@ -724,7 +724,7 @@
             <div class="pro-panel rounded-xl p-4 text-[11px] text-muted leading-relaxed">
                 <p class="text-slate-700 font-medium mb-1">資料說明</p>
                 <ul class="list-disc pl-4 space-y-1">
-                    <li><strong class="text-slate-600">報價</strong>：瀏覽器每 ~45 秒經 Yahoo／騰訊 CORS 拉即時價，自動重算淨資產、今日變動、未實現盈虧。</li>
+                    <li><strong class="text-slate-600">報價</strong>：持倉盈虧用富途／IB 寫入快照嘅市價；打開頁面即顯示該同步時間點 summary。指數／經濟日曆／業績仍用 TradingView 即時元件。</li>
                     <li><strong class="text-slate-600">持倉</strong>：數量／成本來自解鎖後載入嘅持倉快照（富途＋IBKR）。買賣改倉後要再同步一次先更新。</li>
                     <li><strong class="text-slate-600">私隱</strong>：進入需通行密碼；<code class="text-blue-700">持倉快照</code> 只喺解鎖後先拉。客戶端閘門係遮擋而非伺服器級保安。</li>
                 </ul>
@@ -733,7 +733,7 @@
     </main>
 
     <footer class="border-t border-borderDark px-4 py-3 text-center text-[11px] text-muted">
-        Ricky's Investment · 報價即時 · 持倉快照同步於 <span id="footerSync" class="text-slate-600">—</span>
+        Ricky's Investment · 持倉券商快照同步於 <span id="footerSync" class="text-slate-600">—</span>
     </footer>
 
     </div><!-- /viewPortfolio -->

@@ -1,4 +1,4 @@
-/*! Ricky's Investment — browser LIVE quotes (Yahoo + Tencent). Position snapshot loaded only after unlock. */
+/*! Ricky's Investment — holdings P&L from Futu/IBKR broker snapshot on page load; TradingView widgets stay live. */
 (() => {
 'use strict';
 
@@ -25,7 +25,7 @@ const state = {
   search: '',
   sortKey: 'mvHKD',
   sortDir: 'desc',
-  auto: true,
+  auto: false, // holdings use broker snapshot; no continuous Yahoo poll
   lastQuoteAt: null,
   quoteOk: 0,
   quoteFail: 0,
@@ -234,8 +234,55 @@ async function coinGeckoBtc() {
   throw new Error('BTC fail');
 }
 
+function brokerSeedQuote(h) {
+  const price = Number(h.seedPrice);
+  if (!(price > 0)) return null;
+  let prevClose = price;
+  let change = 0;
+  let changePct = 0;
+  const qty = Number(h.qty);
+  const mult = Number(h.multiplier) || 1;
+  const todayPl = Number(h.seedTodayPl);
+  if (Number.isFinite(qty) && qty !== 0 && Number.isFinite(todayPl) && todayPl !== 0) {
+    change = todayPl / (qty * mult);
+    prevClose = price - change;
+    changePct = prevClose ? change / prevClose : 0;
+  }
+  return {
+    price,
+    prevClose,
+    change,
+    changePct,
+    _via: '券商快照',
+    _seed: true,
+  };
+}
+
+function applyBrokerSnapshotQuotes() {
+  let ok = 0, miss = 0;
+  for (const h of state.holdings) {
+    const key = h.yahoo || h.id;
+    const q = brokerSeedQuote(h);
+    if (q) {
+      state.quotes[key] = { ...q, ts: Date.now() };
+      ok++;
+    } else {
+      miss++;
+    }
+  }
+  state.quoteOk = ok;
+  state.quoteFail = miss;
+  state.lastQuoteAt = new Date();
+  state.quotesReady = true;
+  return { ok, miss };
+}
+
 async function getQuoteForHolding(h) {
-  // BTC: Yahoo BTC-USD then CoinGecko
+  // Prefer Futu/IBKR broker snapshot baked into holdings JSON (page-load path).
+  const seed = brokerSeedQuote(h);
+  if (seed) return seed;
+
+  // Soft fallback only when snapshot has no price (e.g. crypto with costUnknown).
   if (h.market === 'BTC' || h.quoteKind === 'crypto' || (h.yahoo && /^BTC-/i.test(h.yahoo))) {
     const syms = [h.yahoo || 'BTC-USD', 'BTC-USD', 'BTCUSD=X'];
     for (const sym of syms) {
@@ -248,29 +295,6 @@ async function getQuoteForHolding(h) {
     try { return await coinGeckoBtc(); } catch (_) {}
   }
 
-  const isJp = h.market === 'JP' || (h.yahoo && /\.T$/i.test(h.yahoo));
-
-  // JP equities: Tencent has no TSE feed (tencent=null). Browser Yahoo is CORS-blocked,
-  // so go straight to CORS proxies (query1+query2) with a compact 1d chart payload.
-  if (isJp && h.yahoo) {
-    try {
-      const q = await yahooQuote(h.yahoo, { skipDirect: true, range: '1d' });
-      if (q.price > 0) return q;
-    } catch (_) {}
-    try {
-      const series = await stooqDailySeries(String(h.yahoo).replace(/\.T$/i, '.jp').toLowerCase());
-      if (series && series.price > 0) {
-        return {
-          price: series.price,
-          prevClose: series.prevClose || series.price,
-          change: series.price - (series.prevClose || series.price),
-          changePct: series.changePct || 0,
-          _via: series._via || 'Stooq',
-        };
-      }
-    } catch (_) {}
-  }
-
   if (h.yahoo) {
     try {
       const q = await yahooQuote(h.yahoo);
@@ -281,29 +305,6 @@ async function getQuoteForHolding(h) {
     try {
       return await tencentQuote(h.tencent);
     } catch (_) {}
-  }
-  if (h.seedPrice > 0) {
-    const price = h.seedPrice;
-    let prevClose = price;
-    let change = 0;
-    let changePct = 0;
-    // If broker snapshot carried today's P&L, infer a day move instead of freezing at 0.
-    const qty = Number(h.qty);
-    const mult = Number(h.multiplier) || 1;
-    const todayPl = Number(h.seedTodayPl);
-    if (Number.isFinite(qty) && qty !== 0 && Number.isFinite(todayPl) && todayPl !== 0) {
-      change = todayPl / (qty * mult);
-      prevClose = price - change;
-      changePct = prevClose ? change / prevClose : 0;
-    }
-    return {
-      price,
-      prevClose,
-      change,
-      changePct,
-      _via: '券商快照',
-      _seed: true,
-    };
   }
   throw new Error('no quote');
 }
@@ -439,8 +440,8 @@ function updateLiveBadge() {
     badge.textContent = '同步中';
     badge.className = 'text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200';
   } else {
-    badge.textContent = '報價即時';
-    badge.className = 'text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200';
+    badge.textContent = '券商快照';
+    badge.className = 'text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200';
   }
 }
 
@@ -454,11 +455,9 @@ function renderStatus(c) {
   const mode = $('liveModeLabel');
   if (mode) {
     if (!state.quotesReady) {
-      mode.textContent = `報價同步中 · 持倉上次同步 ${state.syncedAt || '—'}`;
+      mode.textContent = `載入券商快照中 · 同步 ${state.syncedAt || '—'}`;
     } else {
-      mode.textContent = state.auto
-        ? `報價即時 · 持倉上次同步 ${state.syncedAt || '—'}`
-        : `報價已暫停 · 持倉上次同步 ${state.syncedAt || '—'}`;
+      mode.textContent = `持倉券商快照 · 同步 ${state.syncedAt || '—'}`;
     }
   }
   const fxBar = $('fxBar');
@@ -471,8 +470,8 @@ function renderStatus(c) {
   const qStat = $('quoteStat');
   if (qStat) {
     qStat.textContent = state.quotesReady
-      ? `報價成功 ${state.quoteOk} · 失敗 ${state.quoteFail}`
-      : '報價拉取中…';
+      ? `快照價 ${state.quoteOk} · 缺價 ${state.quoteFail}`
+      : '載入快照中…';
   }
   updateLiveBadge();
 }
@@ -891,7 +890,6 @@ async function refreshQuotes() {
   const btn = $('refreshBtn');
   if (btn) btn.disabled = true;
   try {
-    // snapshot previous prices for flash
     const before = {};
     for (const h of state.holdings) {
       const key = h.yahoo || h.id;
@@ -899,56 +897,51 @@ async function refreshQuotes() {
       if (q && q.price > 0) before[h.id] = q.price;
     }
 
-    await getFx();
-    const targets = [];
-    const seen = new Set();
-    for (const h of state.holdings) {
-      const key = h.yahoo || h.id;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      targets.push(h);
-    }
-    for (const h of state.holdings) {
-      if (h.underlying && !seen.has(h.underlying)) {
-        seen.add(h.underlying);
-        targets.push({
-          id: 'und-' + h.underlying,
-          yahoo: h.underlying,
-          tencent: h.underlying.endsWith('.HK')
-            ? 'hk' + h.underlying.replace('.HK', '').padStart(5, '0')
-            : (h.underlying.includes('.') ? null : 'us' + h.underlying),
-          seedPrice: 0,
-        });
+    // Re-load broker snapshot (cache-busted) so "refresh" / page-open path stays point-in-time.
+    try {
+      const data = await fetchJSON(HOLDINGS_URL + '?t=' + Date.now(), 10000);
+      if (!data.error) {
+        state.holdings = data.holdings || state.holdings;
+        state.cash = data.cash || state.cash;
+        state.syncedAt = data.syncedAt || state.syncedAt;
+        if (data.fxSeed) Object.assign(state.fx, data.fxSeed);
+        const sub = $('subtitleCount');
+        if (sub) {
+          const n = state.holdings.filter(h => h.type !== 'OPT').length;
+          const o = state.holdings.filter(h => h.type === 'OPT').length;
+          sub.textContent = `${n} 項證券持倉 + ${o} 期權 | 富途證券・富途加密・IBKR · 券商快照價`;
+        }
       }
-    }
+    } catch (_) {}
 
-    let ok = 0, fail = 0;
-    await mapPool(targets, BATCH, async (h) => {
+    await getFx();
+    applyBrokerSnapshotQuotes();
+
+    // Soft fallback only for names still missing a broker price.
+    const missing = state.holdings.filter(h => {
       const key = h.yahoo || h.id;
-      try {
-        const q = await getQuoteForHolding(h);
-        if (!(q.price > 0) && !q._seed) throw new Error('zero');
-        state.quotes[key] = { ...q, ts: Date.now() };
-        if (!q._seed) ok++; else fail++;
-      } catch (_) {
-        fail++;
-        if (h.seedPrice > 0) {
-          state.quotes[key] = {
-            price: h.seedPrice, prevClose: h.seedPrice, change: 0, changePct: 0,
-            _via: '券商快照', _seed: true, ts: Date.now(),
-          };
-        } else {
+      const q = state.quotes[key];
+      return !(q && q.price > 0);
+    });
+    if (missing.length) {
+      await mapPool(missing, BATCH, async (h) => {
+        const key = h.yahoo || h.id;
+        try {
+          const q = await getQuoteForHolding(h);
+          if (q && q.price > 0) {
+            state.quotes[key] = { ...q, ts: Date.now() };
+            if (!q._seed) state.quoteOk++;
+          }
+        } catch (_) {
           state.quotes[key] = {
             price: 0, prevClose: 0, change: 0, changePct: 0,
             _via: '失敗', _failed: true, ts: Date.now(),
           };
+          state.quoteFail++;
         }
-      }
-    });
-    state.quoteOk = ok;
-    state.quoteFail = fail;
-    state.lastQuoteAt = new Date();
-    state.quotesReady = true;
+      });
+    }
+
     state.prevPrices = before;
     renderAll();
     refreshChartSeries();
@@ -981,12 +974,12 @@ function updateToggleUI() {
   if (!btn) return;
   if (state.auto) {
     if (dot) dot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400';
-    if (text) text.textContent = '報價自動刷新: 開啟';
+    if (text) text.textContent = '自動補拉缺價: 開啟';
     btn.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100 transition text-xs font-medium cursor-pointer';
     if (sys) sys.className = 'status-dot live-pulse';
   } else {
     if (dot) dot.className = 'w-1.5 h-1.5 rounded-full bg-gray-500';
-    if (text) text.textContent = '報價自動刷新: 暫停';
+    if (text) text.textContent = '自動補拉缺價: 關閉';
     btn.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-100 border border-slate-300 text-slate-600 hover:bg-slate-200 transition text-xs font-medium cursor-pointer';
     if (sys) sys.className = 'status-dot paused';
   }
@@ -1021,11 +1014,29 @@ async function boot() {
     if (sub) {
       const n = state.holdings.filter(h => h.type !== 'OPT').length;
       const o = state.holdings.filter(h => h.type === 'OPT').length;
-      sub.textContent = `${n} 項證券持倉 + ${o} 期權 | 富途證券・富途加密・IBKR · 報價瀏覽器即時`;
+      sub.textContent = `${n} 項證券持倉 + ${o} 期權 | 富途證券・富途加密・IBKR · 券商快照價`;
     }
+    // Instant P&L from broker snapshot on first paint (page open).
+    applyBrokerSnapshotQuotes();
     renderAll();
-    await refreshQuotes();
-    startAuto();
+    // FX + soft fallback for any name without seedPrice (e.g. BTC).
+    await getFx();
+    const missing = state.holdings.filter(h => !(Number(h.seedPrice) > 0));
+    if (missing.length) {
+      await mapPool(missing, BATCH, async (h) => {
+        const key = h.yahoo || h.id;
+        try {
+          const q = await getQuoteForHolding(h);
+          if (q && q.price > 0) state.quotes[key] = { ...q, ts: Date.now() };
+        } catch (_) {}
+      });
+      renderAll();
+      refreshChartSeries();
+    } else {
+      refreshChartSeries();
+    }
+    stopAuto();
+    updateToggleUI();
   } catch (e) {
     console.error(e);
     const mode = $('liveModeLabel');
