@@ -8,6 +8,7 @@ const HOLDINGS_URL = 'data/snap_a7f3e9c2.json';
 const REPORTS_INDEX_URL = 'reports/index.json';
 const SYNC_TRIGGER_LS_KEY = 'alphaview.syncTrigger';
 const SYNC_TRIGGER_FILE = 'data/sync-trigger.json';
+const SNAP_HINT_LS_KEY = 'alphaview.snapHintDismissed';
 const BROKER_SYNC_TIMEOUT_MS = 140000;
 const BROKER_SYNC_POLL_MS = 4000;
 const PAGES_HOST = 'lawloktai-netizen.github.io';
@@ -926,11 +927,12 @@ async function mapPool(items, limit, fn) {
   return ret;
 }
 
-async function refreshQuotes() {
-  if (!state.unlocked || state.refreshing) return;
+async function refreshQuotes(opts = {}) {
+  if (!state.unlocked || state.refreshing) return false;
   state.refreshing = true;
   const btn = $('refreshBtn');
   if (btn && !state.brokerSyncing) btn.disabled = true;
+  let snapOk = false;
   try {
     const before = {};
     for (const h of state.holdings) {
@@ -942,40 +944,51 @@ async function refreshQuotes() {
     // Re-load broker snapshot (cache-busted) so refresh stays point-in-time.
     try {
       const data = await fetchSnap(10000);
-      applySnapPayload(data);
+      snapOk = applySnapPayload(data) === true;
     } catch (_) {}
 
-    await getFx();
+    // Broker marks first (same order as page load). FX refresh must not delay「已載入快照」.
     applyBrokerSnapshotQuotes();
+    if (snapOk) renderAll();
 
-    // Soft fallback only for names still missing a broker price.
-    const missing = state.holdings.filter(h => {
-      const key = h.yahoo || h.id;
-      const q = state.quotes[key];
-      return !(q && q.price > 0);
-    });
-    if (missing.length) {
-      await mapPool(missing, BATCH, async (h) => {
+    const tail = (async () => {
+      await getFx();
+      // Soft fallback only for names still missing a broker price.
+      const missing = state.holdings.filter(h => {
         const key = h.yahoo || h.id;
-        try {
-          const q = await getQuoteForHolding(h);
-          if (q && q.price > 0) {
-            state.quotes[key] = { ...q, ts: Date.now() };
-            if (!q._seed) state.quoteOk++;
-          }
-        } catch (_) {
-          state.quotes[key] = {
-            price: 0, prevClose: 0, change: 0, changePct: 0,
-            _via: '失敗', _failed: true, ts: Date.now(),
-          };
-          state.quoteFail++;
-        }
+        const q = state.quotes[key];
+        return !(q && q.price > 0);
       });
-    }
+      if (missing.length) {
+        await mapPool(missing, BATCH, async (h) => {
+          const key = h.yahoo || h.id;
+          try {
+            const q = await getQuoteForHolding(h);
+            if (q && q.price > 0) {
+              state.quotes[key] = { ...q, ts: Date.now() };
+              if (!q._seed) state.quoteOk++;
+            }
+          } catch (_) {
+            state.quotes[key] = {
+              price: 0, prevClose: 0, change: 0, changePct: 0,
+              _via: '失敗', _failed: true, ts: Date.now(),
+            };
+            state.quoteFail++;
+          }
+        });
+      }
+      state.prevPrices = before;
+      renderAll();
+      refreshChartSeries();
+    })();
 
-    state.prevPrices = before;
-    renderAll();
-    refreshChartSeries();
+    if (opts.announce) {
+      if (snapOk) showSnapLoadedStatus();
+      tail.catch((err) => console.warn('quote tail', err));
+      return snapOk;
+    }
+    await tail;
+    return snapOk;
   } finally {
     state.refreshing = false;
     if (btn && !state.brokerSyncing) btn.disabled = false;
@@ -1031,7 +1044,7 @@ window.handleSearchHoldings = function() {
 };
 window.toggleRealtimeSim = toggleAuto;
 
-/* ===== On-demand Futu/IBKR sync (webhook routine → poll snap → apply snapshot) ===== */
+/* ===== Snapshot reload (default) + optional advanced webhook ===== */
 
 function syncStampFrom(data) {
   return {
@@ -1121,7 +1134,6 @@ function keyFromStored(raw) {
   return String(value || '').trim().replace(/^bearer\s+/i, '');
 }
 
-let syncModalIntent = 'config';
 let syncSuccessTimer = null;
 
 function setModalError(msg) {
@@ -1136,8 +1148,7 @@ function setModalError(msg) {
   }
 }
 
-function openSyncModal(intent) {
-  syncModalIntent = intent === 'sync' ? 'sync' : 'config';
+function openSyncModal() {
   const modal = $('syncModal');
   if (!modal) return;
   const raw = readLocalSyncTrigger();
@@ -1159,22 +1170,20 @@ function openSyncModal(intent) {
 function closeSyncModal() {
   const modal = $('syncModal');
   if (modal) modal.hidden = true;
-  syncModalIntent = 'config';
 }
 
-function saveSyncModal(e) {
-  if (e) e.preventDefault();
+function persistSyncForm() {
   const url = ($('syncWebhookUrl')?.value || '').trim();
   const key = ($('syncSenderKey')?.value || '').trim();
   if (!url || !key) {
-    setModalError('請填寫 Webhook URL 同 Sender key。');
-    return;
+    setModalError('要儲存 Webhook 先填 URL 同 Sender key。冇呢兩項都可以直接關閉，用 chat「同步」。');
+    return false;
   }
   let parsed;
   try { parsed = new URL(url); } catch (_) { parsed = null; }
   if (!parsed || (parsed.protocol !== 'https:' && parsed.protocol !== 'http:')) {
     setModalError('Webhook URL 唔正確，請貼上完整 http(s) 網址。');
-    return;
+    return false;
   }
   const prev = readLocalSyncTrigger() || {};
   const headers = {};
@@ -1198,11 +1207,15 @@ function saveSyncModal(e) {
     localStorage.setItem(SYNC_TRIGGER_LS_KEY, JSON.stringify(cfg));
   } catch (_) {
     setModalError('無法寫入瀏覽器儲存，請檢查是否封鎖 localStorage。');
-    return;
+    return false;
   }
-  const thenSync = syncModalIntent === 'sync';
+  return true;
+}
+
+function saveSyncModal(e) {
+  if (e) e.preventDefault();
+  if (!persistSyncForm()) return;
   closeSyncModal();
-  if (thenSync) requestBrokerSync();
 }
 
 function clearSyncConfig() {
@@ -1211,8 +1224,7 @@ function clearSyncConfig() {
   const keyEl = $('syncSenderKey');
   if (urlEl) urlEl.value = '';
   if (keyEl) keyEl.value = '';
-  setModalError('已清除呢部瀏覽器嘅設定。可以重新貼上。');
-  syncModalIntent = 'config';
+  setModalError('已清除呢部瀏覽器嘅 Webhook 設定。主按鈕仍然會載入已發布快照。');
 }
 
 function setSyncUi(phase, detail) {
@@ -1226,14 +1238,14 @@ function setSyncUi(phase, detail) {
   const label = $('syncStatusLabel');
   const icon = $('syncIcon');
   if (btn) {
-    btn.disabled = phase === 'syncing';
+    btn.disabled = phase === 'syncing' || (state.refreshing && phase === 'success');
     btn.classList.toggle('is-syncing', phase === 'syncing');
     btn.classList.toggle('is-ok', phase === 'success');
     btn.classList.toggle('is-err', phase === 'error');
     btn.setAttribute('aria-busy', phase === 'syncing' ? 'true' : 'false');
-    const aria = phase === 'syncing' ? '同步中…'
-      : phase === 'success' ? '已更新'
-      : phase === 'error' ? (detail || '同步失敗')
+    const aria = phase === 'syncing' ? (detail || '載入中…')
+      : phase === 'success' ? (detail || '已載入快照')
+      : phase === 'error' ? (detail || '載入失敗')
       : '更新券商持倉';
     btn.setAttribute('aria-label', aria);
   }
@@ -1242,13 +1254,13 @@ function setSyncUi(phase, detail) {
   if (label) {
     label.classList.remove('is-sync', 'is-ok', 'is-err');
     if (phase === 'syncing') {
-      label.textContent = '同步中…';
+      label.textContent = detail || '載入中…';
       label.classList.add('is-sync');
     } else if (phase === 'success') {
-      label.textContent = '已更新';
+      label.textContent = detail || '已載入快照';
       label.classList.add('is-ok');
     } else if (phase === 'error') {
-      label.textContent = detail || '同步失敗';
+      label.textContent = detail || '載入失敗';
       label.classList.add('is-err');
     } else {
       label.textContent = '';
@@ -1313,16 +1325,42 @@ async function postSyncWebhook(cfg) {
   }
 }
 
+function showSnapLoadedStatus() {
+  const when = state.syncedAt || '';
+  setSyncUi('success', when ? `已載入快照 · ${when}` : '已載入快照');
+}
+
+async function reloadPublishedSnapshot() {
+  if (!state.unlocked || state.brokerSyncing || state.refreshing) return;
+  setSyncUi('syncing', '載入中…');
+  let ok = false;
+  try {
+    ok = await refreshQuotes({ announce: true });
+  } catch (_) {
+    ok = false;
+  }
+  if (state.brokerSyncing) return;
+  if (!ok) {
+    setSyncUi('error', '快照載入失敗');
+    return;
+  }
+  if (state.syncPhase === 'success') {
+    syncSuccessTimer = setTimeout(() => {
+      if (state.syncPhase === 'success') setSyncUi('idle');
+    }, 4200);
+  }
+}
+
 async function requestBrokerSync() {
   if (state.brokerSyncing || !state.unlocked) return;
   const cfg = await resolveSyncTrigger();
   if (!cfg) {
-    openSyncModal('sync');
+    setSyncUi('error', '未設定 Webhook。請喺 Publish To Web chat 講「同步」。');
     return;
   }
   state.brokerSyncing = true;
   try {
-  setSyncUi('syncing');
+  setSyncUi('syncing', '同步中…');
   const baseline = currentSyncStamp();
   const deadline = Date.now() + BROKER_SYNC_TIMEOUT_MS;
   let postResult = null;
@@ -1363,7 +1401,8 @@ async function requestBrokerSync() {
   } catch (_) {}
   const applied = syncStampChanged(baseline, currentSyncStamp());
   if (changed || applied) {
-    setSyncUi('success');
+    const when = state.syncedAt || '';
+    setSyncUi('success', when ? `已更新 · ${when}` : '已更新');
     syncSuccessTimer = setTimeout(() => {
       if (state.syncPhase === 'success') setSyncUi('idle');
     }, 2800);
@@ -1374,6 +1413,42 @@ async function requestBrokerSync() {
   }
   } finally {
     state.brokerSyncing = false;
+  }
+}
+
+async function runAdvancedWebhook() {
+  const url = ($('syncWebhookUrl')?.value || '').trim();
+  const key = ($('syncSenderKey')?.value || '').trim();
+  if (url || key) {
+    if (!persistSyncForm()) return;
+  }
+  const cfg = await resolveSyncTrigger();
+  if (!cfg) {
+    setModalError('未有 Webhook。即時拉富途／IB：喺 Publish To Web chat 講「同步」，再撳圓形按鈕載入新快照。');
+    return;
+  }
+  closeSyncModal();
+  requestBrokerSync();
+}
+
+function snapHintDismissed() {
+  try { return localStorage.getItem(SNAP_HINT_LS_KEY) === '1'; } catch (_) { return false; }
+}
+
+function dismissSnapHint() {
+  const el = $('snapHint');
+  if (el) el.hidden = true;
+  try { localStorage.setItem(SNAP_HINT_LS_KEY, '1'); } catch (_) {}
+}
+
+function setupSnapHint() {
+  const el = $('snapHint');
+  if (!el) return;
+  el.hidden = snapHintDismissed();
+  const btn = $('snapHintDismiss');
+  if (btn && !btn.dataset.bound) {
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', dismissSnapHint);
   }
 }
 
@@ -1398,7 +1473,7 @@ function setupBrokerSyncUi() {
       pressTimer = setTimeout(() => {
         pressTimer = null;
         longPressed = true;
-        openSyncModal('config');
+        openSyncModal();
       }, 650);
     });
     btn.addEventListener('pointerup', cancelPress);
@@ -1411,17 +1486,20 @@ function setupBrokerSyncUi() {
         longPressed = false;
         return;
       }
-      requestBrokerSync();
+      reloadPublishedSnapshot();
     });
     btn.addEventListener('contextmenu', (e) => {
       e.preventDefault();
-      if (!btn.disabled) openSyncModal('config');
+      if (!btn.disabled) openSyncModal();
     });
   }
-  if (gear) gear.addEventListener('click', () => openSyncModal('config'));
+  if (gear) gear.addEventListener('click', () => openSyncModal());
   if (form) form.addEventListener('submit', saveSyncModal);
   if (cancel) cancel.addEventListener('click', () => closeSyncModal());
   if (clearBtn) clearBtn.addEventListener('click', () => clearSyncConfig());
+  const runBtn = $('syncModalRun');
+  if (runBtn) runBtn.addEventListener('click', () => runAdvancedWebhook());
+  setupSnapHint();
   if (keyToggle) {
     keyToggle.addEventListener('click', () => {
       const input = $('syncSenderKey');
@@ -1447,7 +1525,7 @@ function setupBrokerSyncUi() {
   }, true);
 }
 
-window.refreshQuotesNow = () => requestBrokerSync();
+window.refreshQuotesNow = () => reloadPublishedSnapshot();
 
 async function boot() {
   if (!state.unlocked) return;

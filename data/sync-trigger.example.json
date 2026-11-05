@@ -4,5 +4,5 @@
   "headers": {
     "Authorization": "Bearer <SENDER_KEY>"
   },
-  "_comment": "Shape only. Do not commit a real sender key. Preferred runtime config is localStorage key alphaview.syncTrigger (the in-page modal writes this). Optional file override: copy this file to data/sync-trigger.json (gitignored). Alternate shape also accepted: {\"url\":\"https://…\",\"method\":\"POST\",\"headerName\":\"Authorization\",\"headerValue\":\"Bearer <SENDER_KEY>\"}."
+  "_comment": "Shape only. Do not commit a real sender key. The round refresh icon does not need a webhook. Optional advanced config: localStorage key alphaview.syncTrigger (gear / long-press / right-click panel) or copy this file to data/sync-trigger.json (gitignored). Alternate shape also accepted: {\"url\":\"https://…\",\"method\":\"POST\",\"headerName\":\"Authorization\",\"headerValue\":\"Bearer <SENDER_KEY>\"}."
 }
