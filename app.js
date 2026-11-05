@@ -6,6 +6,11 @@ const PASS_HASH = '21f3dc4db237caf55464ec97e07ecf20d5031b8e3a934436d00651b1e4b02
 const SESSION_KEY = 'ricky_invest_unlocked_v2';
 const HOLDINGS_URL = 'data/snap_a7f3e9c2.json';
 const REPORTS_INDEX_URL = 'reports/index.json';
+const SYNC_TRIGGER_LS_KEY = 'alphaview.syncTrigger';
+const SYNC_TRIGGER_FILE = 'data/sync-trigger.json';
+const BROKER_SYNC_TIMEOUT_MS = 140000;
+const BROKER_SYNC_POLL_MS = 4000;
+const PAGES_HOST = 'lawloktai-netizen.github.io';
 const PUBLIC_PROXIES = [
   // corsproxy.io keyless requires API key now — omitted
   ['allorigins', u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u)],
@@ -19,6 +24,9 @@ const state = {
   holdings: [],
   cash: null,
   syncedAt: '',
+  syncedAtISO: '',
+  brokerSyncing: false,
+  syncPhase: 'idle',
   fx: { USDHKD: 7.8447, CNYHKD: 1.177, JPYHKD: 0.04968 },
   quotes: {}, // key -> {price, prevClose, changePct, via, ts, failed?}
   filter: 'All',
@@ -123,6 +131,40 @@ async function fetchWithTimeout(url, ms = 7000) {
   } finally { clearTimeout(t); }
 }
 const fetchJSON = async (url, ms) => (await fetchWithTimeout(url, ms)).json();
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function fetchSnap(ms = 10000) {
+  const c = new AbortController();
+  const t = setTimeout(() => c.abort(), ms);
+  try {
+    const r = await fetch(HOLDINGS_URL + '?t=' + Date.now(), { cache: 'no-store', signal: c.signal });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return await r.json();
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+function holdingsSubtitle() {
+  const n = state.holdings.filter(h => h.type !== 'OPT').length;
+  const o = state.holdings.filter(h => h.type === 'OPT').length;
+  return `${n} 項證券持倉 + ${o} 期權 | 富途證券・富途加密・IBKR · 券商快照價`;
+}
+
+function applySnapPayload(data) {
+  if (!data || data.error) return false;
+  if (Array.isArray(data.holdings)) state.holdings = data.holdings;
+  if (data.cash) state.cash = data.cash;
+  if (data.syncedAt) state.syncedAt = String(data.syncedAt);
+  if (data.syncedAtISO) state.syncedAtISO = String(data.syncedAtISO);
+  if (data.fxSeed) Object.assign(state.fx, data.fxSeed);
+  const sub = $('subtitleCount');
+  if (sub) sub.textContent = holdingsSubtitle();
+  return true;
+}
 
 function parseYahooChart(j) {
   const res = j && j.chart && j.chart.result && j.chart.result[0];
@@ -888,7 +930,7 @@ async function refreshQuotes() {
   if (!state.unlocked || state.refreshing) return;
   state.refreshing = true;
   const btn = $('refreshBtn');
-  if (btn) btn.disabled = true;
+  if (btn && !state.brokerSyncing) btn.disabled = true;
   try {
     const before = {};
     for (const h of state.holdings) {
@@ -897,21 +939,10 @@ async function refreshQuotes() {
       if (q && q.price > 0) before[h.id] = q.price;
     }
 
-    // Re-load broker snapshot (cache-busted) so "refresh" / page-open path stays point-in-time.
+    // Re-load broker snapshot (cache-busted) so refresh stays point-in-time.
     try {
-      const data = await fetchJSON(HOLDINGS_URL + '?t=' + Date.now(), 10000);
-      if (!data.error) {
-        state.holdings = data.holdings || state.holdings;
-        state.cash = data.cash || state.cash;
-        state.syncedAt = data.syncedAt || state.syncedAt;
-        if (data.fxSeed) Object.assign(state.fx, data.fxSeed);
-        const sub = $('subtitleCount');
-        if (sub) {
-          const n = state.holdings.filter(h => h.type !== 'OPT').length;
-          const o = state.holdings.filter(h => h.type === 'OPT').length;
-          sub.textContent = `${n} 項證券持倉 + ${o} 期權 | 富途證券・富途加密・IBKR · 券商快照價`;
-        }
-      }
+      const data = await fetchSnap(10000);
+      applySnapPayload(data);
     } catch (_) {}
 
     await getFx();
@@ -947,7 +978,7 @@ async function refreshQuotes() {
     refreshChartSeries();
   } finally {
     state.refreshing = false;
-    if (btn) btn.disabled = false;
+    if (btn && !state.brokerSyncing) btn.disabled = false;
   }
 }
 
@@ -999,23 +1030,430 @@ window.handleSearchHoldings = function() {
   renderHoldings(compute());
 };
 window.toggleRealtimeSim = toggleAuto;
-window.refreshQuotesNow = () => refreshQuotes();
+
+/* ===== On-demand Futu/IBKR sync (webhook routine → poll snap → apply snapshot) ===== */
+
+function syncStampFrom(data) {
+  return {
+    at: data && data.syncedAt != null ? String(data.syncedAt) : '',
+    iso: data && data.syncedAtISO != null ? String(data.syncedAtISO) : '',
+  };
+}
+
+function currentSyncStamp() {
+  return { at: state.syncedAt || '', iso: state.syncedAtISO || '' };
+}
+
+function syncStampChanged(prev, next) {
+  if (!next) return false;
+  const prevIso = prev && prev.iso ? String(prev.iso) : '';
+  const nextIso = next.iso ? String(next.iso) : '';
+  const prevAt = prev && prev.at ? String(prev.at) : '';
+  const nextAt = next.at ? String(next.at) : '';
+  if (!nextIso && !nextAt) return false;
+  if (nextIso && nextIso !== prevIso) {
+    const a = Date.parse(prevIso);
+    const b = Date.parse(nextIso);
+    if (Number.isFinite(a) && Number.isFinite(b)) return b !== a;
+    return true;
+  }
+  return !!(nextAt && nextAt !== prevAt);
+}
+
+function normalizeSyncTrigger(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const url = String(raw.url || '').trim();
+  if (!url) return null;
+  let parsed;
+  try { parsed = new URL(url); } catch (_) { return null; }
+  if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return null;
+  const headers = {};
+  if (raw.headers && typeof raw.headers === 'object') {
+    for (const [k, v] of Object.entries(raw.headers)) {
+      if (!k || v == null) continue;
+      const value = String(v).trim();
+      if (value) headers[String(k)] = value;
+    }
+  }
+  if (raw.headerName && raw.headerValue != null) {
+    const name = String(raw.headerName).trim();
+    const value = String(raw.headerValue).trim();
+    if (name && value && !headers[name]) headers[name] = value;
+  }
+  const method = String(raw.method || 'POST').trim().toUpperCase() || 'POST';
+  if (!['POST', 'PUT', 'GET'].includes(method)) return null;
+  return { url, method, headers };
+}
+
+function readLocalSyncTrigger() {
+  try {
+    const raw = localStorage.getItem(SYNC_TRIGGER_LS_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (_) {
+    return null;
+  }
+}
+
+async function resolveSyncTrigger() {
+  const local = normalizeSyncTrigger(readLocalSyncTrigger());
+  if (local) return local;
+  try {
+    const data = await fetchJSON(SYNC_TRIGGER_FILE + '?t=' + Date.now(), 4000);
+    return normalizeSyncTrigger(data);
+  } catch (_) {
+    return null;
+  }
+}
+
+function bearerFromKey(key) {
+  const k = String(key || '').trim();
+  if (!k) return '';
+  return /^bearer\s+/i.test(k) ? k : 'Bearer ' + k;
+}
+
+function keyFromStored(raw) {
+  if (!raw || typeof raw !== 'object') return '';
+  const headers = raw.headers && typeof raw.headers === 'object' ? raw.headers : null;
+  let value = '';
+  if (headers) value = headers.Authorization || headers.authorization || '';
+  if (!value && String(raw.headerName || '').toLowerCase() === 'authorization') value = raw.headerValue || '';
+  return String(value || '').trim().replace(/^bearer\s+/i, '');
+}
+
+let syncModalIntent = 'config';
+let syncSuccessTimer = null;
+
+function setModalError(msg) {
+  const el = $('syncModalError');
+  if (!el) return;
+  if (msg) {
+    el.textContent = msg;
+    el.classList.remove('hidden');
+  } else {
+    el.textContent = '';
+    el.classList.add('hidden');
+  }
+}
+
+function openSyncModal(intent) {
+  syncModalIntent = intent === 'sync' ? 'sync' : 'config';
+  const modal = $('syncModal');
+  if (!modal) return;
+  const raw = readLocalSyncTrigger();
+  const norm = normalizeSyncTrigger(raw);
+  const urlEl = $('syncWebhookUrl');
+  const keyEl = $('syncSenderKey');
+  const toggle = $('syncKeyToggle');
+  if (urlEl) urlEl.value = norm ? norm.url : (raw && raw.url ? String(raw.url) : '');
+  if (keyEl) {
+    keyEl.value = keyFromStored(raw);
+    keyEl.type = 'password';
+  }
+  if (toggle) toggle.textContent = '顯示';
+  setModalError('');
+  modal.hidden = false;
+  if (urlEl) urlEl.focus();
+}
+
+function closeSyncModal() {
+  const modal = $('syncModal');
+  if (modal) modal.hidden = true;
+  syncModalIntent = 'config';
+}
+
+function saveSyncModal(e) {
+  if (e) e.preventDefault();
+  const url = ($('syncWebhookUrl')?.value || '').trim();
+  const key = ($('syncSenderKey')?.value || '').trim();
+  if (!url || !key) {
+    setModalError('請填寫 Webhook URL 同 Sender key。');
+    return;
+  }
+  let parsed;
+  try { parsed = new URL(url); } catch (_) { parsed = null; }
+  if (!parsed || (parsed.protocol !== 'https:' && parsed.protocol !== 'http:')) {
+    setModalError('Webhook URL 唔正確，請貼上完整 http(s) 網址。');
+    return;
+  }
+  const prev = readLocalSyncTrigger() || {};
+  const headers = {};
+  if (prev.headers && typeof prev.headers === 'object') {
+    for (const [k, v] of Object.entries(prev.headers)) {
+      if (k && v != null && String(v).trim()) headers[k] = String(v);
+    }
+  }
+  if (prev.headerName && prev.headerValue != null) {
+    const name = String(prev.headerName).trim();
+    const value = String(prev.headerValue).trim();
+    if (name && value && !headers[name]) headers[name] = value;
+  }
+  for (const k of Object.keys(headers)) {
+    if (k.toLowerCase() === 'authorization') delete headers[k];
+  }
+  headers.Authorization = bearerFromKey(key);
+  const method = String(prev.method || 'POST').trim().toUpperCase() || 'POST';
+  const cfg = { url, method, headers };
+  try {
+    localStorage.setItem(SYNC_TRIGGER_LS_KEY, JSON.stringify(cfg));
+  } catch (_) {
+    setModalError('無法寫入瀏覽器儲存，請檢查是否封鎖 localStorage。');
+    return;
+  }
+  const thenSync = syncModalIntent === 'sync';
+  closeSyncModal();
+  if (thenSync) requestBrokerSync();
+}
+
+function clearSyncConfig() {
+  try { localStorage.removeItem(SYNC_TRIGGER_LS_KEY); } catch (_) {}
+  const urlEl = $('syncWebhookUrl');
+  const keyEl = $('syncSenderKey');
+  if (urlEl) urlEl.value = '';
+  if (keyEl) keyEl.value = '';
+  setModalError('已清除呢部瀏覽器嘅設定。可以重新貼上。');
+  syncModalIntent = 'config';
+}
+
+function setSyncUi(phase, detail) {
+  state.syncPhase = phase;
+  if (syncSuccessTimer) {
+    clearTimeout(syncSuccessTimer);
+    syncSuccessTimer = null;
+  }
+  const btn = $('refreshBtn');
+  const gear = $('syncConfigBtn');
+  const label = $('syncStatusLabel');
+  const icon = $('syncIcon');
+  if (btn) {
+    btn.disabled = phase === 'syncing';
+    btn.classList.toggle('is-syncing', phase === 'syncing');
+    btn.classList.toggle('is-ok', phase === 'success');
+    btn.classList.toggle('is-err', phase === 'error');
+    btn.setAttribute('aria-busy', phase === 'syncing' ? 'true' : 'false');
+    const aria = phase === 'syncing' ? '同步中…'
+      : phase === 'success' ? '已更新'
+      : phase === 'error' ? (detail || '同步失敗')
+      : '更新券商持倉';
+    btn.setAttribute('aria-label', aria);
+  }
+  if (gear) gear.disabled = phase === 'syncing';
+  if (icon) icon.classList.toggle('sync-spin', phase === 'syncing');
+  if (label) {
+    label.classList.remove('is-sync', 'is-ok', 'is-err');
+    if (phase === 'syncing') {
+      label.textContent = '同步中…';
+      label.classList.add('is-sync');
+    } else if (phase === 'success') {
+      label.textContent = '已更新';
+      label.classList.add('is-ok');
+    } else if (phase === 'error') {
+      label.textContent = detail || '同步失敗';
+      label.classList.add('is-err');
+    } else {
+      label.textContent = '';
+    }
+  }
+  const mode = $('liveModeLabel');
+  if (mode && phase === 'syncing') {
+    mode.textContent = `同步中… · 持倉上次同步 ${state.syncedAt || '—'}`;
+  }
+}
+
+function syncFailText(err) {
+  const code = err && err.code;
+  if (code === 'http') {
+    const status = err.status;
+    if (status === 401 || status === 403) return `同步失敗：金鑰被拒 (HTTP ${status})`;
+    return `同步失敗：HTTP ${status}`;
+  }
+  if (code === 'timeout') return '同步失敗：連線逾時';
+  return '同步失敗：跨域被拒或無法連線';
+}
+
+async function postSyncWebhook(cfg) {
+  const headers = { Accept: 'application/json, text/plain, */*' };
+  for (const [k, v] of Object.entries(cfg.headers || {})) headers[k] = v;
+  const method = String(cfg.method || 'POST').toUpperCase();
+  if (method !== 'GET' && !headers['Content-Type'] && !headers['content-type']) {
+    headers['Content-Type'] = 'application/json';
+  }
+  const c = new AbortController();
+  const t = setTimeout(() => c.abort(), BROKER_SYNC_TIMEOUT_MS);
+  try {
+    const r = await fetch(cfg.url, {
+      method,
+      mode: 'cors',
+      cache: 'no-store',
+      credentials: 'omit',
+      referrerPolicy: 'no-referrer',
+      headers,
+      body: method === 'GET' ? undefined : JSON.stringify({ source: 'alphaview', action: 'sync' }),
+      signal: c.signal,
+    });
+    if (!r.ok) {
+      const err = new Error('HTTP ' + r.status);
+      err.code = 'http';
+      err.status = r.status;
+      throw err;
+    }
+    return true;
+  } catch (e) {
+    if (e && e.code === 'http') throw e;
+    if (e && e.name === 'AbortError') {
+      const err = new Error('timeout');
+      err.code = 'timeout';
+      throw err;
+    }
+    const err = new Error('network');
+    err.code = 'network';
+    throw err;
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+async function requestBrokerSync() {
+  if (state.brokerSyncing || !state.unlocked) return;
+  const cfg = await resolveSyncTrigger();
+  if (!cfg) {
+    openSyncModal('sync');
+    return;
+  }
+  state.brokerSyncing = true;
+  try {
+  setSyncUi('syncing');
+  const baseline = currentSyncStamp();
+  const deadline = Date.now() + BROKER_SYNC_TIMEOUT_MS;
+  let postResult = null;
+  const postPromise = postSyncWebhook(cfg).then(
+    () => ({ ok: true }),
+    (err) => ({ ok: false, err })
+  );
+  const watchPost = postPromise.then((r) => { postResult = r; return r; });
+  let changed = false;
+  let freshSnap = null;
+  try {
+    await Promise.race([watchPost, sleep(2500)]);
+    if (!(postResult && !postResult.ok)) {
+      while (Date.now() < deadline) {
+        if (postResult && !postResult.ok) break;
+        try {
+          const snap = await fetchSnap(8000);
+          if (syncStampChanged(baseline, syncStampFrom(snap))) {
+            changed = true;
+            freshSnap = snap;
+            break;
+          }
+        } catch (_) {}
+        if (postResult && !postResult.ok) break;
+        const remaining = deadline - Date.now();
+        if (remaining <= 0) break;
+        // Keep the poll interval even after a fast 200. Wake early only when the webhook fails.
+        const slice = Math.min(BROKER_SYNC_POLL_MS, remaining);
+        await Promise.race([
+          sleep(slice),
+          watchPost.then((r) => (r && r.ok ? sleep(slice) : undefined)),
+        ]);
+      }
+    }
+    if (freshSnap) applySnapPayload(freshSnap);
+    while (state.refreshing) await sleep(200);
+    await refreshQuotes();
+  } catch (_) {}
+  const applied = syncStampChanged(baseline, currentSyncStamp());
+  if (changed || applied) {
+    setSyncUi('success');
+    syncSuccessTimer = setTimeout(() => {
+      if (state.syncPhase === 'success') setSyncUi('idle');
+    }, 2800);
+  } else if (postResult && !postResult.ok) {
+    setSyncUi('error', syncFailText(postResult.err));
+  } else {
+    setSyncUi('error', '逾時：後台可能仍在同步，請稍後再按');
+  }
+  } finally {
+    state.brokerSyncing = false;
+  }
+}
+
+function setupBrokerSyncUi() {
+  const btn = $('refreshBtn');
+  const gear = $('syncConfigBtn');
+  const form = $('syncModalForm');
+  const cancel = $('syncModalCancel');
+  const clearBtn = $('syncModalClear');
+  const modal = $('syncModal');
+  const keyToggle = $('syncKeyToggle');
+  let pressTimer = null;
+  let longPressed = false;
+  if (btn) {
+    const cancelPress = () => {
+      if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+    };
+    btn.addEventListener('pointerdown', () => {
+      if (btn.disabled) return;
+      longPressed = false;
+      cancelPress();
+      pressTimer = setTimeout(() => {
+        pressTimer = null;
+        longPressed = true;
+        openSyncModal('config');
+      }, 650);
+    });
+    btn.addEventListener('pointerup', cancelPress);
+    btn.addEventListener('pointerleave', cancelPress);
+    btn.addEventListener('pointercancel', cancelPress);
+    btn.addEventListener('click', (e) => {
+      cancelPress();
+      if (longPressed) {
+        e.preventDefault();
+        longPressed = false;
+        return;
+      }
+      requestBrokerSync();
+    });
+    btn.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      if (!btn.disabled) openSyncModal('config');
+    });
+  }
+  if (gear) gear.addEventListener('click', () => openSyncModal('config'));
+  if (form) form.addEventListener('submit', saveSyncModal);
+  if (cancel) cancel.addEventListener('click', () => closeSyncModal());
+  if (clearBtn) clearBtn.addEventListener('click', () => clearSyncConfig());
+  if (keyToggle) {
+    keyToggle.addEventListener('click', () => {
+      const input = $('syncSenderKey');
+      if (!input) return;
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      keyToggle.textContent = show ? '隱藏' : '顯示';
+    });
+  }
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeSyncModal();
+    });
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    const m = $('syncModal');
+    if (m && !m.hidden) {
+      e.preventDefault();
+      e.stopPropagation();
+      closeSyncModal();
+    }
+  }, true);
+}
+
+window.refreshQuotesNow = () => requestBrokerSync();
 
 async function boot() {
   if (!state.unlocked) return;
   try {
-    const data = await fetchJSON(HOLDINGS_URL + '?t=' + Date.now(), 10000);
-    if (data.error) throw new Error(data.message || 'locked');
-    state.holdings = data.holdings || [];
-    state.cash = data.cash || {};
-    state.syncedAt = data.syncedAt || '';
-    if (data.fxSeed) Object.assign(state.fx, data.fxSeed);
-    const sub = $('subtitleCount');
-    if (sub) {
-      const n = state.holdings.filter(h => h.type !== 'OPT').length;
-      const o = state.holdings.filter(h => h.type === 'OPT').length;
-      sub.textContent = `${n} 項證券持倉 + ${o} 期權 | 富途證券・富途加密・IBKR · 券商快照價`;
-    }
+    const data = await fetchSnap(10000);
+    if (!applySnapPayload(data)) throw new Error((data && data.message) || 'locked');
     // Instant P&L from broker snapshot on first paint (page open).
     applyBrokerSnapshotQuotes();
     renderAll();
@@ -1757,5 +2195,6 @@ window.switchAppView = function(view) {
   }
 };
 
+setupBrokerSyncUi();
 setupGate();
 })();
