@@ -296,6 +296,52 @@
         .report-archive-item:hover, .report-archive-item.active {
             border-color: rgba(37,99,235,0.45); background: rgba(37,99,235,0.06);
         }
+        .sync-icon-btn {
+            width: 1.85rem;
+            height: 1.85rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            background: #EFF6FF;
+            border: 1px solid #BFDBFE;
+            color: #1D4ED8;
+            transition: background 0.15s, border-color 0.15s, color 0.15s;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        .sync-icon-btn:hover { background: #DBEAFE; }
+        .sync-icon-btn:disabled { opacity: 0.72; cursor: progress; }
+        .sync-icon-btn.is-ok { color: #047857; background: #ECFDF5; border-color: #A7F3D0; }
+        .sync-icon-btn.is-err { color: #BE123C; background: #FFF1F2; border-color: #FECDD3; }
+        .sync-icon-btn-muted {
+            background: #F8FAFC;
+            border-color: #E2E8F0;
+            color: #64748B;
+        }
+        .sync-icon-btn-muted:hover { background: #F1F5F9; color: #334155; }
+        .sync-icon-svg { width: 16px; height: 16px; display: block; }
+        .sync-spin { animation: sync-spin 0.8s linear infinite; transform-origin: center; }
+        @keyframes sync-spin { to { transform: rotate(360deg); } }
+        .sync-status-label { font-size: 11px; line-height: 1.3; max-width: 9.5rem; }
+        .sync-status-label:empty { display: none; }
+        .sync-status-label.is-sync { color: #1D4ED8; }
+        .sync-status-label.is-ok { color: #047857; }
+        .sync-status-label.is-err { color: #BE123C; max-width: 16rem; }
+        .sync-modal[hidden] { display: none !important; }
+        .sync-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 80;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            background: rgba(15, 23, 42, 0.35);
+            backdrop-filter: blur(4px);
+        }
+        .sync-modal-card { width: 100%; max-width: 26rem; }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col selection:bg-blue-500 selection:text-white">
@@ -342,7 +388,23 @@
         <div class="flex items-center gap-3 ml-auto">
             <span class="hidden md:inline text-[11px] font-num text-slate-600" id="quoteStat"></span>
             <span class="text-[11px]">快照載入: <strong class="text-slate-700 font-num" id="quoteUpdateTime">—</strong></span>
-            <button id="refreshBtn" onclick="refreshQuotesNow()" class="px-2 py-1 rounded bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 text-xs">重新載入快照</button>
+            <div class="flex items-center gap-1.5 shrink-0">
+                <button id="refreshBtn" type="button" class="sync-icon-btn" aria-label="更新券商持倉" title="更新券商持倉（長按可設定 Webhook）">
+                    <svg id="syncIcon" class="sync-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                        <path d="M3 3v5h5"></path>
+                        <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
+                        <path d="M16 16h5v5"></path>
+                    </svg>
+                </button>
+                <button id="syncConfigBtn" type="button" class="sync-icon-btn sync-icon-btn-muted" aria-label="設定同步 Webhook" title="設定或清除 Webhook">
+                    <svg class="sync-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                </button>
+                <span id="syncStatusLabel" class="sync-status-label" role="status" aria-live="polite"></span>
+            </div>
             <button id="simToggleBtn" onclick="toggleRealtimeSim()" class="flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100 transition text-xs font-medium cursor-pointer">
                 <span id="simDot" class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                 <span id="simText">自動補拉缺價: 關閉</span>
@@ -725,7 +787,7 @@
                 <p class="text-slate-700 font-medium mb-1">資料說明</p>
                 <ul class="list-disc pl-4 space-y-1">
                     <li><strong class="text-slate-600">報價</strong>：持倉盈虧用富途／IB 寫入快照嘅市價；打開頁面即顯示該同步時間點 summary。指數／經濟日曆／業績仍用 TradingView 即時元件。</li>
-                    <li><strong class="text-slate-600">持倉</strong>：數量／成本來自解鎖後載入嘅持倉快照（富途＋IBKR）。買賣改倉後要再同步一次先更新。</li>
+                    <li><strong class="text-slate-600">持倉</strong>：數量／成本來自解鎖後載入嘅持倉快照（富途＋IBKR）。撳「更新券商持倉」會叫後台 routine 拉最新券商價，再載入新快照。</li>
                     <li><strong class="text-slate-600">私隱</strong>：進入需通行密碼；<code class="text-blue-700">持倉快照</code> 只喺解鎖後先拉。客戶端閘門係遮擋而非伺服器級保安。</li>
                 </ul>
             </div>
@@ -813,6 +875,41 @@
         </aside>
     </div>
 
+    <div id="syncModal" class="sync-modal" hidden>
+        <div class="sync-modal-card pro-panel rounded-2xl p-5 border border-borderDark shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="syncModalTitle">
+            <h2 id="syncModalTitle" class="text-base font-bold text-ink">設定券商同步</h2>
+            <p class="text-[11px] text-muted mt-1 leading-relaxed">按「更新券商持倉」會通知後台 routine 向富途同 IBKR 拉持倉同報價，再將新快照載入呢頁。網址同金鑰只儲存喺呢部瀏覽器。</p>
+            <form id="syncModalForm" class="space-y-3 mt-4" autocomplete="off">
+                <div>
+                    <label class="block text-[11px] text-muted mb-1" for="syncWebhookUrl">Webhook URL</label>
+                    <input id="syncWebhookUrl" name="webhook" type="url" inputmode="url" required spellcheck="false" autocomplete="off" placeholder="https://…"
+                        class="w-full bg-white border border-borderDark rounded-lg px-3 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 font-num">
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-[11px] text-muted" for="syncSenderKey">Sender key</label>
+                        <button type="button" id="syncKeyToggle" class="text-[11px] text-blue-700 hover:text-blue-800">顯示</button>
+                    </div>
+                    <input id="syncSenderKey" type="password" required spellcheck="false" autocomplete="new-password" placeholder="貼上 Sender key"
+                        class="w-full bg-white border border-borderDark rounded-lg px-3 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 font-num">
+                </div>
+                <div class="rounded-lg bg-slate-50 border border-borderDark px-3 py-2 text-[11px] text-muted leading-relaxed">
+                    <p class="text-slate-700 font-medium mb-0.5">如何取得</p>
+                    <p>點聊天頂部代理名稱 → Routines → AlphaView on-demand sync → 複製 Webhook URL 同 Sender key。</p>
+                </div>
+                <p class="text-[10px] text-muted leading-relaxed">瀏覽器會用 CORS（<span class="font-num">mode: cors</span>）POST 去 webhook。主機要允許來自 <span class="font-num text-slate-600">lawloktai-netizen.github.io</span> 嘅請求。若 preflight 失敗，按鈕會顯示跨域錯誤；之後可以再加一個 CORS-friendly proxy。設定會先儲存，成功回應後先輪詢快照。</p>
+                <p id="syncModalError" class="text-xs text-rose-700 hidden"></p>
+                <div class="flex items-center justify-between gap-2 pt-1">
+                    <button type="button" id="syncModalClear" class="text-[11px] text-slate-500 hover:text-rose-700">清除設定</button>
+                    <div class="flex items-center gap-2">
+                        <button type="button" id="syncModalCancel" class="px-3 py-2 rounded-lg border border-borderDark text-sm text-slate-600 hover:bg-panelHover">取消</button>
+                        <button type="submit" class="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium">儲存</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     </div><!-- /appShell -->
 
     <script>
@@ -847,6 +944,6 @@
       });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-    <script src="app.js?v=20261028light"></script>
+    <script src="app.js?v=20261105sync"></script>
 </body>
 </html>

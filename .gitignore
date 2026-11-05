@@ -1,0 +1,2 @@
+# Optional local webhook config. Keep the real URL and sender key out of git.
+data/sync-trigger.json
