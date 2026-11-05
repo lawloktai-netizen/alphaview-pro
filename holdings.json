@@ -1,11 +1,11 @@
 {
-  "syncedAt": "2026-11-04 23:31 HKT",
-  "syncedAtISO": "2026-11-04T23:31:33.684569+08:00",
+  "syncedAt": "2026-11-05 08:31 HKT",
+  "syncedAtISO": "2026-11-05T08:31:49.057812+08:00",
   "baseCurrency": "HKD",
-  "note": "Positions/qty/cost/prices snapshot from Futu+IBKR at sync time. Page load uses broker snapshot prices for holdings P&L (no Yahoo/Tencent for normal holdings). TradingView widgets stay live for indices/calendar/earnings. Republish/sync always refreshes broker prices even if composition unchanged.",
+  "note": "Positions/qty/cost/prices snapshot from Futu+IBKR at sync time. Page load uses broker snapshot prices for holdings P&L (no Yahoo/Tencent for normal holdings). TradingView widgets stay live for indices/calendar/earnings. Republish/sync always refreshes broker prices even if composition unchanged. IBKR via ledger pull 2026-11-05 06:51 HKT (live user-ibkr OAuth refresh failed).",
   "cash": {
-    "futuSecuritiesCashHKD": 2509.15,
-    "futuFundsAssetsHKD": 261788.218,
+    "futuSecuritiesCashHKD": 2509.03,
+    "futuFundsAssetsHKD": 261748.8512,
     "futuCryptoCash": [
       {
         "currency": "USD",
@@ -27,23 +27,23 @@
       },
       {
         "currency": "USD",
-        "amount": 634.55
+        "amount": 658.8299999999999
       },
       {
         "currency": "HKD",
         "amount": -24.38
       }
     ],
-    "futuTotalAssetsHKD": 845629.5853,
-    "futuUnrealizedPLHKD": -178401.4186601646,
-    "ibkrNetLiquidationHKD": 411228.60576333536,
-    "ibkrCashValueHKD": 10104.030581385741,
+    "futuTotalAssetsHKD": 841062.9953,
+    "futuUnrealizedPLHKD": -181208.5171895905,
+    "ibkrNetLiquidationHKD": 413022.4680101163,
+    "ibkrCashValueHKD": 10301.698771184445,
     "ibkrLeverage": 0.97
   },
   "fxSeed": {
-    "CNYHKD": 1.1763749556940968,
-    "JPYHKD": 0.04945147892709326,
-    "USDHKD": 7.84640645980835
+    "CNYHKD": 1.1756407207502828,
+    "JPYHKD": 0.0495304158383506,
+    "USDHKD": 7.8449320793151855
   },
   "holdings": [
     {
@@ -64,7 +64,7 @@
       "seedPrice": 0.28,
       "seedMv": -140.0,
       "seedPl": 35.0,
-      "seedTodayPl": 70.0,
+      "seedTodayPl": 0.0,
       "underlying": "00941.HK",
       "strike": 82.5,
       "right": "C",
@@ -89,7 +89,7 @@
       "seedPrice": 0.18,
       "seedMv": -180.0,
       "seedPl": 200.0,
-      "seedTodayPl": 20.0,
+      "seedTodayPl": 0.0,
       "underlying": "00883.HK",
       "strike": 26.0,
       "right": "C",
@@ -114,7 +114,7 @@
       "seedPrice": 1.3,
       "seedMv": -130.0,
       "seedPl": 725.0,
-      "seedTodayPl": -34.0,
+      "seedTodayPl": 0.0,
       "underlying": "00700.HK",
       "strike": 460.0,
       "right": "C",
@@ -139,7 +139,7 @@
       "seedPrice": 4.2,
       "seedMv": -420.0,
       "seedPl": -93.0,
-      "seedTodayPl": -94.0,
+      "seedTodayPl": 0.0,
       "underlying": "00700.HK",
       "strike": 430.0,
       "right": "C",
@@ -161,10 +161,10 @@
       "market": "OPT",
       "type": "OPT",
       "multiplier": 100,
-      "seedPrice": 5.325,
-      "seedMv": -2662.5,
-      "seedPl": -7.5,
-      "seedTodayPl": 1815.0,
+      "seedPrice": 5.29,
+      "seedMv": -2645.0,
+      "seedPl": 10.0,
+      "seedTodayPl": 1832.5,
       "underlying": "XSP",
       "strike": 730.0,
       "right": "P",
@@ -186,10 +186,10 @@
       "market": "US",
       "type": "US",
       "multiplier": 1,
-      "seedPrice": 42.575,
-      "seedMv": 1703.0,
-      "seedPl": -419.3,
-      "seedTodayPl": 92.6,
+      "seedPrice": 43.8,
+      "seedMv": 1752.0,
+      "seedPl": -370.3,
+      "seedTodayPl": 141.6,
       "quoteKind": "equity"
     },
     {
@@ -207,10 +207,10 @@
       "market": "US",
       "type": "US",
       "multiplier": 1,
-      "seedPrice": 403.57,
-      "seedMv": 2970.03,
-      "seedPl": -149.1169,
-      "seedTodayPl": -9.0521,
+      "seedPrice": 393.0,
+      "seedMv": 2892.24,
+      "seedPl": -226.9058,
+      "seedTodayPl": -86.8409,
       "quoteKind": "equity"
     },
     {
@@ -228,10 +228,10 @@
       "market": "US",
       "type": "US",
       "multiplier": 1,
-      "seedPrice": 63.63,
-      "seedMv": 1752.57,
-      "seedPl": -244.3753,
-      "seedTodayPl": 84.8279,
+      "seedPrice": 62.03,
+      "seedMv": 1708.51,
+      "seedPl": -288.4391,
+      "seedTodayPl": 40.7641,
       "quoteKind": "equity"
     },
     {
@@ -249,10 +249,10 @@
       "market": "US",
       "type": "US",
       "multiplier": 1,
-      "seedPrice": 137.94,
-      "seedMv": 1103.52,
-      "seedPl": -263.68,
-      "seedTodayPl": -26.96,
+      "seedPrice": 134.677,
+      "seedMv": 1077.42,
+      "seedPl": -289.7832,
+      "seedTodayPl": -53.0632,
       "quoteKind": "equity"
     },
     {
@@ -270,10 +270,10 @@
       "market": "US",
       "type": "US",
       "multiplier": 1,
-      "seedPrice": 6.335,
-      "seedMv": 9502.5,
-      "seedPl": -344.7,
-      "seedTodayPl": 52.5,
+      "seedPrice": 6.37,
+      "seedMv": 9555.0,
+      "seedPl": -292.2,
+      "seedTodayPl": 105.0,
       "quoteKind": "equity"
     },
     {
@@ -291,10 +291,10 @@
       "market": "US",
       "type": "US",
       "multiplier": 1,
-      "seedPrice": 11.025,
-      "seedMv": 7717.5,
-      "seedPl": 6.14,
-      "seedTodayPl": 3.5,
+      "seedPrice": 11.1,
+      "seedMv": 7770.0,
+      "seedPl": 58.64,
+      "seedTodayPl": 56.0,
       "quoteKind": "equity"
     },
     {
@@ -312,10 +312,10 @@
       "market": "US",
       "type": "US",
       "multiplier": 1,
-      "seedPrice": 204.525,
-      "seedMv": 2045.25,
-      "seedPl": -66.25,
-      "seedTodayPl": -21.65,
+      "seedPrice": 200.73,
+      "seedMv": 2007.3,
+      "seedPl": -104.2,
+      "seedTodayPl": -59.6,
       "quoteKind": "equity"
     },
     {
@@ -333,10 +333,10 @@
       "market": "US",
       "type": "US",
       "multiplier": 1,
-      "seedPrice": 552.36,
-      "seedMv": 1657.08,
-      "seedPl": 311.7,
-      "seedTodayPl": 94.11,
+      "seedPrice": 554.095,
+      "seedMv": 1662.28,
+      "seedPl": 316.9041,
+      "seedTodayPl": 99.3141,
       "quoteKind": "equity"
     },
     {
@@ -354,10 +354,10 @@
       "market": "US",
       "type": "US",
       "multiplier": 1,
-      "seedPrice": 11.0,
-      "seedMv": 549.99,
-      "seedPl": -887.51,
-      "seedTodayPl": -0.51,
+      "seedPrice": 10.16,
+      "seedMv": 508.0,
+      "seedPl": -929.5,
+      "seedTodayPl": -42.5,
       "quoteKind": "equity"
     },
     {
@@ -375,10 +375,10 @@
       "market": "US",
       "type": "US",
       "multiplier": 1,
-      "seedPrice": 2.265,
-      "seedMv": 679.5,
-      "seedPl": -2670.46,
-      "seedTodayPl": -172.5,
+      "seedPrice": 2.18,
+      "seedMv": 654.0,
+      "seedPl": -2695.96,
+      "seedTodayPl": -198.0,
       "quoteKind": "equity"
     },
     {
@@ -396,10 +396,10 @@
       "market": "US",
       "type": "US",
       "multiplier": 1,
-      "seedPrice": 292.76,
-      "seedMv": 2342.08,
-      "seedPl": -567.88,
-      "seedTodayPl": 115.92,
+      "seedPrice": 290.14,
+      "seedMv": 2321.12,
+      "seedPl": -588.84,
+      "seedTodayPl": 94.96,
       "quoteKind": "equity"
     },
     {
@@ -417,10 +417,10 @@
       "market": "US",
       "type": "US",
       "multiplier": 1,
-      "seedPrice": 369.8,
-      "seedMv": 962.59,
-      "seedPl": -37.3406,
-      "seedTodayPl": 27.4356,
+      "seedPrice": 374.5,
+      "seedMv": 974.82,
+      "seedPl": -25.1065,
+      "seedTodayPl": 39.6697,
       "quoteKind": "equity"
     },
     {
@@ -438,10 +438,10 @@
       "market": "US",
       "type": "US",
       "multiplier": 1,
-      "seedPrice": 70.31,
-      "seedMv": 2812.4,
-      "seedPl": 173.6,
-      "seedTodayPl": 270.8,
+      "seedPrice": 68.95,
+      "seedMv": 2757.99,
+      "seedPl": 119.192,
+      "seedTodayPl": 216.392,
       "quoteKind": "equity"
     },
     {
@@ -459,10 +459,10 @@
       "market": "US",
       "type": "US",
       "multiplier": 1,
-      "seedPrice": 1039.855,
-      "seedMv": 4159.42,
-      "seedPl": 334.5,
-      "seedTodayPl": 82.38,
+      "seedPrice": 1055.973,
+      "seedMv": 4223.89,
+      "seedPl": 398.97,
+      "seedTodayPl": 146.85,
       "quoteKind": "equity"
     },
     {
@@ -480,10 +480,10 @@
       "market": "US",
       "type": "US",
       "multiplier": 1,
-      "seedPrice": 74.19,
-      "seedMv": 519.33,
-      "seedPl": -223.61,
-      "seedTodayPl": 17.36,
+      "seedPrice": 74.55,
+      "seedMv": 521.85,
+      "seedPl": -221.09,
+      "seedTodayPl": 19.88,
       "quoteKind": "equity"
     },
     {
@@ -501,10 +501,10 @@
       "market": "US",
       "type": "US",
       "multiplier": 1,
-      "seedPrice": 378.36,
-      "seedMv": 1135.08,
-      "seedPl": -499.35,
-      "seedTodayPl": -10.68,
+      "seedPrice": 368.4,
+      "seedMv": 1105.2,
+      "seedPl": -529.23,
+      "seedTodayPl": -40.56,
       "quoteKind": "equity"
     },
     {
@@ -525,7 +525,7 @@
       "seedPrice": 8.96,
       "seedMv": 6272.0,
       "seedPl": -4217.5,
-      "seedTodayPl": 28.0,
+      "seedTodayPl": 0.0,
       "quoteKind": "equity"
     },
     {
@@ -546,7 +546,7 @@
       "seedPrice": 8.34,
       "seedMv": 1668.0,
       "seedPl": -5616.7,
-      "seedTodayPl": 54.0,
+      "seedTodayPl": 0.0,
       "quoteKind": "equity"
     },
     {
@@ -567,7 +567,7 @@
       "seedPrice": 12.0,
       "seedMv": 2400.0,
       "seedPl": -4130.0,
-      "seedTodayPl": 48.0,
+      "seedTodayPl": 0.0,
       "quoteKind": "equity"
     },
     {
@@ -588,7 +588,7 @@
       "seedPrice": 28.46,
       "seedMv": 5692.0,
       "seedPl": -11133.5,
-      "seedTodayPl": -186.0,
+      "seedTodayPl": 0.0,
       "quoteKind": "equity"
     },
     {
@@ -609,7 +609,7 @@
       "seedPrice": 16.96,
       "seedMv": 1696.0,
       "seedPl": -2072.39,
-      "seedTodayPl": 17.0,
+      "seedTodayPl": 0.0,
       "quoteKind": "equity"
     },
     {
@@ -630,7 +630,7 @@
       "seedPrice": 13.9,
       "seedMv": 11120.0,
       "seedPl": -4068.0,
-      "seedTodayPl": 24.0,
+      "seedTodayPl": 0.0,
       "quoteKind": "equity"
     },
     {
@@ -651,7 +651,7 @@
       "seedPrice": 0.21,
       "seedMv": 6300.0,
       "seedPl": -8550.0,
-      "seedTodayPl": -150.0,
+      "seedTodayPl": 0.0,
       "quoteKind": "equity"
     },
     {
@@ -672,7 +672,7 @@
       "seedPrice": 2.58,
       "seedMv": 2580.0,
       "seedPl": -13140.0,
-      "seedTodayPl": 75.0,
+      "seedTodayPl": 0.0,
       "quoteKind": "equity"
     },
     {
@@ -693,7 +693,7 @@
       "seedPrice": 0.635,
       "seedMv": 1270.0,
       "seedPl": -7900.0,
-      "seedTodayPl": 110.0,
+      "seedTodayPl": 0.0,
       "quoteKind": "equity"
     },
     {
@@ -714,7 +714,7 @@
       "seedPrice": 8.75,
       "seedMv": 19250.0,
       "seedPl": -1001.0,
-      "seedTodayPl": 110.0,
+      "seedTodayPl": 0.0,
       "quoteKind": "equity"
     },
     {
@@ -735,7 +735,7 @@
       "seedPrice": 15.08,
       "seedMv": 22620.0,
       "seedPl": -4555.37,
-      "seedTodayPl": 450.0,
+      "seedTodayPl": 0.0,
       "quoteKind": "equity"
     },
     {
@@ -756,7 +756,7 @@
       "seedPrice": 38.54,
       "seedMv": 5781.0,
       "seedPl": -8553.0,
-      "seedTodayPl": -30.0,
+      "seedTodayPl": 0.0,
       "quoteKind": "equity"
     },
     {
@@ -777,7 +777,7 @@
       "seedPrice": 5.57,
       "seedMv": 557.0,
       "seedPl": -11803.0,
-      "seedTodayPl": 11.5,
+      "seedTodayPl": 0.0,
       "quoteKind": "equity"
     },
     {
@@ -798,7 +798,7 @@
       "seedPrice": 1.045,
       "seedMv": 1045.0,
       "seedPl": -3545.0,
-      "seedTodayPl": -5.0,
+      "seedTodayPl": 0.0,
       "quoteKind": "equity"
     },
     {
@@ -819,7 +819,7 @@
       "seedPrice": 80.5,
       "seedMv": 40250.0,
       "seedPl": -369.87,
-      "seedTodayPl": -50.0,
+      "seedTodayPl": 0.0,
       "quoteKind": "equity"
     },
     {
@@ -840,7 +840,7 @@
       "seedPrice": 23.78,
       "seedMv": 23780.0,
       "seedPl": 466.0,
-      "seedTodayPl": -260.0,
+      "seedTodayPl": 0.0,
       "quoteKind": "equity"
     },
     {
@@ -861,7 +861,7 @@
       "seedPrice": 40.14,
       "seedMv": 4134.42,
       "seedPl": -6522.79,
-      "seedTodayPl": 16.48,
+      "seedTodayPl": 0.0,
       "quoteKind": "equity"
     },
     {
@@ -882,7 +882,7 @@
       "seedPrice": 401.6,
       "seedMv": 80320.0,
       "seedPl": -3080.0,
-      "seedTodayPl": 880.0,
+      "seedTodayPl": 0.0,
       "quoteKind": "equity"
     },
     {
@@ -903,7 +903,7 @@
       "seedPrice": 3.58,
       "seedMv": 3580.0,
       "seedPl": -34670.0,
-      "seedTodayPl": -120.0,
+      "seedTodayPl": 0.0,
       "quoteKind": "equity"
     },
     {
@@ -924,7 +924,7 @@
       "seedPrice": 6.82,
       "seedMv": 10230.0,
       "seedPl": -1554.0,
-      "seedTodayPl": 165.0,
+      "seedTodayPl": 0.0,
       "quoteKind": "equity"
     },
     {
@@ -942,10 +942,10 @@
       "market": "OPT",
       "type": "OPT",
       "multiplier": 100,
-      "seedPrice": 4.78,
-      "seedMv": 2390.0,
-      "seedPl": -15.0,
-      "seedTodayPl": -1647.5,
+      "seedPrice": 4.26,
+      "seedMv": 2130.0,
+      "seedPl": -275.0,
+      "seedTodayPl": -1907.5,
       "underlying": "XSP",
       "strike": 725.0,
       "right": "P",
@@ -992,7 +992,7 @@
       "seedPrice": 65010.0,
       "seedMv": 975150.0,
       "seedPl": -97007.04000000004,
-      "seedTodayPl": -25200.0,
+      "seedTodayPl": 0.0,
       "quoteKind": "equity"
     },
     {
@@ -1013,7 +1013,7 @@
       "seedPrice": 407.0,
       "seedMv": 1221000.0,
       "seedPl": -69431.52000000002,
-      "seedTodayPl": -20099.999999999967,
+      "seedTodayPl": 0.0,
       "quoteKind": "equity"
     },
     {
@@ -1031,10 +1031,10 @@
       "market": "US",
       "type": "US",
       "multiplier": 1,
-      "seedPrice": 57.92399978637695,
-      "seedMv": 5792.399978637695,
-      "seedPl": -0.6003213623043848,
-      "seedTodayPl": 47.39997863769503,
+      "seedPrice": 58.25,
+      "seedMv": 5825.0,
+      "seedPl": 31.999700000000303,
+      "seedTodayPl": 0.0,
       "quoteKind": "equity"
     },
     {
@@ -1052,10 +1052,10 @@
       "market": "US",
       "type": "US",
       "multiplier": 1,
-      "seedPrice": 11.013999938964844,
-      "seedMv": 660.8399963378906,
-      "seedPl": -44.26020366210935,
-      "seedTodayPl": 14.63999633789065,
+      "seedPrice": 11.079526901245117,
+      "seedMv": 664.771614074707,
+      "seedPl": -40.32858592529294,
+      "seedTodayPl": 0.0,
       "quoteKind": "equity"
     },
     {
@@ -1073,10 +1073,10 @@
       "market": "US",
       "type": "US",
       "multiplier": 1,
-      "seedPrice": 6.335999965667725,
-      "seedMv": 19007.999897003174,
-      "seedPl": -11800.000102996826,
-      "seedTodayPl": 407.9998970031733,
+      "seedPrice": 6.365890979766846,
+      "seedMv": 19097.672939300537,
+      "seedPl": -11710.327060699463,
+      "seedTodayPl": 0.0,
       "quoteKind": "equity"
     },
     {
@@ -1094,10 +1094,10 @@
       "market": "US",
       "type": "US",
       "multiplier": 1,
-      "seedPrice": 81.0260009765625,
-      "seedMv": 11748.770141601562,
-      "seedPl": -2085.2780583984368,
-      "seedTodayPl": 5.220141601563242,
+      "seedPrice": 81.69000244140625,
+      "seedMv": 11845.050354003906,
+      "seedPl": -1988.997845996093,
+      "seedTodayPl": 0.0,
       "quoteKind": "equity"
     }
   ]
