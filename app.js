@@ -78,15 +78,30 @@ async function sha256Hex(text) {
 function showApp() {
   const gate = $('accessGate');
   const shell = $('appShell');
-  if (gate) gate.style.display = 'none';
+  // Hide via the hidden attribute (beats a later utility display:flex).
+  // Do not switch the shell from display:none to display:contents — several
+  // mobile browsers leave those children unpainted, which is a blank page.
+  if (gate) gate.hidden = true;
   if (shell) {
-    // display:contents so sticky header / flex body layout stay intact
-    shell.style.display = 'contents';
+    shell.classList.add('is-open');
+    shell.hidden = false;
   }
 }
 
+function setGateError(err, message) {
+  if (!err) return;
+  if (!message) {
+    err.hidden = true;
+    return;
+  }
+  err.textContent = message;
+  err.hidden = false;
+}
+
 function setupGate() {
-  if (sessionStorage.getItem(SESSION_KEY) === PASS_HASH) {
+  let saved = null;
+  try { saved = sessionStorage.getItem(SESSION_KEY); } catch (_) {}
+  if (saved === PASS_HASH) {
     state.unlocked = true;
     showApp();
     boot();
@@ -106,15 +121,15 @@ function setupGate() {
       if (h === PASS_HASH) {
         sessionStorage.setItem(SESSION_KEY, PASS_HASH);
         state.unlocked = true;
-        if (err) { err.classList.add('hidden'); err.textContent = '密碼不正確，請再試。'; }
+        setGateError(err, '');
         showApp();
         boot();
       } else {
-        if (err) { err.textContent = '密碼不正確，請再試。'; err.classList.remove('hidden'); }
+        setGateError(err, '密碼不正確，請再試。');
         if (input) { input.value = ''; input.focus(); }
       }
     } catch (ex) {
-      if (err) { err.textContent = '此瀏覽器無法驗證密碼，請用最新 Chrome／Safari（需 HTTPS）。'; err.classList.remove('hidden'); }
+      setGateError(err, '此瀏覽器無法驗證密碼，請用最新 Chrome／Safari（需 HTTPS）。');
       console.error(ex);
     } finally {
       if (btn) { btn.disabled = false; btn.textContent = '解鎖儀表板'; }
@@ -2273,6 +2288,12 @@ window.switchAppView = function(view) {
   }
 };
 
-setupBrokerSyncUi();
-setupGate();
+try { setupBrokerSyncUi(); }
+catch (err) { console.error('sync ui', err); }
+try { setupGate(); }
+catch (err) {
+  console.error('gate', err);
+  const gate = document.getElementById('accessGate');
+  if (gate) gate.hidden = false;
+}
 })();
