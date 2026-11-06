@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow, noarchive">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+    <meta name="color-scheme" content="light only">
+    <meta name="theme-color" content="#F4F6F8">
     <title>Ricky's Investment | 機構級投資組合監察終端</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,7 +39,7 @@
         }
     </script>
     <style>
-        html { color-scheme: light; }
+        html { color-scheme: only light; }
         body {
             background-color: #F4F6F8;
             color: #0F172A;
@@ -53,7 +55,6 @@
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .pro-panel {
             background: #FFFFFF;
-            backdrop-filter: blur(12px);
             border: 1px solid #E2E8F0;
             box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.04);
         }
@@ -116,7 +117,6 @@
         #detailOverlay {
             position: fixed; inset: 0; z-index: 50;
             background: rgba(15, 23, 42, 0.35);
-            backdrop-filter: blur(4px);
             display: none;
             align-items: stretch;
             justify-content: flex-end;
@@ -375,36 +375,124 @@
             justify-content: center;
             padding: 1rem;
             background: rgba(15, 23, 42, 0.35);
-            backdrop-filter: blur(4px);
+        }
+        /* Size the gate to the small viewport. `inset: 0` uses the large
+           layout viewport, which on a phone hides a centered card above the fold. */
+        #accessGate {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            align-items: safe center;
+            justify-content: safe center;
+            box-sizing: border-box;
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            height: 100svh;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+            background: #F4F6F8;
+            color: #0F172A;
+            padding:
+                max(1.25rem, env(safe-area-inset-top, 0px))
+                max(1rem, env(safe-area-inset-right, 0px))
+                max(1.25rem, env(safe-area-inset-bottom, 0px))
+                max(1rem, env(safe-area-inset-left, 0px));
+        }
+        #accessGate[hidden] { display: none !important; }
+        .gate-card {
+            width: 100%;
+            max-width: 24rem;
+            background: #FFFFFF;
+            color: #0F172A;
+            border: 1px solid #E2E8F0;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 32px rgba(15, 23, 42, 0.08);
+        }
+        .gate-brand { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+        .gate-mark {
+            width: 2.5rem; height: 2.5rem; flex: none;
+            border-radius: 0.75rem;
+            background: linear-gradient(to bottom right, #2563EB, #4338CA);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .gate-mark svg { width: 1.25rem; height: 1.25rem; color: #FFFFFF; display: block; }
+        #accessGate h1 { margin: 0; font-size: 1rem; line-height: 1.4; font-weight: 700; color: #0F172A; }
+        #accessGate .gate-sub { margin: 0; font-size: 11px; line-height: 1.4; color: #5B677A; }
+        #gateForm { display: flex; flex-direction: column; gap: 0.75rem; }
+        #gateForm label { display: block; font-size: 11px; color: #5B677A; }
+        #gatePassword {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+            background: #FFFFFF;
+            color: #0F172A;
+            border: 1px solid #E2E8F0;
+            border-radius: 0.5rem;
+            padding: 0.7rem 0.75rem;
+            font-size: 16px;
+            line-height: 1.4;
+            font-family: 'JetBrains Mono', ui-monospace, monospace;
+        }
+        #gatePassword::placeholder { color: #64748B; opacity: 1; }
+        #gatePassword:focus { outline: none; border-color: #2563EB; }
+        #gateError { margin: 0; font-size: 12px; line-height: 1.4; color: #BE123C; }
+        #gateError[hidden] { display: none !important; }
+        #gateForm button[type="submit"] {
+            width: 100%;
+            border: 0;
+            border-radius: 0.5rem;
+            padding: 0.7rem 0.75rem;
+            background: #2563EB;
+            color: #FFFFFF;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        #gateForm button[type="submit"]:hover { background: #1D4ED8; }
+        #gateForm button[type="submit"]:disabled { opacity: 0.7; cursor: progress; }
+        .gate-note { margin: 1rem 0 0; font-size: 10px; line-height: 1.6; color: #5B677A; }
+        #appShell[hidden] { display: none !important; }
+        #appShell.is-open {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            min-width: 0;
+            min-height: 100vh;
+            min-height: 100dvh;
         }
         .sync-modal-card { width: 100%; max-width: 26rem; }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col selection:bg-blue-500 selection:text-white">
     <!-- Access gate -->
-    <div id="accessGate" class="fixed inset-0 z-[100] flex items-center justify-center bg-[#F4F6F8] px-4">
-        <div class="w-full max-w-sm pro-panel rounded-2xl p-6 border border-borderDark shadow-2xl">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center border border-blue-400/30">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+    <div id="accessGate">
+        <div class="gate-card">
+            <div class="gate-brand">
+                <div class="gate-mark" aria-hidden="true">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                 </div>
                 <div>
-                    <h1 class="text-base font-bold text-ink">Ricky's Investment</h1>
-                    <p class="text-[11px] text-muted">私人投資組合 · 請輸入通行密碼</p>
+                    <h1>Ricky's Investment</h1>
+                    <p class="gate-sub">私人投資組合 · 請輸入通行密碼</p>
                 </div>
             </div>
-            <form id="gateForm" class="space-y-3" autocomplete="current-password">
-                <label class="block text-[11px] text-muted" for="gatePassword">通行密碼</label>
-                <input id="gatePassword" type="password" required autofocus
-                    class="w-full bg-white border border-borderDark rounded-lg px-3 py-2.5 text-sm text-slate-800 placeholder-slate-500 focus:outline-none focus:border-blue-500 font-num"
-                    placeholder="輸入密碼解鎖…">
-                <p id="gateError" class="text-xs text-rose-700 hidden">密碼不正確，請再試。</p>
-                <button type="submit" class="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition">解鎖儀表板</button>
+            <form id="gateForm" autocomplete="current-password">
+                <label for="gatePassword">通行密碼</label>
+                <input id="gatePassword" type="password" required autocomplete="current-password" enterkeyhint="go" placeholder="輸入密碼解鎖…">
+                <p id="gateError" hidden>密碼不正確，請再試。</p>
+                <button type="submit">解鎖儀表板</button>
             </form>
-            <p class="text-[10px] text-muted mt-4 leading-relaxed">本站僅供 Ricky 本人使用。客戶端密碼只係遮擋，唔係伺服器級保安；請勿公開分享連結。</p>
+            <p class="gate-note">本站僅供 Ricky 本人使用。客戶端密碼只係遮擋，唔係伺服器級保安；請勿公開分享連結。</p>
         </div>
     </div>
-    <div id="appShell" style="display:none">
+    <div id="appShell" hidden>
 
     <div id="viewPortfolio">
     <!-- Status bar -->
@@ -454,7 +542,7 @@
     </div>
 
     <!-- Header KPIs -->
-    <header class="bg-panel/90 backdrop-blur-md border-b border-borderDark px-4 md:px-6 py-3 sticky top-0 z-30">
+    <header class="bg-white border-b border-borderDark px-4 md:px-6 py-3 sticky top-0 z-30">
         <div class="max-w-[1920px] mx-auto flex flex-col gap-2.5">
             <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-3">
                 <div class="flex flex-wrap items-center gap-3">
@@ -989,6 +1077,6 @@
       });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-    <script src="app.js?v=20261105snap"></script>
+    <script src="app.js?v=20261106gate"></script>
 </body>
 </html>
