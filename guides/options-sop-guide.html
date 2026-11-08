@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light only">
+<meta name="theme-color" content="#F4F6F8">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>期權 SOP 指南 | Ricky's Investment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="guides-common.css">
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">Ricky's Investment <span>· 期權 SOP 指南</span></div>
+    <div class="actions">
+      <a class="btn" href="../">← 返回主站</a>
+      <a class="btn btn-secondary" href="Options-SOP-Guide.xlsx" download="Options-SOP-Guide.xlsx">下載 Excel</a>
+    </div>
+  </div>
+</div>
+<div class="wrap">
+
+<div class="hero">
+  <h1>期權 SOP 全面整理</h1>
+  <p>共整理原文 4 張工作表、6 項可獨立查看的做法／工具。此檔為原文摘要，不是新的交易建議。</p>
+  <div class="disclaimer">內容整理自用戶附上的 SOP Excel；僅供參考，不構成落單建議。</div>
+</div>
+<div class="tabs" role="tablist">
+  <button type="button" class="tab active" data-tab="overview">總覽</button>
+  <button type="button" class="tab" data-tab="lazy">懶人版指數收租</button>
+  <button type="button" class="tab" data-tab="adv">進階版指數波段</button>
+  <button type="button" class="tab" data-tab="bottom">抄底及吸貨</button>
+  <button type="button" class="tab" data-tab="calc">short put 計算機</button>
+</div>
+<div id="overview" class="panel active"><div class="mobile-cards"><div class="card"><div class="meta"><span class="badge">#1</span></div><h3>懶人版收租</h3><div class="kv"><div class="kv-item"><span class="k">適合對象</span><span class="v">無時間睇市的學員</span></div><div class="kv-item"><span class="k">市場環境</span><span class="v">只適用於上升／橫行趨勢【統計70%時間為上升】</span></div><div class="kv-item"><span class="k">時間軸</span><span class="v">日線圖</span></div><div class="kv-item"><span class="k">標的</span><span class="v">SPX／XSP</span></div><div class="kv-item"><span class="k">策略</span><span class="v">牛市看跌價差（Bull Put Spread）；short put + long put</span></div><div class="kv-item"><span class="k">Delta／DTE／差價</span><span class="v">short put delta 約 0.16；約進場點向下計算 6%；差價 $5；SPX 差價 $50（只適合大資金）；到期日介乎至少約 40–45 日</span></div><div class="kv-item"><span class="k">進場觸發</span><span class="v">牛熊分界線：日線圖價格處於 SMA250 之上，且 SMA250 處於上升狀態；價格走勢呈現大漲小回；必需確定日線圖處於上升趨勢（綠色背景）；逢星期一開倉；如與進階版混合打，則兩星期開一次</span></div><div class="kv-item"><span class="k">不開倉規則</span><span class="v">出現紅色背景，不開倉；250 天線之下，不開倉</span></div><div class="kv-item"><span class="k">止賺</span><span class="v">期權策略獲利佔 50% 以上，可以獲利</span></div><div class="kv-item"><span class="k">止損／離場</span><span class="v">到期日剩餘 21 日離場；不符合預期－價格持續下跌（原文未另列具體止損價位）</span></div><div class="kv-item"><span class="k">備註</span><span class="v">符合預期時「價格持續上升／上升趨勢之中」</span></div></div></div><div class="card"><div class="meta"><span class="badge">#2</span></div><h3>進階版・上升／橫行</h3><div class="kv"><div class="kv-item"><span class="k">適合對象</span><span class="v">有時間睇市的學員</span></div><div class="kv-item"><span class="k">市場環境</span><span class="v">只適用於上升／橫行趨勢【統計70%時間為上升】</span></div><div class="kv-item"><span class="k">時間軸</span><span class="v">日線圖（上升趨勢）</span></div><div class="kv-item"><span class="k">標的</span><span class="v">SPX／XSP（策略參數寫 SPY／XSP）</span></div><div class="kv-item"><span class="k">策略</span><span class="v">牛市看跌價差（Bull Put Spread）</span></div><div class="kv-item"><span class="k">Delta／DTE／差價</span><span class="v">short put delta 約 0.2；約進場點向下計算 4%；SPY／XSP 差價 $5；SPX 差價 $50（只適合大資金）；到期日介乎至少約 45 日</span></div><div class="kv-item"><span class="k">進場觸發</span><span class="v">確定日線圖處於上升趨勢（綠色背景），上升趨勢中回調買入；第一個進場點：深度回調後重新站上 SMA30（由紅變綠）；第二個進場點：從高位回調至 SMA10–20 之間，出現轉勢陽燭（須處於綠色區間）＝黃色信號及綠色信號；橫行區：橫行底部可試偷步開倉（即使紅色背景都可以偷步）；牛熊分界線：日線圖價格處於 SMA250 之上，且 SMA250 處於上升狀態；價格走勢呈現大漲小回</span></div><div class="kv-item"><span class="k">不開倉規則</span><span class="v">價格在 250 天線之下，不開倉；出現紅色背景，不會開倉（橫行底部偷步為原文例外）</span></div><div class="kv-item"><span class="k">止賺</span><span class="v">期權策略獲利佔 50% 以上，可以獲利</span></div><div class="kv-item"><span class="k">止損／離場</span><span class="v">不符合預期－價格持續下跌；止損思考層面：動態調節；橫行區若短時間多次出現白色和紅色，大機會是橫行區，可以先觀察；如價格跌破橫行區的重要支持位置，可以考慮止損；技術分析止損：出現紅色背景／價格已經跌破重要支持位置，可以考慮止損；最後防線止損：穿行權價必須止損</span></div><div class="kv-item"><span class="k">備註</span><span class="v">橫行區間，SMA30 容易造成假跌穿信號；越接近重要支持位置反彈，期權金收取越多；到期剩餘 21 日：原文未列明</span></div></div></div><div class="card"><div class="meta"><span class="badge">#3</span></div><h3>進階版・下跌／橫行</h3><div class="kv"><div class="kv-item"><span class="k">適合對象</span><span class="v">有時間睇市的學員（同一張 SOP 的下跌半邊）</span></div><div class="kv-item"><span class="k">市場環境</span><span class="v">只適用於下跌／橫行趨勢【統計30%時間為下跌】</span></div><div class="kv-item"><span class="k">時間軸</span><span class="v">日線圖（下跌趨勢）</span></div><div class="kv-item"><span class="k">標的</span><span class="v">SPX／XSP（策略參數寫 SPY／XSP）</span></div><div class="kv-item"><span class="k">策略</span><span class="v">熊市看漲價差（Bear Call Spread）</span></div><div class="kv-item"><span class="k">Delta／DTE／差價</span><span class="v">short call delta 約 0.2；SPY／XSP 差價 $5；SPX 差價 $50（只適合大資金）；到期日介乎至少約 45 日；距現價百分比：原文未列明</span></div><div class="kv-item"><span class="k">進場觸發</span><span class="v">牛熊分界線：日線圖價格處於 SMA250 之下（適用於漫長的熊市）；注意：短期熊市急跌急升，可能 2–3 個月就回調完；先觀察日線圖是否失守 SMA30（由綠變紅）；確定日線圖處於下跌趨勢（紅色背景），下跌趨勢中回調做跌；第一個進場點：價格處於阻力區間，價格出現下跌，價格失守 SMA30（由綠變紅）；第二個進場點：價格依然處於跌勢，價格由低位反彈至 SMA20 之間，出現轉勢陰陽燭（須處於紅色區間）＝紅色信號</span></div><div class="kv-item"><span class="k">不開倉規則</span><span class="v">價格在 250 天線之上，不開倉；出現綠色背景，不會開倉</span></div><div class="kv-item"><span class="k">止賺</span><span class="v">期權策略獲利佔 50% 以上，可以獲利；技術層面止賺：注意價格到達重要支持位置可能出現反彈，可以選擇提早平倉</span></div><div class="kv-item"><span class="k">止損／離場</span><span class="v">不符合預期－價格持續上升；技術分析止損：觀察價格是否重新站上 SMA30（由紅變綠）；果斷止損：價格升穿行使價，必需離場，否則要回吐之前幾個月的利潤；嚴守止損</span></div><div class="kv-item"><span class="k">備註</span><span class="v">原文此段仍寫「越接近重要支持位置反彈，期權金收取越多」，照錄</span></div></div></div><div class="card"><div class="meta"><span class="badge">#4</span></div><h3>抄底・對角價差</h3><div class="kv"><div class="kv-item"><span class="k">適合對象</span><span class="v">原文未列明（標題適用於股市見底＞進入上升趨勢）</span></div><div class="kv-item"><span class="k">市場環境</span><span class="v">適用股市見底＞進入上升趨勢</span></div><div class="kv-item"><span class="k">時間軸</span><span class="v">先判斷週線圖趨勢（SPX），再判斷日線圖趨勢</span></div><div class="kv-item"><span class="k">標的</span><span class="v">SPY、QQQ、APPL、GOOGL、AMZN、MSFT、NVDA</span></div><div class="kv-item"><span class="k">策略</span><span class="v">對角價差（Diagonal Spread Strategy）：Leap Call + 適當時候 SC</span></div><div class="kv-item"><span class="k">Delta／DTE／差價</span><span class="v">Leap Call：ITM，Delta 0.7–0.8，買賣差價越窄越好；到期日 1 年以上，可以更長（LEAPS CALL）；回調時加對應張數 SHORT CALL，delta 約 0.2–0.3，到期日約 2 週／1 個月</span></div><div class="kv-item"><span class="k">進場觸發</span><span class="v">週線：打破趨勢線／關鍵位置；價格升穿 SMA30；SMA10 升穿 SMA 30；RSI 處於 50 以上。日線：價格升穿 SMA10&gt;20&gt;30&gt;250；SMA 呈現多頭擴散（趨勢確認）。其後選股並做 Leap Call；出現回調時加 SHORT CALL</span></div><div class="kv-item"><span class="k">不開倉規則</span><span class="v">原文未列明</span></div><div class="kv-item"><span class="k">止賺</span><span class="v">原文未列明</span></div><div class="kv-item"><span class="k">止損／離場</span><span class="v">Long Call：① Delta 掉到 0.4 以下，考慮 roll 到更深 ITM（Delta 0.7~0.8）；② 股價長期跌破 SMA30 或技術支撐，保守派可先平倉避險或觀望；③ 時間價值剩下太少，換成新的更長天期、更高 Delta 的倉位。Short call：Roll Up（上移）；Roll Forward（延長到期日）；Roll Up and Forward（上移+延長）</span></div><div class="kv-item"><span class="k">備註</span><span class="v">原文標的寫「APPL」（似為 AAPL），此處按原文保留，不改規則</span></div></div></div><div class="card"><div class="meta"><span class="badge">#5</span></div><h3>吸貨・滾輪策略</h3><div class="kv"><div class="kv-item"><span class="k">適合對象</span><span class="v">原文未列明</span></div><div class="kv-item"><span class="k">市場環境</span><span class="v">原文未另列（與抄底攻略同一張工作表；接貨標的預測未來穩定上升）</span></div><div class="kv-item"><span class="k">時間軸</span><span class="v">原文未列明</span></div><div class="kv-item"><span class="k">標的</span><span class="v">優質股／指數成分股／ETF（預測未來穩定上升）；選股名單見同表第三步</span></div><div class="kv-item"><span class="k">策略</span><span class="v">Wheel：Short Put（預備資金接貨）→ 未到行權價則收期權金；到行權價則接貨 → Covered Call</span></div><div class="kv-item"><span class="k">Delta／DTE／差價</span><span class="v">Short Put：到期日約 30 日或更長（可彈性），Delta 約 0.1–0.2。Covered Call：到期日約 14–30 日，Delta 約 0.1–0.2；100 股持股對應 1 張期權</span></div><div class="kv-item"><span class="k">進場觸發</span><span class="v">第一步 Short Put（預備資金接貨）；接貨後可以立即做 short call，或者判斷股價有機會高位出現回調再做</span></div><div class="kv-item"><span class="k">不開倉規則</span><span class="v">Short Put 時避開財報發布日；不要在高位 short put，最好等價格回調到重要支持位置才做；需要準備足夠資金買入 100 股（股票跌破行權價後會被分配）</span></div><div class="kv-item"><span class="k">止賺</span><span class="v">原文未列明百分比；第二步：如果未到行權價，可以收取期權金（不用行使）</span></div><div class="kv-item"><span class="k">止損／離場</span><span class="v">原文未列明</span></div><div class="kv-item"><span class="k">備註</span><span class="v">—</span></div></div></div><div class="card"><div class="meta"><span class="badge">#6</span></div><h3>short put 計算機</h3><div class="kv"><div class="kv-item"><span class="k">適合對象</span><span class="v">原文未列明</span></div><div class="kv-item"><span class="k">市場環境</span><span class="v">工具頁，非開倉 SOP</span></div><div class="kv-item"><span class="k">時間軸</span><span class="v">原文未列明</span></div><div class="kv-item"><span class="k">標的</span><span class="v">原文未列明（規則提到優質股／正股 100 股）</span></div><div class="kv-item"><span class="k">策略</span><span class="v">Short put 年利率計算</span></div><div class="kv-item"><span class="k">Delta／DTE／差價</span><span class="v">原文未列明交易用 Delta／DTE／差價（此表為計算機）</span></div><div class="kv-item"><span class="k">進場觸發</span><span class="v">進場時機：先觀察大市，尤其 SPX 當日下跌，可以尋找獵物；標的切入點，處於重要支持位置</span></div><div class="kv-item"><span class="k">不開倉規則</span><span class="v">原文未列明獨立「不開倉」清單；規則要求尋找標的前提是優質股、不介意持有正股、長線會上升、有足夠資金接正股 100 股</span></div><div class="kv-item"><span class="k">止賺</span><span class="v">原文未列明</span></div><div class="kv-item"><span class="k">止損／離場</span><span class="v">原文未列明</span></div><div class="kv-item"><span class="k">備註</span><span class="v">心態：做 short put 心態等於打折去買入正股。樣本輸入：期權金 873、行使價 135、到期天數 98、張數 1、每張股數 100</span></div></div></div></div></div><div id="lazy" class="panel"><h2 class="section-title">懶人版收租：適合無時間睇市的學員</h2><p style="color:var(--muted);margin:0 0 12px">SPX/XSP指數收租攻略只適用於上升/橫行趨勢 【統計70%時間為上升】　　時間軸：日線圖</p><p style="color:var(--muted);font-size:14px;margin:0 0 14px">以下內容按原文「懶人版指數收租SOP」整理。左欄為步驟，右欄為離場計劃。</p><div class="sop-grid"><div class="sop-col"><h3>步驟</h3><h3 style="margin-top:14px">步驟1：判斷大市趨勢條件（日線圖）－上升趨勢</h3><p style="margin:0 0 8px">牛熊分界線：日線圖價格處於SMA250之上，SMA250處於上升狀態</p><p style="margin:0 0 8px">價格走勢呈現： 大漲 小回</p><h3 style="margin-top:14px">步驟2：入市時機</h3><p style="margin:0 0 8px">必需確定日線圖處於上升趨勢（綠色背景）</p><p style="margin:0 0 8px">逢星期一開倉 / 如果和進階版混合打, 就兩星期開一次</p><div class="warn">⚠️出現紅色背景，不開倉  ⚠️250天線之下,不開倉</div><h3 style="margin-top:14px">步驟3：選擇期權策略</h3><p style="margin:0 0 8px">牛市看跌價差策略BULL PUT SPREAD</p><p style="margin:0 0 8px">期權到期日介乎至少40-45日左右（莊家善用時間損耗）</p><p style="margin:0 0 8px">選擇行使價格(delta 0.16 左右）大約進場點向下計算6%</p><p style="margin:0 0 8px">short put delta: 0.16 左右 + long put （ 距離行使價 $5 差價）</p><div class="warn">⚠️注意：SPX （ 距離行使價 $50 差價 ）只適合大資金做法</div></div><div class="sop-col"><h3>離場計劃</h3><h3 style="margin-top:14px">離場計劃</h3><p style="margin:0 0 8px">符合預期－價格持續上升</p><p style="margin:0 0 8px">上升趨勢之中</p><p style="margin:0 0 8px">期權策略獲利佔50%以上，可以獲利</p><p style="margin:0 0 8px">到期日剩餘21日離場</p><p style="margin:0 0 8px">不符合預期－價格持續下跌</p><p style="margin:0 0 8px">到期日剩餘21日離場</p></div></div></div><div id="adv" class="panel"><h2 class="section-title">進階版：指數波段攻略【適合有時間睇市的學員】</h2><p style="color:var(--muted);margin:0 0 14px">此表分為上升／橫行與下跌／橫行兩部分，內容按原文「進階版指數波段SOP」整理。左欄為步驟，右欄為離場計劃。</p><div class="card" style="margin-bottom:16px"><h3>上升／橫行　　SPX/XSP指數波段攻略只適用於上升/橫行趨勢 【統計70%時間為上升】　　時間軸：日線圖（上升趨勢）</h3><div class="sop-grid"><div class="sop-col"><h3>步驟</h3><h3 style="margin-top:12px;font-size:0.95rem">步驟1：判斷大市趨勢條件（日線圖）－上升趨勢</h3><p style="margin:0 0 8px">牛熊分界線：日線圖價格處於SMA250之上，SMA250處於上升狀態</p><div class="warn">→ 價格在250天線之下,不開倉</div><p style="margin:0 0 8px">價格走勢呈現： 大漲 小回</p><h3 style="margin-top:12px;font-size:0.95rem">步驟2：入市時機</h3><p style="margin:0 0 8px">確定日線圖處於上升趨勢（綠色背景），上升趨勢中，回調買入</p><p style="margin:0 0 8px">→ 出現紅色背景，不會開倉</p><p style="margin:0 0 8px">第一個進場點：價格出現深度回調後，重新站上SMA30 ( 由紅色 變成 綠色區間 ）</p><p style="margin:0 0 8px">第二個進場點：價格從高位回調至 SMA10-20之間,出現轉勢陽燭( 需要處於綠色區間 ）=黃色信號 及 綠色信號</p><p style="margin:0 0 8px">橫行區: 如果是橫行底部可以試下偷步開倉( 即使是紅色背景都可以偷步)</p><h3 style="margin-top:12px;font-size:0.95rem">步驟3：選擇期權策略</h3><p style="margin:0 0 8px">牛市看跌價差策略BULL PUT SPREAD</p><p style="margin:0 0 8px">期權到期日介乎至少45日左右（莊家善用時間損耗）</p><p style="margin:0 0 8px">選擇行使價格(delta 0.2 左右）大約進場點向下計算4%</p><p style="margin:0 0 8px">SPY / XSP short put delta: 0.2 左右 + long put （ 距離行使價 $5 差價）</p><div class="warn">⚠️注意：SPX （ 距離行使價 $50 差價 ）只適合大資金做法</div><div class="warn">*越接近重要支持位置反彈，期權金收取越多</div></div><div class="sop-col"><h3>離場計劃</h3><h3 style="margin-top:12px;font-size:0.95rem">離場計劃</h3><h3 style="margin-top:12px;font-size:0.95rem">符合預期－價格持續上升</h3><p style="margin:0 0 8px">上升趨勢之中</p><p style="margin:0 0 8px">期權策略獲利佔50%以上，可以獲利</p><h3 style="margin-top:12px;font-size:0.95rem">不符合預期－價格持續下跌</h3><h3 style="margin-top:12px;font-size:0.95rem">止損思考層面：動態調節</h3><h3 style="margin-top:12px;font-size:0.95rem">橫行區特殊處理：
+短時間多次出現白色和紅色,大機會是橫行區,可以先觀察；
+但是,如價格跌破橫行區的重要支持位置,可以考慮止損；</h3><div class="warn">⚠️注意：【橫行區間，SMA30容易造成假跌穿信號】</div><h3 style="margin-top:12px;font-size:0.95rem">技術分析止損：
+出現紅色背景 / 價格已經跌破重要支持位置,可以考慮止損；</h3><h3 style="margin-top:12px;font-size:0.95rem">最後防線止損：
+穿行權價必須止損</h3></div></div></div><div class="card" style="margin-bottom:16px"><h3>下跌／橫行　　SPX/XSP指數收租攻略只適用於下跌/橫行趨勢【統計30%時間為下跌】</h3><div class="sop-grid"><div class="sop-col"><h3>步驟</h3><h3 style="margin-top:12px;font-size:0.95rem">步驟1：判斷大市趨勢條件（日線圖）－下跌趨勢</h3><p style="margin:0 0 8px">牛熊分界線：日線圖價格處於SMA250之下 (適用於漫長的熊市)
+注意:短期熊市急跌急升,可能2-3個月就回調完；</p><div class="warn">→ 價格在250天線之上,不開倉</div><p style="margin:0 0 8px">先觀察日線圖是否失守SMA30， ( 由綠色 變成 紅色區間 ）</p><h3 style="margin-top:12px;font-size:0.95rem">步驟2：入市時機</h3><p style="margin:0 0 8px">確定日線圖處於下跌趨勢（紅色背景），下跌趨勢中，回調做跌</p><p style="margin:0 0 8px">→ 出現綠色背景，不會開倉</p><p style="margin:0 0 8px">第一個進場點：價格處於阻力區間，價格出現下跌，價格失守SMA30 ( 由綠色 變成 紅色區間 ）</p><p style="margin:0 0 8px">第二個進場點：價格依然處於跌勢，價格由低位反彈至SMA20之間,出現轉勢陰陽燭( 需要處於紅色區間 ）=紅色信號</p><h3 style="margin-top:12px;font-size:0.95rem">選擇期權策略</h3><p style="margin:0 0 8px">熊市看漲價差（Bear Call Spread）</p><p style="margin:0 0 8px">期權到期日介乎至少45日左右（莊家善用時間損耗）</p><p style="margin:0 0 8px">選擇行使價格(delta 0.2左右）</p><p style="margin:0 0 8px">SPY / XSP short call delta: 0.2左右 + long call （ 距離行使價 $5 差價）</p><div class="warn">⚠️注意：SPX （ 距離行使價 $50 差價 ）只適合大資金做法</div><div class="warn">*越接近重要支持位置反彈，期權金收取越多</div></div><div class="sop-col"><h3>離場計劃</h3><h3 style="margin-top:12px;font-size:0.95rem">離場計劃</h3><h3 style="margin-top:12px;font-size:0.95rem">符合預期－價格持續下跌</h3><p style="margin:0 0 8px">下跌趨勢之中</p><p style="margin:0 0 8px">期權策略獲利佔50%以上，可以獲利</p><h3 style="margin-top:12px;font-size:0.95rem">技術層面止賺：注意價格到達重要支持位置可能出現反彈，可以選擇提早平倉</h3><h3 style="margin-top:12px;font-size:0.95rem">不符合預期－價格持續上升</h3><h3 style="margin-top:12px;font-size:0.95rem">技術分析止損：
+觀察價格是否重新站上SMA30 ( 由紅色 變成 綠色區間 ）</h3><h3 style="margin-top:12px;font-size:0.95rem">果斷止損：
+價格升穿行使價，必需離場，否則要回吐之前幾個月的利潤；嚴守止損</h3></div></div></div></div><div id="bottom" class="panel"><h2 class="section-title">抄底倍升回報攻略  適用股市見底&gt;進入上升趨勢</h2><p style="color:var(--muted);margin:0 0 14px">以下內容按原文「抄底&amp;吸貨SOP」整理。左欄為步驟，右欄為風險管理與 Roll 倉規則。</p><div class="sop-grid"><div class="sop-col"><h3>步驟</h3><h3 style="margin-top:12px;font-size:0.95rem">第一步：判斷週線圖趨勢（SPX)</h3><p style="margin:0 0 8px">週線圖打破趨勢線/打破關鍵位置</p><p style="margin:0 0 8px">價格升穿SMA30</p><p style="margin:0 0 8px">SMA10 升穿 SMA 30</p><p style="margin:0 0 8px">RSI處於50以上</p><h3 style="margin-top:12px;font-size:0.95rem">第二步：判斷日線圖趨勢</h3><p style="margin:0 0 8px">日線圖價格升穿SMA10&gt;20&gt;30&gt;250</p><p style="margin:0 0 8px">SMA呈現多頭擴散（趨勢確認）</p><h3 style="margin-top:12px;font-size:0.95rem">第三步：選股（優質指數成份股/ ETF）</h3><p style="margin:0 0 8px">SPY \ QQQ \ APPL \ GOOGL \ AMZN \ MSFT \ NVDA</p><div class="warn">原文寫 APPL（似為 AAPL），此處按原文保留，不改規則。</div></div><div class="sop-col"><h3>風險管理／Roll 規則</h3><h3 style="margin-top:12px;font-size:0.95rem">風險管理</h3><h3 style="margin-top:12px;font-size:0.95rem">Leaps call（ 如何Roll 倉） + Short call</h3><p style="margin:0 0 8px">1.如果Long Call Delta 掉到 0.4 以下，代表你持倉的「股票替代品」已經不夠力，
+考慮 roll 到更深 ITM（Delta 0.7~0.8）</p><p style="margin:0 0 8px">2.股價長期跌破 SMA30 或技術支撐，保守派可先平倉避險或觀望</p><p style="margin:0 0 8px">3.Long Call 時間價值剩下太少，換成新的更長天期、更高 Delta 的倉位</p><h3 style="margin-top:12px;font-size:0.95rem">Leaps call + Short call （ 如何Roll 倉）</h3><h3 style="margin-top:12px;font-size:0.95rem">Roll Up（上移） – 把 （賣出的期權）換成更高行使價的期權。</h3><h3 style="margin-top:12px;font-size:0.95rem">Roll Forward（延長到期日） – 把 （賣出的期權）展期到較遠期的合約，
+通常是因為短期期權快到期，但你想繼續持有。</h3><h3 style="margin-top:12px;font-size:0.95rem">Roll Up and Forward（上移+延長） 把 行使價與到期日同時調整。</h3></div></div><div class="card" style="margin-top:16px"><h3>策略一：Diagonal Spread Strategy 對角價差策略</h3><p style="margin:0 0 8px">1.期權策略Leap Call + 適當時候SC</p><p style="margin:0 0 8px">2.行權價：ITM ，Delta 0.7-0.8，買賣差價越窄越好</p><p style="margin:0 0 8px">3.到期日：1年以上，可以更長（LEAPS CALL)</p><p style="margin:0 0 8px">4.當出現回調時，可以加對應張數的SHORT CALL , delta: 0.2-0.3左右， 到期日：2週/1個月左右</p></div><div class="card" style="margin-top:12px"><h3>正股吸貨攻略：Wheel strategy 滾輪策略</h3><h3 style="margin-top:14px;font-size:0.95rem">第一步：Short Put (預備資金接貨）</h3><p style="margin:0 0 8px">期權到期日：30日左右或者更長（可以彈性計劃到期日）</p><p style="margin:0 0 8px">Delta= 0.1-0.2 左右</p><p style="margin:0 0 8px">接貨標的：優質股/指數成分股/ETF ( 預測未來穩定上升）</p><div class="warn">*Short Put 時避開財報發布日</div><div class="warn">*不要在高位short put， 最好等價格回調到重要支持位置才做</div><div class="warn">*需要準備足夠資金買入 100 股（股票跌破行權價後會被分配）</div><h3 style="margin-top:14px;font-size:0.95rem">第二步：如果未到行權價，可以收取期權金（ 不用行使）</h3><p style="margin:0 0 8px">如果到行權價，需要接貨；（進入第三步）</p><h3 style="margin-top:14px;font-size:0.95rem">第三步：Covered Call (接貨後使用）</h3><p style="margin:0 0 8px">當接貨後（以持有100股正股基礎），可以立即做short call 或者 判斷股價有機會高位出現回調</p><p style="margin:0 0 8px">可以做對應張數 Short call（100股持股，對應1張期權）</p><p style="margin:0 0 8px">Short call 到期日14-30日左右</p><p style="margin:0 0 8px">Delta= 0.1-0.2左右</p></div></div>
+<div id="calc" class="panel">
+  <h2 class="section-title">short put 計算機</h2>
+  <p style="color:var(--muted);margin:0 0 14px">藍色數字為輸入，綠色數字為公式結果。公式：準備接貨本金 = 行使價 × 張數 × 每張股數；單筆回報率 = 期權金 ÷ 準備接貨本金；年化回報率 =（單筆回報率 ÷ 到期天數）× 365。</p>
+  <div class="calc-box">
+    <h3 style="margin:0 0 12px">Short put 年利率計算</h3>
+    <div class="calc-grid">
+      <div class="field"><label for="prem">期權金</label><input id="prem" type="number" inputmode="decimal" value="873"></div>
+      <div class="field"><label for="strike">行使價</label><input id="strike" type="number" inputmode="decimal" value="135"></div>
+      <div class="field"><label for="dte">到期天數</label><input id="dte" type="number" inputmode="numeric" value="98"></div>
+      <div class="field"><label for="qty">張數</label><input id="qty" type="number" inputmode="numeric" value="1"></div>
+      <div class="field"><label for="mult">每張股數</label><input id="mult" type="number" inputmode="numeric" value="100"></div>
+    </div>
+    <div class="result-row">
+      <div class="result"><div class="k">準備接貨本金</div><div class="v" id="capital">—</div></div>
+      <div class="result"><div class="k">單筆回報率</div><div class="v" id="retOnce">—</div></div>
+      <div class="result"><div class="k">年化回報率</div><div class="v" id="retAnn">—</div></div>
+    </div>
+  </div>
+  <div class="card notes" style="margin-top:16px">
+    <h3>心態與進場規則</h3>
+    <ol>
+      <li>尋找標的,前提是優質股,不介意持有正股,長線會上升,有足夠資金接正股100股</li>
+      <li>進場時機: 先觀察大市,尤其SPX當日下跌,可以尋找獵物; 標的切入點,處於重要支持位置</li>
+      <li>做short put 心態等於打折去買入正股</li>
+    </ol>
+  </div>
+</div>
+<div class="foot">內容整理自用戶附上的 SOP Excel（懶人版指數收租／進階版指數波段／抄底&amp;吸貨／short put 計算機）；僅供參考，不構成落單建議。</div></div>
+<script>
+(function(){
+  const tabs = document.querySelectorAll('.tab');
+  const panels = document.querySelectorAll('.panel');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const id = tab.dataset.tab;
+      tabs.forEach(t => t.classList.toggle('active', t === tab));
+      panels.forEach(p => p.classList.toggle('active', p.id === id));
+      history.replaceState(null, '', '#' + id);
+    });
+  });
+  const hash = (location.hash || '').replace(/^#/, '');
+  if (hash) {
+    const t = document.querySelector('.tab[data-tab="'+hash+'"]');
+    if (t) t.click();
+  }
+  function num(id){ const v = parseFloat(document.getElementById(id).value); return Number.isFinite(v) ? v : NaN; }
+  function fmtPct(x){ return (x*100).toFixed(2) + '%'; }
+  function fmtMoney(x){ return Math.round(x).toLocaleString('en-US'); }
+  function recalc(){
+    const prem = num('prem'), strike = num('strike'), dte = num('dte'), qty = num('qty'), mult = num('mult');
+    const capitalEl = document.getElementById('capital');
+    const onceEl = document.getElementById('retOnce');
+    const annEl = document.getElementById('retAnn');
+    if (![prem,strike,dte,qty,mult].every(Number.isFinite) || dte === 0) {
+      capitalEl.textContent = onceEl.textContent = annEl.textContent = '—';
+      return;
+    }
+    const capital = strike * qty * mult;
+    const once = prem / capital;
+    const ann = (once / dte) * 365;
+    capitalEl.textContent = fmtMoney(capital);
+    onceEl.textContent = fmtPct(once);
+    annEl.textContent = fmtPct(ann);
+  }
+  ['prem','strike','dte','qty','mult'].forEach(id => {
+    document.getElementById(id).addEventListener('input', recalc);
+  });
+  recalc();
+})();
+</script>
+</body>
+</html>

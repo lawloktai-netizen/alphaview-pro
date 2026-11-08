@@ -349,6 +349,18 @@
             font-weight: 500;
             color: #64748B;
         }
+        .opt-guide-link.opt-guide-dl {
+            border-style: dashed;
+            background: #FFFFFF;
+            color: #475569;
+            padding: 0.35rem 0.65rem;
+        }
+        .opt-guide-link.opt-guide-dl .opt-guide-sub { color: #94A3B8; }
+        .opt-guide-link.opt-guide-dl:hover {
+            border-color: #94A3B8;
+            background: #F8FAFC;
+            color: #334155;
+        }
         #reportFrame { min-height: min(78vh, 900px); background: #FFFFFF; border-radius: 0.75rem; border: 1px solid #E2E8F0; }
         .report-archive-item {
             display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
@@ -1003,21 +1015,35 @@
             </div>
             <button type="button" class="text-xs text-blue-700 hover:text-blue-800" onclick="switchAppView('portfolio')">← 返回組合</button>
         </div>
-        <div class="opt-guides-strip" aria-label="期權指南下載">
+        <div class="opt-guides-strip" aria-label="期權指南">
             <div class="opt-guides-strip-inner">
                 <span class="opt-guides-label">期權指南</span>
-                <a class="opt-guide-link" href="guides/Options-Strategy-Guide.xlsx" download="Options-Strategy-Guide.xlsx">
-                    <span class="opt-guide-ico" aria-hidden="true">↓</span>
+                <a class="opt-guide-link" href="guides/options-strategy-guide.html" target="_blank" rel="noopener">
+                    <span class="opt-guide-ico" aria-hidden="true">📖</span>
                     <span class="opt-guide-text">
                         <span>期權策略指南</span>
-                        <span class="opt-guide-sub">14種策略：總覽 + 按市場方向分頁 · Excel</span>
+                        <span class="opt-guide-sub">14種策略：網頁可讀 · 總覽 + 按市場方向分頁</span>
                     </span>
                 </a>
-                <a class="opt-guide-link" href="guides/Options-SOP-Guide.xlsx" download="Options-SOP-Guide.xlsx">
+                <a class="opt-guide-link opt-guide-dl" href="guides/Options-Strategy-Guide.xlsx" download="Options-Strategy-Guide.xlsx">
                     <span class="opt-guide-ico" aria-hidden="true">↓</span>
                     <span class="opt-guide-text">
+                        <span>下載 Excel</span>
+                        <span class="opt-guide-sub">策略指南工作簿</span>
+                    </span>
+                </a>
+                <a class="opt-guide-link" href="guides/options-sop-guide.html" target="_blank" rel="noopener">
+                    <span class="opt-guide-ico" aria-hidden="true">📖</span>
+                    <span class="opt-guide-text">
                         <span>期權 SOP 指南</span>
-                        <span class="opt-guide-sub">懶人指數收息、進階 swing、diagonal/wheel、short-put 計算機 · Excel</span>
+                        <span class="opt-guide-sub">網頁可讀 · 懶人收租、進階波段、抄底吸貨、short put 計算機</span>
+                    </span>
+                </a>
+                <a class="opt-guide-link opt-guide-dl" href="guides/Options-SOP-Guide.xlsx" download="Options-SOP-Guide.xlsx">
+                    <span class="opt-guide-ico" aria-hidden="true">↓</span>
+                    <span class="opt-guide-text">
+                        <span>下載 Excel</span>
+                        <span class="opt-guide-sub">SOP 指南工作簿</span>
                     </span>
                 </a>
             </div>
