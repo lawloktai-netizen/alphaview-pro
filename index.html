@@ -285,7 +285,69 @@
             width: 100%;
             border: 0;
             background: #F4F6F8;
-            min-height: calc(100vh - 3.5rem);
+            min-height: 0;
+        }
+        .opt-guides-strip {
+            flex-shrink: 0;
+            background: #FFFFFF;
+            border-bottom: 1px solid #E2E8F0;
+            padding: 0.65rem 1rem;
+        }
+        @media (min-width: 768px) {
+            .opt-guides-strip { padding-left: 1.5rem; padding-right: 1.5rem; }
+        }
+        .opt-guides-strip-inner {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.55rem 0.75rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .opt-guides-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #64748B;
+            margin-right: 0.15rem;
+        }
+        .opt-guide-link {
+            display: inline-flex;
+            align-items: flex-start;
+            gap: 0.45rem;
+            max-width: 100%;
+            padding: 0.45rem 0.75rem;
+            border-radius: 0.65rem;
+            border: 1px solid #E2E8F0;
+            background: #F8FAFC;
+            color: #1E3A8A;
+            font-size: 0.72rem;
+            font-weight: 600;
+            line-height: 1.35;
+            text-decoration: none;
+            transition: border-color 0.15s, background 0.15s, color 0.15s;
+        }
+        .opt-guide-link:hover {
+            border-color: rgba(37,99,235,0.45);
+            background: rgba(37,99,235,0.06);
+            color: #1D4ED8;
+        }
+        .opt-guide-link .opt-guide-ico {
+            flex-shrink: 0;
+            margin-top: 0.05rem;
+            color: #2563EB;
+            font-size: 0.85rem;
+        }
+        .opt-guide-link .opt-guide-text {
+            display: flex;
+            flex-direction: column;
+            gap: 0.1rem;
+        }
+        .opt-guide-link .opt-guide-sub {
+            font-size: 0.65rem;
+            font-weight: 500;
+            color: #64748B;
         }
         #reportFrame { min-height: min(78vh, 900px); background: #FFFFFF; border-radius: 0.75rem; border: 1px solid #E2E8F0; }
         .report-archive-item {
@@ -940,6 +1002,25 @@
                 <span class="text-xs text-muted hidden sm:inline">Ricky's Investment · 期權計算機</span>
             </div>
             <button type="button" class="text-xs text-blue-700 hover:text-blue-800" onclick="switchAppView('portfolio')">← 返回組合</button>
+        </div>
+        <div class="opt-guides-strip" aria-label="期權指南下載">
+            <div class="opt-guides-strip-inner">
+                <span class="opt-guides-label">期權指南</span>
+                <a class="opt-guide-link" href="guides/Options-Strategy-Guide.xlsx" download="Options-Strategy-Guide.xlsx">
+                    <span class="opt-guide-ico" aria-hidden="true">↓</span>
+                    <span class="opt-guide-text">
+                        <span>期權策略指南</span>
+                        <span class="opt-guide-sub">14種策略：總覽 + 按市場方向分頁 · Excel</span>
+                    </span>
+                </a>
+                <a class="opt-guide-link" href="guides/Options-SOP-Guide.xlsx" download="Options-SOP-Guide.xlsx">
+                    <span class="opt-guide-ico" aria-hidden="true">↓</span>
+                    <span class="opt-guide-text">
+                        <span>期權 SOP 指南</span>
+                        <span class="opt-guide-sub">懶人指數收息、進階 swing、diagonal/wheel、short-put 計算機 · Excel</span>
+                    </span>
+                </a>
+            </div>
         </div>
         <iframe id="calcFrame" title="期權計算機" src="about:blank" loading="lazy"></iframe>
     </div>
