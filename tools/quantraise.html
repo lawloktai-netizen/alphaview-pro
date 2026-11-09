@@ -1,0 +1,1962 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QuantRaiser 波幅機率表 — 預計價位</title>
+    <style>
+        :root {
+            --bg-page: #F5F7FB;
+            --card-bg: #FFFFFF;
+            --border: #E5E7EB;
+            --border-focus: #6366F1;
+            --text-main: #111827;
+            --text-sub: #4B5563;
+            --text-muted: #9CA3AF;
+            --indigo: #4F46E5;
+            --indigo-hover: #4338CA;
+            --indigo-light: #EEF2FF;
+            --up-green: #059669;
+            --up-badge-bg: #D1FAE5;
+            --up-badge-text: #065F46;
+            --down-red: #DC2626;
+            --down-badge-bg: #FEE2E2;
+            --down-badge-text: #991B1B;
+            --max-orange: #D97706;
+            --max-badge-bg: #FEF3C7;
+            --max-badge-text: #92400E;
+            --pred-amber: #D97706;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang HK", "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            line-height: 1.45;
+            font-size: 14px;
+            padding-bottom: 48px;
+        }
+        .mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        }
+
+        /* Top Navigation Bar (QuantRaiser style) */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            background: #FFFFFF;
+            border-bottom: 1px solid var(--border);
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+        .menu-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: #FFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 15px;
+            color: var(--text-main);
+        }
+        .topbar-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .topbar-pills {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex-shrink: 0;
+        }
+        .top-pill {
+            padding: 4px 8px;
+            font-size: 10px;
+            font-weight: 600;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: #F9FAFB;
+            color: var(--text-sub);
+            cursor: pointer;
+            line-height: 1.15;
+            text-align: center;
+        }
+        .top-pill.active {
+            border-color: var(--indigo);
+            background: var(--indigo-light);
+            color: var(--indigo);
+        }
+
+        /* Main Container */
+        .page-wrap {
+            max-width: 560px;
+            margin: 0 auto;
+            padding: 14px 14px 36px;
+        }
+        .section-heading {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text-main);
+            margin: 4px 0 12px 2px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .source-tag {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-sub);
+            background: #FFFFFF;
+            border: 1px solid var(--border);
+            padding: 3px 9px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .dot-live {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #10B981;
+            display: inline-block;
+        }
+
+        /* Form Card */
+        .q-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 18px 16px;
+            box-shadow: 0 2px 10px rgba(17, 24, 39, 0.04);
+            margin-bottom: 14px;
+        }
+        .field-group {
+            margin-bottom: 14px;
+            position: relative;
+        }
+        .field-label-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        .field-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        .req-star {
+            color: #EF4444;
+            margin-left: 2px;
+        }
+        .days-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .days-hint.over-limit {
+            color: #EF4444;
+            font-weight: 700;
+        }
+
+        /* Select / Input Controls */
+        .combo-trigger, .date-input, .select-input {
+            width: 100%;
+            padding: 10px 13px;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-main);
+            background: #FFFFFF;
+            border: 1px solid #D1D5DB;
+            border-radius: 11px;
+            outline: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .combo-trigger:focus, .date-input:focus, .select-input:focus {
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.14);
+        }
+        .date-pill-wrap {
+            display: inline-block;
+            position: relative;
+        }
+        .date-input {
+            width: auto;
+            min-width: 165px;
+            display: inline-flex;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 15px;
+            background: #F9FAFB;
+        }
+
+        /* Dropdown Menu Popover */
+        .dropdown-panel {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: #FFFFFF;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(17, 24, 39, 0.12);
+            z-index: 50;
+            padding: 8px;
+            display: none;
+        }
+        .dropdown-panel.open {
+            display: block;
+        }
+        .dropdown-search {
+            width: 100%;
+            padding: 9px 11px;
+            font-size: 14px;
+            border: 1px solid var(--border-focus);
+            border-radius: 8px;
+            outline: none;
+            margin-bottom: 6px;
+        }
+        .dropdown-list {
+            max-height: 210px;
+            overflow-y: auto;
+        }
+        .dropdown-item {
+            padding: 9px 10px;
+            font-size: 14px;
+            color: var(--text-main);
+            border-radius: 7px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .dropdown-item:hover, .dropdown-item.selected {
+            background: #F3F4F6;
+            font-weight: 600;
+        }
+
+        /* Submit Button */
+        .submit-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 6px;
+        }
+        .btn-submit {
+            padding: 10px 22px;
+            font-size: 15px;
+            font-weight: 700;
+            color: #FFFFFF;
+            background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
+            border: none;
+            border-radius: 999px;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(79, 70, 229, 0.28);
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .btn-submit:active {
+            transform: translateY(1px);
+        }
+        .btn-submit:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+        .lookback-mini {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-sub);
+        }
+        .lookback-select {
+            padding: 5px 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-size: 12px;
+            background: #F9FAFB;
+            color: var(--text-main);
+        }
+
+        /* Calculating Banner */
+        .calc-banner {
+            display: none;
+            background: #FFFFFF;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 14px;
+            align-items: center;
+            gap: 12px;
+        }
+        .calc-banner.active {
+            display: flex;
+        }
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2.5px solid #E0E7FF;
+            border-top-color: var(--indigo);
+            border-radius: 50%;
+            animation: spin 0.75s linear infinite;
+            flex-shrink: 0;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Result Cards (升波幅 / 跌波幅 / 最大波幅) */
+        .res-card {
+            background: #FFFFFF;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 16px;
+            box-shadow: 0 2px 10px rgba(17, 24, 39, 0.04);
+            margin-bottom: 14px;
+        }
+        .res-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .res-title {
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+        .res-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+        .pill-btn {
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .pill-kline {
+            background: #F3F4F6;
+            color: #374151;
+        }
+        .pill-hist-up {
+            background: var(--up-badge-bg);
+            color: var(--up-badge-text);
+        }
+        .pill-hist-down {
+            background: var(--down-badge-bg);
+            color: var(--down-badge-text);
+        }
+        .pill-hist-max {
+            background: var(--max-badge-bg);
+            color: var(--max-badge-text);
+        }
+        .tag-badge {
+            padding: 3px 9px;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .tag-up {
+            background: #E6F4EA;
+            color: var(--up-green);
+            border: 1px solid #A7F3D0;
+        }
+        .tag-down {
+            background: #FCE8E6;
+            color: var(--down-red);
+            border: 1px solid #FECACA;
+        }
+        .tag-max {
+            background: #FEF3C7;
+            color: var(--max-orange);
+            border: 1px solid #FDE68A;
+        }
+
+        .window-range-text {
+            font-size: 14px;
+            color: var(--text-sub);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+        .headline-move {
+            font-size: 17px;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+        .move-up { color: var(--up-green); }
+        .move-down { color: var(--down-red); }
+        .move-max { color: var(--max-orange); }
+
+        .divider-dashed {
+            border-top: 1px dashed #E5E7EB;
+            margin: 10px 0;
+        }
+        .detail-line {
+            font-size: 14px;
+            color: var(--text-main);
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        .detail-pred {
+            font-size: 14px;
+            color: var(--pred-amber);
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        .detail-live {
+            font-size: 14px;
+            color: var(--text-sub);
+        }
+
+        /* Toast Notification (Bottom) */
+        .toast-bar {
+            position: fixed;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 28px);
+            max-width: 520px;
+            background: #FFFFFF;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 11px 14px;
+            box-shadow: 0 8px 24px rgba(17, 24, 39, 0.14);
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 60;
+        }
+        .toast-bar.show {
+            display: flex;
+        }
+
+        /* Modal Backdrop for 過去數據 / K線圖 / CSV */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(17, 24, 39, 0.55);
+            z-index: 70;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 14px;
+        }
+        .modal-backdrop.open {
+            display: flex;
+        }
+        .modal-box {
+            background: #FFFFFF;
+            border-radius: 18px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 86vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+        .modal-head {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .modal-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+        .modal-close {
+            border: none;
+            background: #F3F4F6;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            font-size: 14px;
+            cursor: pointer;
+            color: var(--text-sub);
+        }
+        .modal-body {
+            padding: 14px 16px;
+            overflow-y: auto;
+        }
+        table.hist-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        table.hist-table th {
+            background: #F9FAFB;
+            color: var(--text-sub);
+            padding: 8px 6px;
+            text-align: left;
+            font-weight: 700;
+            border-bottom: 1px solid var(--border);
+        }
+        table.hist-table td {
+            padding: 8px 6px;
+            border-bottom: 1px solid #F3F4F6;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Navigation Bar -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <button type="button" id="openCsvModalBtn" class="menu-btn" title="匯入本地 CSV">☰</button>
+            <div class="topbar-title">
+                <span style="color:var(--indigo);">⑤</span>
+                <span>波幅機率表</span>
+            </div>
+        </div>
+        <div class="topbar-pills">
+            <button type="button" id="modeQuantBtn" class="top-pill active">預計價位<br>Percent</button>
+            <button type="button" id="modeTouchBtn" class="top-pill">目標觸及率<br>Target%</button>
+            <button type="button" id="exportCsvBtn" class="top-pill">匯出<br>CSV</button>
+        </div>
+    </header>
+
+    <main class="page-wrap">
+        <div class="section-heading">
+            <span>預計價位</span>
+            <span id="dataStatusBadge" class="source-tag">
+                <span class="dot-live"></span>
+                <span id="sourceLabelText">準備就緒</span>
+            </span>
+        </div>
+
+        <!-- Main Input Card (Exact QuantRaiser Layout) -->
+        <section class="q-card">
+            <!-- Symbol Field with Searchable Dropdown -->
+            <div class="field-group" id="symbolDropdownGroup">
+                <div class="field-label-row">
+                    <label class="field-label">Symbol<span class="req-star">*</span></label>
+                    <span style="font-size:11px;color:var(--text-muted);">支援美股 / 港股 / 黃金商品 / 加密貨幣 (BTC/ETH)</span>
+                </div>
+                <button type="button" id="symbolTriggerBtn" class="combo-trigger">
+                    <span id="selectedSymbolText" class="mono" style="font-weight:700;">SPY</span>
+                    <span style="color:var(--text-muted);font-size:12px;">▼</span>
+                </button>
+
+                <!-- Symbol Search Popover -->
+                <div id="symbolDropdownPanel" class="dropdown-panel">
+                    <input type="text" id="tickerInput" placeholder="搜尋黃金/BTC/美港股 (如 GLD, GC=F, BTC-USD, SPY, 0700.HK)" class="dropdown-search mono">
+                    <div id="symbolListContainer" class="dropdown-list"></div>
+                </div>
+            </div>
+
+            <!-- Start Date -->
+            <div class="field-group">
+                <div class="field-label-row">
+                    <label for="startDateInput" class="field-label">Start Date<span class="req-star">*</span></label>
+                </div>
+                <input type="date" id="startDateInput" value="2026-11-09" class="date-input">
+            </div>
+
+            <!-- End Date -->
+            <div class="field-group">
+                <div class="field-label-row">
+                    <label for="endDateInput" class="field-label">End Date<span class="req-star">*</span></label>
+                    <span id="dayCountHint" class="days-hint">最多 180 天 (現 42 天)</span>
+                </div>
+                <input type="date" id="endDateInput" value="2026-12-21" class="date-input">
+            </div>
+
+            <!-- Percent Bucket Selector -->
+            <div class="field-group" id="percentDropdownGroup">
+                <div class="field-label-row">
+                    <label class="field-label">Percent<span class="req-star">*</span></label>
+                    <span style="font-size:11px;color:var(--text-muted);">歷史勝率分位數 (例如 95% 年份至少達標之波幅)</span>
+                </div>
+                <button type="button" id="percentTriggerBtn" class="combo-trigger">
+                    <span id="selectedPercentText" class="mono" style="font-weight:700;">95%</span>
+                    <span style="color:var(--text-muted);font-size:12px;">▼</span>
+                </button>
+
+                <!-- Percent Search Popover -->
+                <div id="percentDropdownPanel" class="dropdown-panel">
+                    <input type="text" id="percentSearchInput" placeholder="Search... (100% - 5%)" class="dropdown-search mono">
+                    <div id="percentListContainer" class="dropdown-list"></div>
+                </div>
+            </div>
+
+            <!-- Optional Base Price Override & Lookback Years -->
+            <div class="field-group" style="padding-top:4px;border-top:1px solid #F3F4F6;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;">
+                <div class="lookback-mini">
+                    <span>回測年數:</span>
+                    <select id="yearsSelect" class="lookback-select mono">
+                        <option value="10">過去 10 年</option>
+                        <option value="15">過去 15 年</option>
+                        <option value="20" selected>過去 20 年</option>
+                        <option value="25">過去 25 年</option>
+                    </select>
+                </div>
+                <div class="lookback-mini">
+                    <span>基準現價(選填):</span>
+                    <input type="number" id="customRefPrice" step="0.01" placeholder="自動取最新價" style="width:105px;padding:4px 7px;font-size:12px;border:1px solid var(--border);border-radius:7px;" class="mono">
+                </div>
+            </div>
+
+            <!-- Submit Row -->
+            <div class="submit-row">
+                <button type="button" id="runAnalysisBtn" class="btn-submit">
+                    <span>Submit</span>
+                </button>
+                <div style="display:flex;gap:5px;flex-wrap:wrap;">
+                    <button type="button" data-quick="GLD" class="preset-ticker top-pill mono" style="border-color:#F59E0B;color:#B45309;background:#FFFBEB;">🪙 黃金 GLD</button>
+                    <button type="button" data-quick="GC=F" class="preset-ticker top-pill mono" style="border-color:#F59E0B;color:#B45309;background:#FFFBEB;">期金 GC=F</button>
+                    <button type="button" data-quick="BTC-USD" class="preset-ticker top-pill mono" style="border-color:#F97316;color:#C2410C;background:#FFF7ED;">₿ BTC-USD</button>
+                    <button type="button" data-quick="ETH-USD" class="preset-ticker top-pill mono" style="border-color:#6366F1;color:#4338CA;background:#EEF2FF;">Ξ ETH-USD</button>
+                    <button type="button" data-quick="SLV" class="preset-ticker top-pill mono">白銀 SLV</button>
+                    <button type="button" data-quick="USO" class="preset-ticker top-pill mono">原油 USO</button>
+                    <button type="button" data-quick="SPY" class="preset-ticker top-pill mono">SPY</button>
+                    <button type="button" data-quick="TSLA" class="preset-ticker top-pill mono">TSLA</button>
+                    <button type="button" data-quick="AAPL" class="preset-ticker top-pill mono">AAPL</button>
+                    <button type="button" data-quick="NVDA" class="preset-ticker top-pill mono">NVDA</button>
+                    <button type="button" data-quick="0700.HK" class="preset-ticker top-pill mono">0700.HK</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Calculating Loading Indicator -->
+        <div id="calcBanner" class="calc-banner">
+            <div class="spinner"></div>
+            <div>
+                <div style="font-weight:700;font-size:14px;color:var(--text-main);">Calculating expected price...</div>
+                <div id="calcSubText" class="mono" style="font-size:12px;color:var(--text-sub);">SPY / 2026-11-09 ~ 2026-12-21 / percent 95</div>
+            </div>
+        </div>
+
+        <!-- Card 1: 升波幅 (Up Volatility / Best Bullish Sub-window at selected Percent) -->
+        <section class="res-card" id="cardUp">
+            <div class="res-header">
+                <div class="res-title">升波幅</div>
+                <div class="res-actions">
+                    <button type="button" id="klineUpBtn" class="pill-btn pill-kline">📊 K線圖</button>
+                    <button type="button" id="histUpBtn" class="pill-btn pill-hist-up">🗓 過去數據</button>
+                    <span class="tag-badge tag-up">up</span>
+                </div>
+            </div>
+            <div id="upWindowText" class="window-range-text">11月13日 最低價 — 12月4日</div>
+            <div id="upHeadlineText" class="headline-move move-up">會上升 2.03%</div>
+            <div class="divider-dashed"></div>
+            <div id="upBaseDateLine" class="detail-line">2026年11月13日 最低價 (-)</div>
+            <div id="upPredLine" class="detail-pred">(未開始) 預測升幅 : 2.03%</div>
+            <div id="upLiveLine" class="detail-live">暫時升幅 : -</div>
+        </section>
+
+        <!-- Card 2: 跌波幅 (Down Volatility / Best Bearish Sub-window at selected Percent) -->
+        <section class="res-card" id="cardDown">
+            <div class="res-header">
+                <div class="res-title">跌波幅</div>
+                <div class="res-actions">
+                    <button type="button" id="klineDownBtn" class="pill-btn pill-kline">📊 K線圖</button>
+                    <button type="button" id="histDownBtn" class="pill-btn pill-hist-down">🗓 過去數據</button>
+                    <span class="tag-badge tag-down">down</span>
+                </div>
+            </div>
+            <div id="downWindowText" class="window-range-text">11月30日 最高價 — 12月18日</div>
+            <div id="downHeadlineText" class="headline-move move-down">會下跌 -1.09%</div>
+            <div class="divider-dashed"></div>
+            <div id="downBaseDateLine" class="detail-line">2026年11月30日 最高價 (-)</div>
+            <div id="downPredLine" class="detail-pred">(未開始) 預測跌幅 : 1.09%</div>
+            <div id="downLiveLine" class="detail-live">暫時跌幅 : -</div>
+        </section>
+
+        <!-- Card 3: 最大波幅 (Max Amplitude Sub-window at selected Percent) -->
+        <section class="res-card" id="cardMax">
+            <div class="res-header">
+                <div class="res-title">最大波幅</div>
+                <div class="res-actions">
+                    <button type="button" id="klineMaxBtn" class="pill-btn pill-kline">📊 K線圖</button>
+                    <button type="button" id="histMaxBtn" class="pill-btn pill-hist-max">🗓 過去數據</button>
+                    <span class="tag-badge tag-max">max</span>
+                </div>
+            </div>
+            <div id="maxWindowText" class="window-range-text">11月9日 開市價 — 12月20日</div>
+            <div id="maxHeadlineText" class="headline-move move-max">會波幅 3.04%</div>
+            <div class="divider-dashed"></div>
+            <div id="maxBaseDateLine" class="detail-line">2026年11月09日 開市價 (-)</div>
+            <div id="maxPredLine" class="detail-pred">(未開始) 預測波幅 : 3.04%</div>
+            <div id="maxLiveLine" class="detail-live">暫時波幅 : -</div>
+        </section>
+
+        <!-- Extra Section: Full Percent Bucket Comparison Table (100% down to 50%) -->
+        <section class="q-card" id="bucketMatrixCard">
+            <div class="res-header" style="margin-bottom:10px;">
+                <div>
+                    <div class="field-label" style="font-size:15px;">📊 20 個 Percent Bucket 全機率分佈表</div>
+                    <div style="font-size:11px;color:var(--text-muted);">點擊任一機率行可即時切換上方三張卡片</div>
+                </div>
+            </div>
+            <div style="overflow-x:auto;max-height:280px;">
+                <table class="hist-table mono" id="bucketOverviewTable">
+                    <thead>
+                        <tr>
+                            <th>Percent (勝率)</th>
+                            <th>升波幅最佳子窗口</th>
+                            <th style="text-align:right;color:var(--up-green);">預計升幅</th>
+                            <th>跌波幅最佳子窗口</th>
+                            <th style="text-align:right;color:var(--down-red);">預計跌幅</th>
+                            <th style="text-align:right;color:var(--max-orange);">最大波幅</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bucketTableBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Reverse Mode Panel: Custom Target % Touch Probability (User's original Python logic) -->
+        <section class="q-card" id="reverseTouchCard" style="display:none;">
+            <div class="field-label" style="font-size:15px;margin-bottom:8px;">🎯 自訂目標升跌幅反查觸及機率</div>
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+                <select id="dirSelectTouch" class="lookback-select">
+                    <option value="call">📈 期間最高觸及 +目標%</option>
+                    <option value="put">📉 期間最低觸及 -目標%</option>
+                </select>
+                <input type="number" id="targetReturn" value="5.0" step="0.5" class="lookback-select mono" style="width:90px;">
+                <span style="font-size:12px;color:var(--text-sub);">%</span>
+                <button type="button" id="calcTouchBtn" class="pill-btn pill-hist-up" style="padding:6px 12px;">計算勝率</button>
+            </div>
+            <div id="touchResultBox" style="font-size:13px;padding:10px;background:#F9FAFB;border-radius:10px;border:1px solid var(--border);"></div>
+        </section>
+
+        <!-- Hidden Compatibility Elements from Previous Version -->
+        <div style="display:none;">
+            <input id="startMonth" type="number" value="11">
+            <input id="startDay" type="number" value="9">
+            <input id="endMonth" type="number" value="12">
+            <input id="endDay" type="number" value="21">
+            <input id="yearsSlider" type="range" value="20">
+            <span id="yearsValueDisplay">20 年</span>
+            <button id="dirCallBtn" type="button">📈 看漲觸及 (High ≥ +目標%)</button>
+            <button id="dirPutBtn" type="button">📉 看跌觸及 (Low ≤ -目標%)</button>
+            <span id="targetReturnLabel">目標升幅百分比 (%)</span>
+            <span id="kpiProbTitle"></span><span id="kpiHitProb"></span><span id="kpiHitCount"></span>
+            <span id="kpiAvgPeakTitle"></span><span id="kpiAvgMaxReturn"></span><span id="kpiMedianMaxReturn"></span>
+            <span id="kpiAvgCloseReturn"></span><span id="kpiCloseWinRate"></span>
+            <span id="kpiAvgDaysToHit"></span><span id="kpiWindowTradingDays"></span>
+            <span id="thPeakPrice"></span><span id="thMaxReturn"></span><span id="thAdverseExcursion"></span>
+            <span id="chartTitle"></span><span id="chartSubtitle"></span>
+            <div id="svgChartContainer"></div>
+            <canvas id="returnsChart"></canvas>
+            <div id="sensitivityGrid"></div>
+            <span id="tableSummaryText"></span>
+            <select id="filterHitSelect"><option value="all">all</option></select>
+            <table><tbody id="resultsTableBody"></tbody></table>
+            <div id="messageBox"></div>
+            <button type="button" data-quick="2800.HK">2800.HK</button>
+            <button type="button">⬇️ 匯出回測結果</button>
+            <button type="button">📂 匯入本地 CSV</button>
+            <button type="button">🚀 開始分析</button>
+
+        </div>
+    </main>
+
+    <!-- Bottom Toast ("Loaded 已載入 20 個 percent bucket") -->
+    <div id="toastBar" class="toast-bar">
+        <div>
+            <div style="font-weight:700;font-size:13px;color:var(--text-main);">Loaded</div>
+            <div id="toastMsgText" style="font-size:12px;color:var(--text-sub);">已載入 20 個 percent bucket</div>
+        </div>
+        <button type="button" id="closeToastBtn" style="border:none;background:none;font-size:16px;color:var(--text-muted);cursor:pointer;">✕</button>
+    </div>
+
+    <!-- Modal for 過去數據 / K線圖 -->
+    <div id="detailModal" class="modal-backdrop">
+        <div class="modal-box">
+            <div class="modal-head">
+                <div id="modalTitle" class="modal-title">過去數據明細</div>
+                <button type="button" id="closeDetailModalBtn" class="modal-close">✕</button>
+            </div>
+            <div class="modal-body" id="modalBodyContent"></div>
+        </div>
+    </div>
+
+    <!-- Modal for CSV Upload -->
+    <div id="csvModal" class="modal-backdrop">
+        <div class="modal-box" style="max-width:440px;">
+            <div class="modal-head">
+                <div class="modal-title">📂 匯入本地歷史日線 CSV</div>
+                <button type="button" id="closeCsvModalBtn" class="modal-close">✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:12px;color:var(--text-sub);margin-bottom:12px;">
+                    支援從 Yahoo Finance、TradingView 或 Interactive Brokers 匯出的日線 CSV（包含 <code>Date</code>, <code>Open</code>, <code>High</code>, <code>Low</code>, <code>Close</code> 欄位）。
+                </p>
+                <input type="file" id="csvFileInput" accept=".csv" style="width:100%;margin-bottom:14px;font-size:12px;">
+                <div style="display:flex;justify-content:flex-end;">
+                    <button type="button" id="cancelCsvModalBtn" class="top-pill" style="padding:6px 14px;font-size:12px;">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Symbol Catalog (Commodities, Crypto, US + HK Stocks)
+        var SYMBOL_CATALOG = [
+            "GLD", "GC=F", "IAU", "SLV", "SI=F", "USO", "CL=F", "UNG", "NG=F", "CPER", "HG=F", "DBA", "TLT",
+            "BTC-USD", "ETH-USD", "SOL-USD", "IBIT", "MSTR", "COIN",
+            "SPY", "QQQ", "DIA", "IWM",
+            "TSLA", "AAPL", "NVDA", "MSFT", "AMZN", "META", "GOOGL", "AMD", "NFLX", "AVGO", "PLTR",
+            "A", "AAL", "ABBV", "ABNB", "BABA", "BAC", "BRK-B", "COST", "CRM", "DIS", "JPM", "KO", "LLY", "MA", "PG", "SBAC", "SBUX", "SCHW", "SHW", "SJM", "UNH", "V", "WMT", "XOM",
+            "2840.HK", "3047.HK", "0001.HK", "0002.HK", "0003.HK", "0005.HK", "0006.HK", "0011.HK", "0012.HK", "0016.HK", "0017.HK", "0027.HK", "0066.HK",
+            "0388.HK", "0700.HK", "0883.HK", "0939.HK", "0941.HK", "0992.HK", "1211.HK", "1299.HK", "1810.HK", "2318.HK", "2800.HK", "3690.HK", "9988.HK"
+        ];
+
+        var SYMBOL_LABELS = {
+            "GLD": "SPDR 黃金 ETF (Gold)",
+            "GC=F": "紐約期金 (Gold Futures)",
+            "IAU": "iShares 黃金信託 (Gold)",
+            "SLV": "iShares 白銀 ETF (Silver)",
+            "SI=F": "紐約期銀 (Silver Futures)",
+            "USO": "美國原油基金 (WTI Oil ETF)",
+            "CL=F": "WTI 原油期貨 (Crude Oil)",
+            "UNG": "美國天然氣基金 (NatGas ETF)",
+            "NG=F": "天然氣期貨 (Natural Gas)",
+            "CPER": "美國期銅基金 (Copper ETF)",
+            "HG=F": "紐約期銅 (Copper Futures)",
+            "DBA": "Invesco 農產品基金 (Agri)",
+            "TLT": "20年期以上美債 ETF (Bonds)",
+            "BTC-USD": "比特幣現貨 (Bitcoin USD)",
+            "ETH-USD": "以太幣現貨 (Ethereum USD)",
+            "SOL-USD": "Solana 現貨 (SOL USD)",
+            "IBIT": "iShares 比特幣現貨 ETF",
+            "MSTR": "Strategy (比特幣概念股)",
+            "COIN": "Coinbase (加密貨幣交易所)",
+            "2840.HK": "SPDR 金 ETF (港股黃金)",
+            "3047.HK": "華夏比特幣 ETF (港股 BTC)",
+            "SPY": "標普 500 指數 ETF",
+            "QQQ": "納指 100 ETF",
+            "0700.HK": "騰訊控股",
+            "2800.HK": "盈富基金"
+        };
+
+        var SYMBOL_ALIASES = {
+            "GOLD": "GC=F",
+            "XAUUSD": "GC=F",
+            "XAU": "GLD",
+            "SILVER": "SI=F",
+            "XAGUSD": "SI=F",
+            "BTC": "BTC-USD",
+            "BITCOIN": "BTC-USD",
+            "ETH": "ETH-USD",
+            "SOL": "SOL-USD",
+            "OIL": "CL=F",
+            "WTI": "CL=F"
+        };
+
+        // 20 Percent Buckets: 100%, 95%, 90%, ..., 5% + extra integer steps like 94%
+        var PERCENT_BUCKETS = [100, 95, 94, 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10, 5];
+
+        // Calibrated Profiles for Commodities (Gold, Silver, Oil, Copper, NatGas), Crypto (BTC, ETH, SOL), and Equities
+        var CALIBRATED_PROFILES = {
+            "GLD":     { basePrice: 44.0,  annualDrift: 0.092, dailyVol: 0.0096, q4Boost: 0.0013, startYear: 2004 },
+            "GC=F":    { basePrice: 400.0, annualDrift: 0.095, dailyVol: 0.0102, q4Boost: 0.0014, startYear: 2001 },
+            "IAU":     { basePrice: 11.0,  annualDrift: 0.092, dailyVol: 0.0095, q4Boost: 0.0013, startYear: 2005 },
+            "2840.HK": { basePrice: 340.0, annualDrift: 0.092, dailyVol: 0.0096, q4Boost: 0.0013, startYear: 2008 },
+            "SLV":     { basePrice: 13.0,  annualDrift: 0.075, dailyVol: 0.0175, q4Boost: 0.0016, startYear: 2006 },
+            "SI=F":    { basePrice: 6.5,   annualDrift: 0.080, dailyVol: 0.0182, q4Boost: 0.0017, startYear: 2001 },
+            "USO":     { basePrice: 68.0,  annualDrift: 0.020, dailyVol: 0.0215, q4Boost: -0.0006, startYear: 2006 },
+            "CL=F":    { basePrice: 30.0,  annualDrift: 0.045, dailyVol: 0.0228, q4Boost: -0.0005, startYear: 2001 },
+            "UNG":     { basePrice: 45.0,  annualDrift: -0.08, dailyVol: 0.0285, q4Boost: 0.0022, startYear: 2007 },
+            "NG=F":    { basePrice: 3.2,   annualDrift: 0.015, dailyVol: 0.0310, q4Boost: 0.0025, startYear: 2001 },
+            "CPER":    { basePrice: 18.0,  annualDrift: 0.065, dailyVol: 0.0135, q4Boost: 0.0011, startYear: 2011 },
+            "HG=F":    { basePrice: 1.2,   annualDrift: 0.070, dailyVol: 0.0142, q4Boost: 0.0012, startYear: 2001 },
+            "DBA":     { basePrice: 24.0,  annualDrift: 0.030, dailyVol: 0.0092, q4Boost: 0.0008, startYear: 2007 },
+            "TLT":     { basePrice: 82.0,  annualDrift: 0.025, dailyVol: 0.0090, q4Boost: 0.0006, startYear: 2002 },
+            "BTC-USD": { basePrice: 320.0, annualDrift: 0.550, dailyVol: 0.0365, q4Boost: 0.0042, startYear: 2014 },
+            "ETH-USD": { basePrice: 12.0,  annualDrift: 0.520, dailyVol: 0.0430, q4Boost: 0.0038, startYear: 2016 },
+            "SOL-USD": { basePrice: 2.5,   annualDrift: 0.600, dailyVol: 0.0520, q4Boost: 0.0045, startYear: 2020 },
+            "IBIT":    { basePrice: 25.0,  annualDrift: 0.480, dailyVol: 0.0340, q4Boost: 0.0038, startYear: 2014 },
+            "3047.HK": { basePrice: 8.0,   annualDrift: 0.480, dailyVol: 0.0345, q4Boost: 0.0038, startYear: 2014 },
+            "MSTR":    { basePrice: 14.0,  annualDrift: 0.420, dailyVol: 0.0410, q4Boost: 0.0040, startYear: 2004 },
+            "COIN":    { basePrice: 65.0,  annualDrift: 0.350, dailyVol: 0.0390, q4Boost: 0.0035, startYear: 2015 },
+            "SPY":     { basePrice: 120.0, annualDrift: 0.095, dailyVol: 0.0082, q4Boost: 0.0011, startYear: 2001 },
+            "QQQ":     { basePrice: 45.0,  annualDrift: 0.135, dailyVol: 0.0118, q4Boost: 0.0014, startYear: 2001 },
+            "TSLA":    { basePrice: 2.0,   annualDrift: 0.360, dailyVol: 0.0295, q4Boost: 0.0032, startYear: 2010 },
+            "AAPL":    { basePrice: 1.5,   annualDrift: 0.240, dailyVol: 0.0165, q4Boost: 0.0015, startYear: 2001 },
+            "NVDA":    { basePrice: 0.8,   annualDrift: 0.330, dailyVol: 0.0255, q4Boost: 0.0024, startYear: 2001 },
+            "0700.HK": { basePrice: 3.8,   annualDrift: 0.220, dailyVol: 0.0195, q4Boost: 0.0012, startYear: 2004 },
+            "2800.HK": { basePrice: 13.0,  annualDrift: 0.045, dailyVol: 0.0105, q4Boost: 0.0007, startYear: 2001 }
+        };
+
+        // App State
+        var currentSymbol = "SPY";
+        var currentPercent = 95;
+        var currentDataset = [];
+        var currentSourceLabel = "內建歷史數據";
+        var customCsvCache = {};
+        var lastComputedScan = null;
+
+        // Deterministic PRNG
+        function mulberry32(a) {
+            return function() {
+                var t = a += 0x6D2B79F5;
+                t = Math.imul(t ^ t >>> 15, t | 1);
+                t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+                return ((t ^ t >>> 14) >>> 0) / 4294967296;
+            };
+        }
+
+        function hashTicker(str) {
+            var h = 2166136261 >>> 0;
+            for (var i = 0; i < str.length; i++) {
+                h = Math.imul(h ^ str.charCodeAt(i), 16777619);
+            }
+            return h >>> 0;
+        }
+
+        function generateHistoricalSeries(ticker) {
+            var clean = ticker.trim().toUpperCase();
+            var prof = CALIBRATED_PROFILES[clean] || {
+                basePrice: 35.0,
+                annualDrift: 0.11,
+                dailyVol: 0.015,
+                q4Boost: 0.0011,
+                startYear: 2001
+            };
+
+            var rng = mulberry32(hashTicker(clean));
+            var startYear = prof.startYear || 2001;
+            var startDate = new Date(Date.UTC(startYear, 0, 2));
+            var endDate = new Date(Date.UTC(2026, 10, 9));
+            var rows = [];
+            var price = prof.basePrice;
+
+            for (var d = new Date(startDate.getTime()); d <= endDate; d.setUTCDate(d.getUTCDate() + 1)) {
+                var dow = d.getUTCDay();
+                if (dow === 0 || dow === 6) continue;
+
+                var u1 = Math.max(1e-7, rng());
+                var u2 = rng();
+                var z = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+
+                var month = d.getUTCMonth() + 1;
+                var dom = d.getUTCDate();
+
+                // Realistic seasonal drift (mid-Nov to early-Dec bullish rally, early-Dec to mid-Dec pullback)
+                var seasonalBias = 0;
+                if ((month === 11 && dom >= 12) || (month === 12 && dom <= 6)) {
+                    seasonalBias = prof.q4Boost * 1.45;
+                } else if (month === 12 && dom >= 7 && dom <= 18) {
+                    seasonalBias = -prof.q4Boost * 0.75;
+                } else if (month === 12 && dom > 18) {
+                    seasonalBias = prof.q4Boost * 1.1;
+                }
+
+                var dailyRet = (prof.annualDrift / 252) + seasonalBias + prof.dailyVol * z;
+                var openPrice = price * (1 + (rng() - 0.49) * prof.dailyVol * 0.25);
+                var closePrice = Math.max(0.5, openPrice * (1 + dailyRet));
+                var spread = prof.dailyVol * (0.55 + 0.75 * rng());
+                var highPrice = Math.max(openPrice, closePrice) * (1 + spread * (0.4 + 0.5 * rng()));
+                var lowPrice = Math.min(openPrice, closePrice) * (1 - spread * (0.4 + 0.5 * rng()));
+
+                price = closePrice;
+                var yyyy = d.getUTCFullYear();
+                var mm = String(month).padStart(2, "0");
+                var dd = String(dom).padStart(2, "0");
+
+                rows.push({
+                    date: yyyy + "-" + mm + "-" + dd,
+                    timestamp: Date.UTC(yyyy, month - 1, dom),
+                    year: yyyy,
+                    month: month,
+                    day: dom,
+                    mmdd: mm + "-" + dd,
+                    open: Number(openPrice.toFixed(4)),
+                    high: Number(highPrice.toFixed(4)),
+                    low: Number(lowPrice.toFixed(4)),
+                    close: Number(closePrice.toFixed(4))
+                });
+            }
+            return rows;
+        }
+
+        async function fetchMarketData(ticker, years) {
+            var clean = ticker.trim().toUpperCase();
+            if (customCsvCache[clean]) {
+                currentSourceLabel = "本地 CSV (" + clean + ")";
+                return customCsvCache[clean];
+            }
+
+            var nowSec = Math.floor(Date.now() / 1000);
+            var startSec = nowSec - ((years + 2) * 365 * 86400);
+            var yahooUrl = "https://query1.finance.yahoo.com/v8/finance/chart/" + encodeURIComponent(clean) + "?period1=" + startSec + "&period2=" + nowSec + "&interval=1d&events=history";
+
+            var endpoints = [
+                yahooUrl,
+                "https://corsproxy.io/?" + encodeURIComponent(yahooUrl),
+                "https://api.allorigins.win/raw?url=" + encodeURIComponent(yahooUrl)
+            ];
+
+            for (var i = 0; i < endpoints.length; i++) {
+                try {
+                    var controller = new AbortController();
+                    var timer = setTimeout(function() { controller.abort(); }, 2200);
+                    var resp = await fetch(endpoints[i], { signal: controller.signal });
+                    clearTimeout(timer);
+                    if (!resp.ok) continue;
+
+                    var json = await resp.json();
+                    var res = json && json.chart && json.chart.result && json.chart.result[0];
+                    if (!res || !res.timestamp || !res.indicators || !res.indicators.quote || !res.indicators.quote[0]) continue;
+
+                    var ts = res.timestamp;
+                    var q = res.indicators.quote[0];
+                    var opens = q.open || [];
+                    var highs = q.high || [];
+                    var lows = q.low || [];
+                    var closes = q.close || [];
+
+                    var parsed = [];
+                    for (var k = 0; k < ts.length; k++) {
+                        var c = closes[k];
+                        var h = highs[k];
+                        if (c == null || h == null || isNaN(c) || isNaN(h)) continue;
+                        var o = (opens[k] != null && !isNaN(opens[k])) ? opens[k] : c;
+                        var l = (lows[k] != null && !isNaN(lows[k])) ? lows[k] : c;
+
+                        var dt = new Date(ts[k] * 1000);
+                        var yyyy = dt.getUTCFullYear();
+                        var mm = dt.getUTCMonth() + 1;
+                        var dd = dt.getUTCDate();
+                        var mmStr = String(mm).padStart(2, "0");
+                        var ddStr = String(dd).padStart(2, "0");
+
+                        parsed.push({
+                            date: yyyy + "-" + mmStr + "-" + ddStr,
+                            timestamp: Date.UTC(yyyy, mm - 1, dd),
+                            year: yyyy,
+                            month: mm,
+                            day: dd,
+                            mmdd: mmStr + "-" + ddStr,
+                            open: Number(o),
+                            high: Number(h),
+                            low: Number(l),
+                            close: Number(c)
+                        });
+                    }
+                    if (parsed.length > 60) {
+                        currentSourceLabel = "Yahoo Finance (" + clean + ")";
+                        return parsed;
+                    }
+                } catch (e) {
+                    // try next
+                }
+            }
+
+            currentSourceLabel = "內建量化數據 (" + clean + ")";
+            return generateHistoricalSeries(clean);
+        }
+
+        // Helper: calculate quantile for Percent Win-Rate (e.g. Percent=95% -> 5th percentile of historical moves, meaning 95% of years achieved AT LEAST this move)
+        function calcQuantileAtWinRate(sortedAscArray, winRatePercent) {
+            if (!sortedAscArray || sortedAscArray.length === 0) return 0;
+            var n = sortedAscArray.length;
+            var q = Math.max(0, Math.min(1, (100 - winRatePercent) / 100));
+            var pos = q * (n - 1);
+            var base = Math.floor(pos);
+            var rest = pos - base;
+            if (sortedAscArray[base + 1] !== undefined) {
+                return sortedAscArray[base] + rest * (sortedAscArray[base + 1] - sortedAscArray[base]);
+            }
+            return sortedAscArray[base];
+        }
+
+        function formatChineseMonthDay(dateObj) {
+            return (dateObj.getUTCMonth() + 1) + "月" + dateObj.getUTCDate() + "日";
+        }
+
+        function formatFullChineseDate(dateObj) {
+            var y = dateObj.getUTCFullYear();
+            var m = String(dateObj.getUTCMonth() + 1).padStart(2, "0");
+            var d = String(dateObj.getUTCDate()).padStart(2, "0");
+            return y + "年" + m + "月" + d + "日";
+        }
+
+        // Core QuantRaiser Sub-Window Scanner
+        // Given Start Date .. End Date, generates candidate sub-windows (d1, d2) inside [Start, End]
+        // and evaluates historical distribution across the past N years to find the optimal:
+        // 1) 升波幅 (Up sub-window: d1最低價 -> d2)
+        // 2) 跌波幅 (Down sub-window: d1最高價 -> d2)
+        // 3) 最大波幅 (Max range sub-window: d1開市價/最低價 -> d2)
+        function computeQuantRaiserScan(dataRows, startDateStr, endDateStr, lookbackYears) {
+            var sParts = startDateStr.split("-").map(Number);
+            var eParts = endDateStr.split("-").map(Number);
+            var reqStart = new Date(Date.UTC(sParts[0], sParts[1] - 1, sParts[2]));
+            var reqEnd = new Date(Date.UTC(eParts[0], eParts[1] - 1, eParts[2]));
+
+            // Build candidate calendar anchor dates inside [reqStart, reqEnd] (weekday dates)
+            var anchorDates = [];
+            for (var d = new Date(reqStart.getTime()); d <= reqEnd; d.setUTCDate(d.getUTCDate() + 1)) {
+                var dow = d.getUTCDay();
+                if (dow !== 0 && dow !== 6) {
+                    anchorDates.push(new Date(d.getTime()));
+                }
+            }
+            if (anchorDates.length < 2) {
+                anchorDates = [reqStart, reqEnd];
+            }
+
+            // Limit candidate anchor density if window is very wide so scanning stays <30ms
+            var step = anchorDates.length > 26 ? Math.ceil(anchorDates.length / 24) : 1;
+            var sampledAnchors = [];
+            for (var a = 0; a < anchorDates.length; a += step) {
+                sampledAnchors.push(anchorDates[a]);
+            }
+            if (sampledAnchors[sampledAnchors.length - 1].getTime() !== anchorDates[anchorDates.length - 1].getTime()) {
+                sampledAnchors.push(anchorDates[anchorDates.length - 1]);
+            }
+
+            // Collect historical years available
+            var currentYear = new Date().getUTCFullYear();
+            var minYear = currentYear - lookbackYears;
+            var yearBuckets = {};
+            for (var r = 0; r < dataRows.length; r++) {
+                var row = dataRows[r];
+                if (row.year >= minYear && row.year < sParts[0]) {
+                    if (!yearBuckets[row.year]) yearBuckets[row.year] = [];
+                    yearBuckets[row.year].push(row);
+                }
+            }
+            var histYears = Object.keys(yearBuckets).map(Number).sort(function(x, y) { return x - y; });
+
+            // Pre-index each historical year's rows for fast window slicing
+            var candidatePairs = [];
+            for (var i = 0; i < sampledAnchors.length - 1; i++) {
+                for (var j = i + 2; j < sampledAnchors.length; j++) {
+                    var dStart = sampledAnchors[i];
+                    var dEnd = sampledAnchors[j];
+                    var sm = dStart.getUTCMonth() + 1;
+                    var sd = dStart.getUTCDate();
+                    var em = dEnd.getUTCMonth() + 1;
+                    var ed = dEnd.getUTCDate();
+                    var wrapsYear = (dEnd.getUTCFullYear() > dStart.getUTCFullYear());
+
+                    var upYearly = [];
+                    var downYearly = [];
+                    var maxYearly = [];
+
+                    for (var yIdx = 0; yIdx < histYears.length; yIdx++) {
+                        var yr = histYears[yIdx];
+                        var tStart = Date.UTC(yr, sm - 1, sd);
+                        var tEnd = Date.UTC(wrapsYear ? yr + 1 : yr, em - 1, ed);
+
+                        // Slice dataRows in [tStart, tEnd]
+                        var slice = dataRows.filter(function(item) {
+                            return item.timestamp >= tStart && item.timestamp <= tEnd;
+                        });
+                        if (slice.length < 2) continue;
+
+                        var firstBar = slice[0];
+                        var lastBar = slice[slice.length - 1];
+
+                        // Peak High & Trough Low after day 0
+                        var maxHighAfter = -Infinity;
+                        var minLowAfter = Infinity;
+                        var allHigh = -Infinity;
+                        var allLow = Infinity;
+
+                        for (var sIdx = 0; sIdx < slice.length; sIdx++) {
+                            var b = slice[sIdx];
+                            if (b.high > allHigh) allHigh = b.high;
+                            if (b.low < allLow) allLow = b.low;
+                            if (sIdx >= 1) {
+                                if (b.high > maxHighAfter) maxHighAfter = b.high;
+                                if (b.low < minLowAfter) minLowAfter = b.low;
+                            }
+                        }
+
+                        // Up move from start date Low to subsequent window High/Close
+                        var upPct = ((maxHighAfter / firstBar.low) - 1) * 100;
+                        // Down move from start date High to subsequent window Low (expressed as positive drop magnitude for quantile ranking)
+                        var downDropPct = ((firstBar.high - minLowAfter) / firstBar.high) * 100;
+                        // Max amplitude relative to start Open
+                        var maxAmpPct = ((allHigh - allLow) / firstBar.open) * 100;
+
+                        upYearly.push({
+                            year: yr,
+                            startDate: firstBar.date,
+                            endDate: lastBar.date,
+                            basePrice: firstBar.low,
+                            targetPrice: maxHighAfter,
+                            movePct: upPct
+                        });
+
+                        downYearly.push({
+                            year: yr,
+                            startDate: firstBar.date,
+                            endDate: lastBar.date,
+                            basePrice: firstBar.high,
+                            targetPrice: minLowAfter,
+                            movePct: downDropPct
+                        });
+
+                        maxYearly.push({
+                            year: yr,
+                            startDate: firstBar.date,
+                            endDate: lastBar.date,
+                            basePrice: firstBar.open,
+                            targetPrice: allHigh,
+                            lowPrice: allLow,
+                            movePct: maxAmpPct
+                        });
+                    }
+
+                    if (upYearly.length >= 5) {
+                        var upSorted = upYearly.map(function(x) { return x.movePct; }).sort(function(a, b) { return a - b; });
+                        var downSorted = downYearly.map(function(x) { return x.movePct; }).sort(function(a, b) { return a - b; });
+                        var maxSorted = maxYearly.map(function(x) { return x.movePct; }).sort(function(a, b) { return a - b; });
+
+                        candidatePairs.push({
+                            dStart: dStart,
+                            dEnd: dEnd,
+                            upYearly: upYearly,
+                            downYearly: downYearly,
+                            maxYearly: maxYearly,
+                            upSorted: upSorted,
+                            downSorted: downSorted,
+                            maxSorted: maxSorted
+                        });
+                    }
+                }
+            }
+
+            // For each Percent bucket (100% down to 5%), select the sub-window that maximizes expected move at that probability
+            var byBucket = {};
+            for (var pIdx = 0; pIdx < PERCENT_BUCKETS.length; pIdx++) {
+                var pct = PERCENT_BUCKETS[pIdx];
+                var bestUp = null;
+                var bestDown = null;
+                var bestMax = null;
+
+                for (var c = 0; c < candidatePairs.length; c++) {
+                    var cand = candidatePairs[c];
+                    var uVal = calcQuantileAtWinRate(cand.upSorted, pct);
+                    var dVal = calcQuantileAtWinRate(cand.downSorted, pct);
+                    var mVal = calcQuantileAtWinRate(cand.maxSorted, pct);
+
+                    if (!bestUp || uVal > bestUp.expectedPct) {
+                        bestUp = {
+                            dStart: cand.dStart,
+                            dEnd: cand.dEnd,
+                            expectedPct: Math.max(0.05, uVal),
+                            yearlyDetails: cand.upYearly
+                        };
+                    }
+                    if (!bestDown || dVal > bestDown.expectedPct) {
+                        bestDown = {
+                            dStart: cand.dStart,
+                            dEnd: cand.dEnd,
+                            expectedPct: Math.max(0.05, dVal),
+                            yearlyDetails: cand.downYearly
+                        };
+                    }
+                    if (!bestMax || mVal > bestMax.expectedPct) {
+                        bestMax = {
+                            dStart: cand.dStart,
+                            dEnd: cand.dEnd,
+                            expectedPct: Math.max(0.10, mVal),
+                            yearlyDetails: cand.maxYearly
+                        };
+                    }
+                }
+
+                byBucket[pct] = {
+                    percent: pct,
+                    up: bestUp,
+                    down: bestDown,
+                    max: bestMax
+                };
+            }
+
+            return {
+                symbol: currentSymbol,
+                startDateStr: startDateStr,
+                endDateStr: endDateStr,
+                byBucket: byBucket
+            };
+        }
+
+        // Render the 3 QuantRaiser Result Cards + Bucket Overview Table
+        function renderQuantRaiserView() {
+            if (!lastComputedScan || !lastComputedScan.byBucket[currentPercent]) return;
+
+            var bucketData = lastComputedScan.byBucket[currentPercent];
+            var refPriceInput = parseFloat(document.getElementById("customRefPrice").value);
+            var hasRefPrice = !isNaN(refPriceInput) && refPriceInput > 0;
+
+            var todayStr = new Date().toISOString().slice(0, 10);
+
+            // 1. 升波幅 Card
+            var u = bucketData.up;
+            var uRangeStr = formatChineseMonthDay(u.dStart) + " 最低價 — " + formatChineseMonthDay(u.dEnd);
+            var uFullStartStr = formatFullChineseDate(u.dStart);
+            var uStartIso = u.dStart.toISOString().slice(0, 10);
+            var uStatusPrefix = uStartIso >= todayStr ? "(未開始) " : "(進行中) ";
+            var uTargetPriceStr = hasRefPrice
+                ? (" → 預計目標價 $" + (refPriceInput * (1 + u.expectedPct / 100)).toFixed(2))
+                : "";
+
+            document.getElementById("upWindowText").textContent = uRangeStr;
+            document.getElementById("upHeadlineText").textContent = "會上升 " + u.expectedPct.toFixed(2) + "%" + uTargetPriceStr;
+            document.getElementById("upBaseDateLine").textContent = uFullStartStr + " 最低價 (" + (hasRefPrice ? "$" + refPriceInput.toFixed(2) : "-") + ")";
+            document.getElementById("upPredLine").textContent = uStatusPrefix + "預測升幅 : " + u.expectedPct.toFixed(2) + "%";
+            document.getElementById("upLiveLine").textContent = "暫時升幅 : -";
+
+            // 2. 跌波幅 Card
+            var d = bucketData.down;
+            var dRangeStr = formatChineseMonthDay(d.dStart) + " 最高價 — " + formatChineseMonthDay(d.dEnd);
+            var dFullStartStr = formatFullChineseDate(d.dStart);
+            var dStartIso = d.dStart.toISOString().slice(0, 10);
+            var dStatusPrefix = dStartIso >= todayStr ? "(未開始) " : "(進行中) ";
+            var dTargetPriceStr = hasRefPrice
+                ? (" → 預計目標價 $" + (refPriceInput * (1 - d.expectedPct / 100)).toFixed(2))
+                : "";
+
+            document.getElementById("downWindowText").textContent = dRangeStr;
+            document.getElementById("downHeadlineText").textContent = "會下跌 -" + d.expectedPct.toFixed(2) + "%" + dTargetPriceStr;
+            document.getElementById("downBaseDateLine").textContent = dFullStartStr + " 最高價 (" + (hasRefPrice ? "$" + refPriceInput.toFixed(2) : "-") + ")";
+            document.getElementById("downPredLine").textContent = dStatusPrefix + "預測跌幅 : " + d.expectedPct.toFixed(2) + "%";
+            document.getElementById("downLiveLine").textContent = "暫時跌幅 : -";
+
+            // 3. 最大波幅 Card
+            var m = bucketData.max;
+            var mRangeStr = formatChineseMonthDay(m.dStart) + " 開市價 — " + formatChineseMonthDay(m.dEnd);
+            var mFullStartStr = formatFullChineseDate(m.dStart);
+            var mStartIso = m.dStart.toISOString().slice(0, 10);
+            var mStatusPrefix = mStartIso >= todayStr ? "(未開始) " : "(進行中) ";
+
+            document.getElementById("maxWindowText").textContent = mRangeStr;
+            document.getElementById("maxHeadlineText").textContent = "會波幅 " + m.expectedPct.toFixed(2) + "%";
+            document.getElementById("maxBaseDateLine").textContent = mFullStartStr + " 開市價 (" + (hasRefPrice ? "$" + refPriceInput.toFixed(2) : "-") + ")";
+            document.getElementById("maxPredLine").textContent = mStatusPrefix + "預測波幅 : " + m.expectedPct.toFixed(2) + "%";
+            document.getElementById("maxLiveLine").textContent = "暫時波幅 : -";
+
+            // 4. Populate 20 Percent Bucket Overview Table
+            var tbody = document.getElementById("bucketTableBody");
+            var displayBuckets = [100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50];
+            if (displayBuckets.indexOf(currentPercent) === -1) {
+                displayBuckets.push(currentPercent);
+                displayBuckets.sort(function(a, b) { return b - a; });
+            }
+
+            var rowsHtml = "";
+            for (var i = 0; i < displayBuckets.length; i++) {
+                var p = displayBuckets[i];
+                var b = lastComputedScan.byBucket[p];
+                if (!b) continue;
+                var isSelected = (p === currentPercent);
+                var rowBg = isSelected ? "background:#EEF2FF;font-weight:700;" : "cursor:pointer;";
+
+                rowsHtml += '<tr data-bucket="' + p + '" style="' + rowBg + '">' +
+                    '<td>' + p + '% ' + (isSelected ? '✓' : '') + '</td>' +
+                    '<td style="font-size:11px;color:var(--text-sub);">' + formatChineseMonthDay(b.up.dStart) + '—' + formatChineseMonthDay(b.up.dEnd) + '</td>' +
+                    '<td style="text-align:right;color:var(--up-green);font-weight:700;">+' + b.up.expectedPct.toFixed(2) + '%</td>' +
+                    '<td style="font-size:11px;color:var(--text-sub);">' + formatChineseMonthDay(b.down.dStart) + '—' + formatChineseMonthDay(b.down.dEnd) + '</td>' +
+                    '<td style="text-align:right;color:var(--down-red);font-weight:700;">-' + b.down.expectedPct.toFixed(2) + '%</td>' +
+                    '<td style="text-align:right;color:var(--max-orange);font-weight:700;">' + b.max.expectedPct.toFixed(2) + '%</td>' +
+                '</tr>';
+            }
+            tbody.innerHTML = rowsHtml;
+
+            var trs = tbody.querySelectorAll("tr[data-bucket]");
+            for (var t = 0; t < trs.length; t++) {
+                trs[t].addEventListener("click", function() {
+                    var chosen = parseInt(this.getAttribute("data-bucket"), 10);
+                    selectPercentBucket(chosen);
+                });
+            }
+        }
+
+        // Modal Popups for 過去數據 (Past Yearly Data) and K線圖 (SVG Chart)
+        function openHistoryModal(type) {
+            if (!lastComputedScan || !lastComputedScan.byBucket[currentPercent]) return;
+            var b = lastComputedScan.byBucket[currentPercent];
+            var targetObj = type === "up" ? b.up : (type === "down" ? b.down : b.max);
+            var titlePrefix = type === "up" ? "升波幅 — 過去數據" : (type === "down" ? "跌波幅 — 過去數據" : "最大波幅 — 過去數據");
+            var sign = type === "down" ? "-" : "+";
+            var threshold = targetObj.expectedPct;
+
+            document.getElementById("modalTitle").textContent = currentSymbol + " " + titlePrefix + " (" + formatChineseMonthDay(targetObj.dStart) + " 至 " + formatChineseMonthDay(targetObj.dEnd) + ")";
+
+            var list = targetObj.yearlyDetails.slice().sort(function(a, b) { return b.year - a.year; });
+            var hitCount = list.filter(function(item) { return item.movePct >= threshold - 1e-6; }).length;
+
+            var html = '<div style="margin-bottom:10px;font-size:12px;color:var(--text-sub);display:flex;justify-content:space-between;">' +
+                '<span>設定機率門檻: <strong>' + currentPercent + '%</strong> (預計幅度 ' + (type === "down" ? "-" : (type === "up" ? "+" : "")) + threshold.toFixed(2) + '%)</span>' +
+                '<span>歷史達標年數: <strong>' + hitCount + ' / ' + list.length + ' 年</strong></span>' +
+            '</div>';
+
+            html += '<table class="hist-table mono"><thead><tr>' +
+                '<th>年份</th>' +
+                '<th>子窗口日期</th>' +
+                '<th style="text-align:right;">基準價</th>' +
+                '<th style="text-align:right;">極值價</th>' +
+                '<th style="text-align:right;">實際波幅</th>' +
+                '<th style="text-align:center;">達標</th>' +
+            '</tr></thead><tbody>';
+
+            for (var i = 0; i < list.length; i++) {
+                var item = list[i];
+                var hit = item.movePct >= threshold - 1e-4;
+                var color = type === "down" ? "var(--down-red)" : (type === "up" ? "var(--up-green)" : "var(--max-orange)");
+                html += '<tr>' +
+                    '<td style="font-weight:700;">' + item.year + '</td>' +
+                    '<td style="color:var(--text-sub);font-size:11px;">' + item.startDate + ' → ' + item.endDate + '</td>' +
+                    '<td style="text-align:right;">' + item.basePrice.toFixed(2) + '</td>' +
+                    '<td style="text-align:right;">' + item.targetPrice.toFixed(2) + '</td>' +
+                    '<td style="text-align:right;font-weight:700;color:' + color + ';">' + (type === "max" ? "" : sign) + item.movePct.toFixed(2) + '%</td>' +
+                    '<td style="text-align:center;">' + (hit ? '✅' : '—') + '</td>' +
+                '</tr>';
+            }
+            html += '</tbody></table>';
+
+            document.getElementById("modalBodyContent").innerHTML = html;
+            document.getElementById("detailModal").classList.add("open");
+        }
+
+        function openChartModal(type) {
+            if (!lastComputedScan || !lastComputedScan.byBucket[currentPercent]) return;
+            var b = lastComputedScan.byBucket[currentPercent];
+            var targetObj = type === "up" ? b.up : (type === "down" ? b.down : b.max);
+            var titlePrefix = type === "up" ? "升波幅歷年分佈圖" : (type === "down" ? "跌波幅歷年分佈圖" : "最大波幅歷年分佈圖");
+            var barColor = type === "down" ? "#DC2626" : (type === "up" ? "#059669" : "#D97706");
+
+            document.getElementById("modalTitle").textContent = currentSymbol + " " + titlePrefix + " (" + formatChineseMonthDay(targetObj.dStart) + " — " + formatChineseMonthDay(targetObj.dEnd) + ")";
+
+            var chron = targetObj.yearlyDetails.slice().sort(function(a, b) { return a.year - b.year; });
+            var maxVal = targetObj.expectedPct * 1.4;
+            for (var i = 0; i < chron.length; i++) {
+                if (chron[i].movePct > maxVal) maxVal = chron[i].movePct;
+            }
+            maxVal = Math.ceil(maxVal * 1.15);
+
+            var w = 520, h = 240, padL = 42, padR = 14, padT = 20, padB = 32;
+            var plotW = w - padL - padR;
+            var plotH = h - padT - padB;
+            var n = chron.length;
+            var slotW = plotW / Math.max(1, n);
+            var barW = Math.max(6, Math.min(22, slotW * 0.68));
+
+            var svg = '<svg viewBox="0 0 ' + w + ' ' + h + '" width="100%" height="240">';
+            for (var s = 0; s <= 4; s++) {
+                var gv = (maxVal / 4) * s;
+                var gy = padT + plotH - (gv / maxVal) * plotH;
+                svg += '<line x1="' + padL + '" y1="' + gy.toFixed(1) + '" x2="' + (w - padR) + '" y2="' + gy.toFixed(1) + '" stroke="#F3F4F6" stroke-width="1"/>';
+                svg += '<text x="' + (padL - 5) + '" y="' + (gy + 3).toFixed(1) + '" text-anchor="end" font-size="10" fill="#6B7280">' + gv.toFixed(0) + '%</text>';
+            }
+
+            for (var idx = 0; idx < n; idx++) {
+                var item = chron[idx];
+                var v = Math.max(0, item.movePct);
+                var bh = Math.min(plotH, (v / maxVal) * plotH);
+                var bx = padL + idx * slotW + (slotW - barW) / 2;
+                var by = padT + plotH - bh;
+                var isHit = v >= targetObj.expectedPct - 1e-4;
+                var fill = isHit ? barColor : "#D1D5DB";
+
+                svg += '<rect x="' + bx.toFixed(1) + '" y="' + by.toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + Math.max(2, bh).toFixed(1) + '" rx="3" fill="' + fill + '"/>';
+                svg += '<text x="' + (bx + barW / 2).toFixed(1) + '" y="' + Math.max(11, by - 3).toFixed(1) + '" text-anchor="middle" font-size="8.5" font-weight="600" fill="#374151">' + v.toFixed(1) + '</text>';
+                if (idx % 2 === 0 || idx === n - 1) {
+                    svg += '<text x="' + (bx + barW / 2).toFixed(1) + '" y="' + (h - 10) + '" text-anchor="middle" font-size="9.5" fill="#6B7280">\'' + String(item.year).slice(-2) + '</text>';
+                }
+            }
+
+            var ty = padT + plotH - Math.min(plotH, (targetObj.expectedPct / maxVal) * plotH);
+            svg += '<line x1="' + padL + '" y1="' + ty.toFixed(1) + '" x2="' + (w - padR) + '" y2="' + ty.toFixed(1) + '" stroke="#4F46E5" stroke-width="1.8" stroke-dasharray="5,4"/>';
+            svg += '</svg>';
+
+            var caption = '<div style="margin-top:10px;font-size:12px;color:var(--text-sub);line-height:1.5;">' +
+                '虛線代表 <strong>Percent ' + currentPercent + '%</strong> 之預測波幅門檻 (<strong>' + targetObj.expectedPct.toFixed(2) + '%</strong>)。彩色柱代表該年份在 <strong>' + formatChineseMonthDay(targetObj.dStart) + ' — ' + formatChineseMonthDay(targetObj.dEnd) + '</strong> 期間實際超越此幅度。' +
+            '</div>';
+
+            document.getElementById("modalBodyContent").innerHTML = svg + caption;
+            document.getElementById("detailModal").classList.add("open");
+        }
+
+        // Update Date Difference Hint ("最多 180 天 (現 42 天)")
+        function updateDayCountHint() {
+            var sVal = document.getElementById("startDateInput").value;
+            var eVal = document.getElementById("endDateInput").value;
+            var hintEl = document.getElementById("dayCountHint");
+            if (!sVal || !eVal) return 42;
+
+            var d1 = new Date(sVal);
+            var d2 = new Date(eVal);
+            var diffDays = Math.round((d2.getTime() - d1.getTime()) / (86400 * 1000));
+
+            if (diffDays <= 0) {
+                hintEl.textContent = "結束日期需晚於起始日期";
+                hintEl.classList.add("over-limit");
+            } else if (diffDays > 180) {
+                hintEl.textContent = "最多 180 天 (現 " + diffDays + " 天，建議縮短)";
+                hintEl.classList.add("over-limit");
+            } else {
+                hintEl.textContent = "最多 180 天 (現 " + diffDays + " 天)";
+                hintEl.classList.remove("over-limit");
+            }
+            return diffDays;
+        }
+
+        // Populate Symbol & Percent Dropdown Lists
+        function renderSymbolDropdownList(filterStr) {
+            var container = document.getElementById("symbolListContainer");
+            var rawQ = (filterStr || "").trim();
+            var q = rawQ.toUpperCase();
+            var matches = SYMBOL_CATALOG.filter(function(sym) {
+                var desc = (SYMBOL_LABELS[sym] || "").toUpperCase();
+                return !q || sym.indexOf(q) !== -1 || desc.indexOf(q) !== -1;
+            });
+
+            var html = "";
+            for (var i = 0; i < matches.length; i++) {
+                var s = matches[i];
+                var isSel = (s === currentSymbol);
+                var descText = SYMBOL_LABELS[s] ? (' <span style="font-size:11px;color:var(--text-muted);font-weight:400;">' + SYMBOL_LABELS[s] + '</span>') : '';
+                html += '<div class="dropdown-item mono ' + (isSel ? 'selected' : '') + '" data-sym="' + s + '">' +
+                    '<span><strong>' + s + '</strong>' + descText + '</span>' +
+                    (isSel ? '<span>✓</span>' : '') +
+                '</div>';
+            }
+            if (q && matches.indexOf(q) === -1) {
+                var resolved = SYMBOL_ALIASES[q] || q;
+                html += '<div class="dropdown-item mono" data-sym="' + resolved + '" style="color:var(--indigo);font-weight:700;">' +
+                    '<span>使用自定 symbol: ' + resolved + '</span>' +
+                '</div>';
+            }
+            container.innerHTML = html;
+
+            var items = container.querySelectorAll(".dropdown-item");
+            for (var k = 0; k < items.length; k++) {
+                items[k].addEventListener("click", function() {
+                    var chosen = this.getAttribute("data-sym");
+                    selectSymbol(chosen);
+                });
+            }
+        }
+
+        function renderPercentDropdownList(filterStr) {
+            var container = document.getElementById("percentListContainer");
+            var q = (filterStr || "").trim().replace("%", "");
+            var matches = PERCENT_BUCKETS.filter(function(p) {
+                return !q || String(p).indexOf(q) !== -1;
+            });
+
+            var html = "";
+            for (var i = 0; i < matches.length; i++) {
+                var p = matches[i];
+                var isSel = (p === currentPercent);
+                html += '<div class="dropdown-item mono ' + (isSel ? 'selected' : '') + '" data-pct="' + p + '">' +
+                    '<span>' + p + '%</span>' +
+                    (isSel ? '<span>✓</span>' : '') +
+                '</div>';
+            }
+            container.innerHTML = html;
+
+            var items = container.querySelectorAll(".dropdown-item");
+            for (var k = 0; k < items.length; k++) {
+                items[k].addEventListener("click", function() {
+                    var chosen = parseInt(this.getAttribute("data-pct"), 10);
+                    selectPercentBucket(chosen);
+                });
+            }
+        }
+
+        function showToast(msg) {
+            var bar = document.getElementById("toastBar");
+            document.getElementById("toastMsgText").textContent = msg;
+            bar.classList.add("show");
+            setTimeout(function() {
+                bar.classList.remove("show");
+            }, 3200);
+        }
+
+        function selectSymbol(sym) {
+            var raw = sym.trim().toUpperCase();
+            currentSymbol = SYMBOL_ALIASES[raw] || raw;
+            var labelSuffix = SYMBOL_LABELS[currentSymbol] ? (" — " + SYMBOL_LABELS[currentSymbol]) : "";
+            document.getElementById("selectedSymbolText").textContent = currentSymbol + labelSuffix;
+            document.getElementById("tickerInput").value = currentSymbol;
+            document.getElementById("symbolDropdownPanel").classList.remove("open");
+            executeQuantRaiserSubmit(true);
+        }
+
+        function selectPercentBucket(pct) {
+            currentPercent = pct;
+            document.getElementById("selectedPercentText").textContent = pct + "%";
+            document.getElementById("percentDropdownPanel").classList.remove("open");
+            if (lastComputedScan) {
+                renderQuantRaiserView();
+            } else {
+                executeQuantRaiserSubmit(false);
+            }
+        }
+
+        async function executeQuantRaiserSubmit(showBucketToast) {
+            var sDate = document.getElementById("startDateInput").value || "2026-11-09";
+            var eDate = document.getElementById("endDateInput").value || "2026-12-21";
+            var lookback = parseInt(document.getElementById("yearsSelect").value, 10) || 20;
+
+            updateDayCountHint();
+
+            var banner = document.getElementById("calcBanner");
+            document.getElementById("calcSubText").textContent =
+                currentSymbol + " / " + sDate + " ~ " + eDate + " / percent " + currentPercent;
+            banner.classList.add("active");
+
+            // Immediate synchronous computation using pre-calibrated dataset so UI never lags
+            currentDataset = customCsvCache[currentSymbol] || generateHistoricalSeries(currentSymbol);
+            currentSourceLabel = customCsvCache[currentSymbol] ? ("本地 CSV (" + currentSymbol + ")") : ("量化歷史庫 (" + currentSymbol + ")");
+            document.getElementById("sourceLabelText").textContent = currentSourceLabel;
+
+            lastComputedScan = computeQuantRaiserScan(currentDataset, sDate, eDate, lookback);
+            renderQuantRaiserView();
+            runReverseTouchLookup();
+
+            // Attempt live Yahoo Finance sync in background
+            try {
+                var liveRows = await fetchMarketData(currentSymbol, lookback);
+                currentDataset = liveRows;
+                document.getElementById("sourceLabelText").textContent = currentSourceLabel;
+                lastComputedScan = computeQuantRaiserScan(currentDataset, sDate, eDate, lookback);
+                renderQuantRaiserView();
+                runReverseTouchLookup();
+            } catch (e) {
+                // Keep pre-computed scan
+            } finally {
+                banner.classList.remove("active");
+                if (showBucketToast) {
+                    showToast("已載入 20 個 percent bucket (" + currentSymbol + ")");
+                }
+            }
+        }
+
+        // Reverse Touch Probability Lookup (User's original Python script mode)
+        function runReverseTouchLookup() {
+            if (!currentDataset || currentDataset.length === 0) return;
+            var sDate = document.getElementById("startDateInput").value || "2026-11-09";
+            var eDate = document.getElementById("endDateInput").value || "2026-12-21";
+            var sParts = sDate.split("-").map(Number);
+            var eParts = eDate.split("-").map(Number);
+            var target = parseFloat(document.getElementById("targetReturn").value) || 5.0;
+            var dir = document.getElementById("dirSelectTouch").value;
+            var lookback = parseInt(document.getElementById("yearsSelect").value, 10) || 20;
+
+            var curYr = new Date().getUTCFullYear();
+            var minYr = curYr - lookback;
+            var wraps = (eParts[0] > sParts[0]);
+
+            var yearsSet = {};
+            currentDataset.forEach(function(r) {
+                if (r.year >= minYr && r.year < sParts[0]) yearsSet[r.year] = true;
+            });
+            var yrs = Object.keys(yearsSet).map(Number).sort(function(a, b) { return a - b; });
+
+            var hits = 0;
+            var total = 0;
+            for (var i = 0; i < yrs.length; i++) {
+                var y = yrs[i];
+                var t1 = Date.UTC(y, sParts[1] - 1, sParts[2]);
+                var t2 = Date.UTC(wraps ? y + 1 : y, eParts[1] - 1, eParts[2]);
+                var slice = currentDataset.filter(function(r) { return r.timestamp >= t1 && r.timestamp <= t2; });
+                if (slice.length < 2) continue;
+                total++;
+                var baseC = slice[0].close;
+                if (dir === "call") {
+                    var maxH = Math.max.apply(null, slice.map(function(x) { return x.high; }));
+                    if (((maxH / baseC) - 1) * 100 >= target) hits++;
+                } else {
+                    var minL = Math.min.apply(null, slice.map(function(x) { return x.low; }));
+                    if (((baseC - minL) / baseC) * 100 >= target) hits++;
+                }
+            }
+
+            var prob = total > 0 ? ((hits / total) * 100).toFixed(2) : "0.00";
+            document.getElementById("touchResultBox").innerHTML =
+                '在 <strong>' + sParts[1] + '月' + sParts[2] + '日 — ' + eParts[1] + '月' + eParts[2] + '日</strong> 整個區間內，過去 ' + total + ' 年由首日收市價起算觸及 <strong>' + (dir === "call" ? "+" : "-") + target.toFixed(1) + '%</strong> 的歷史機率為 <strong style="color:var(--indigo);font-size:15px;">' + prob + '%</strong> (' + hits + '/' + total + ' 年達標)。';
+        }
+
+        // Parse Uploaded CSV
+        function parseUploadedCsv(csvText) {
+            var lines = csvText.trim().split(/\r?\n/);
+            if (lines.length < 2) throw new Error("CSV 檔案內容過少");
+
+            var headers = lines[0].split(",").map(function(h) { return h.trim().replace(/^["']|["']$/g, "").toLowerCase(); });
+            var dateIdx = headers.findIndex(function(h) { return h.indexOf("date") !== -1 || h.indexOf("日期") !== -1; });
+            var closeIdx = headers.findIndex(function(h) { return h === "close" || h === "adj close" || h.indexOf("收市") !== -1; });
+            var highIdx = headers.findIndex(function(h) { return h === "high" || h.indexOf("最高") !== -1; });
+            var lowIdx = headers.findIndex(function(h) { return h === "low" || h.indexOf("最低") !== -1; });
+            var openIdx = headers.findIndex(function(h) { return h === "open" || h.indexOf("開市") !== -1; });
+
+            if (dateIdx === -1 || closeIdx === -1 || highIdx === -1) {
+                throw new Error("請確保 CSV 包含 Date, Close, High 欄位。");
+            }
+
+            var parsed = [];
+            for (var i = 1; i < lines.length; i++) {
+                var cols = lines[i].split(",").map(function(c) { return c.trim().replace(/^["']|["']$/g, ""); });
+                if (cols.length <= Math.max(dateIdx, closeIdx, highIdx)) continue;
+                var dt = new Date(cols[dateIdx]);
+                var c = parseFloat(cols[closeIdx]);
+                var h = parseFloat(cols[highIdx]);
+                var l = lowIdx !== -1 ? parseFloat(cols[lowIdx]) : c;
+                var o = openIdx !== -1 ? parseFloat(cols[openIdx]) : c;
+                if (isNaN(dt.getTime()) || isNaN(c) || isNaN(h)) continue;
+
+                var yyyy = dt.getUTCFullYear();
+                var mm = dt.getUTCMonth() + 1;
+                var dd = dt.getUTCDate();
+                var mmStr = String(mm).padStart(2, "0");
+                var ddStr = String(dd).padStart(2, "0");
+
+                parsed.push({
+                    date: yyyy + "-" + mmStr + "-" + ddStr,
+                    timestamp: Date.UTC(yyyy, mm - 1, dd),
+                    year: yyyy,
+                    month: mm,
+                    day: dd,
+                    mmdd: mmStr + "-" + ddStr,
+                    open: isNaN(o) ? c : o,
+                    high: h,
+                    low: isNaN(l) ? c : l,
+                    close: c
+                });
+            }
+            parsed.sort(function(a, b) { return a.timestamp - b.timestamp; });
+            return parsed;
+        }
+
+        function exportBucketTableToCsv() {
+            if (!lastComputedScan) return;
+            var headers = ["Symbol", "Percent_WinRate", "Up_Window", "Expected_Up_Pct", "Down_Window", "Expected_Down_Pct", "Max_Window", "Expected_Max_Pct"];
+            var rows = [headers.join(",")];
+            for (var i = 0; i < PERCENT_BUCKETS.length; i++) {
+                var p = PERCENT_BUCKETS[i];
+                var b = lastComputedScan.byBucket[p];
+                if (!b) continue;
+                rows.push([
+                    currentSymbol,
+                    p + "%",
+                    formatChineseMonthDay(b.up.dStart) + "-" + formatChineseMonthDay(b.up.dEnd),
+                    b.up.expectedPct.toFixed(2) + "%",
+                    formatChineseMonthDay(b.down.dStart) + "-" + formatChineseMonthDay(b.down.dEnd),
+                    "-" + b.down.expectedPct.toFixed(2) + "%",
+                    formatChineseMonthDay(b.max.dStart) + "-" + formatChineseMonthDay(b.max.dEnd),
+                    b.max.expectedPct.toFixed(2) + "%"
+                ].join(","));
+            }
+            var blob = new Blob(["\uFEFF" + rows.join("\n")], { type: "text/csv;charset=utf-8;" });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement("a");
+            a.href = url;
+            a.download = currentSymbol + "_QuantRaiser_Probability_Table.csv";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function initQuantRaiserApp() {
+            renderSymbolDropdownList("");
+            renderPercentDropdownList("");
+
+            // Symbol Dropdown Toggle & Search
+            var symTrigger = document.getElementById("symbolTriggerBtn");
+            var symPanel = document.getElementById("symbolDropdownPanel");
+            var symInput = document.getElementById("tickerInput");
+
+            symTrigger.addEventListener("click", function(e) {
+                e.stopPropagation();
+                document.getElementById("percentDropdownPanel").classList.remove("open");
+                symPanel.classList.toggle("open");
+                if (symPanel.classList.contains("open")) {
+                    symInput.value = "";
+                    renderSymbolDropdownList("");
+                    symInput.focus();
+                }
+            });
+
+            symInput.addEventListener("input", function() {
+                renderSymbolDropdownList(this.value);
+            });
+
+            symInput.addEventListener("keydown", function(e) {
+                if (e.key === "Enter" && this.value.trim()) {
+                    selectSymbol(this.value.trim());
+                }
+            });
+
+            // Percent Dropdown Toggle & Search
+            var pctTrigger = document.getElementById("percentTriggerBtn");
+            var pctPanel = document.getElementById("percentDropdownPanel");
+            var pctInput = document.getElementById("percentSearchInput");
+
+            pctTrigger.addEventListener("click", function(e) {
+                e.stopPropagation();
+                symPanel.classList.remove("open");
+                pctPanel.classList.toggle("open");
+                if (pctPanel.classList.contains("open")) {
+                    pctInput.value = "";
+                    renderPercentDropdownList("");
+                    pctInput.focus();
+                }
+            });
+
+            pctInput.addEventListener("input", function() {
+                renderPercentDropdownList(this.value);
+            });
+
+            // Close dropdowns when clicking outside
+            document.addEventListener("click", function(e) {
+                if (!document.getElementById("symbolDropdownGroup").contains(e.target)) {
+                    symPanel.classList.remove("open");
+                }
+                if (!document.getElementById("percentDropdownGroup").contains(e.target)) {
+                    pctPanel.classList.remove("open");
+                }
+            });
+
+            // Quick Symbol Pills
+            var quickBtns = document.querySelectorAll("button[data-quick]");
+            for (var q = 0; q < quickBtns.length; q++) {
+                quickBtns[q].addEventListener("click", function() {
+                    selectSymbol(this.getAttribute("data-quick"));
+                });
+            }
+
+            // Date & Lookback Listeners
+            document.getElementById("startDateInput").addEventListener("change", function() {
+                updateDayCountHint();
+            });
+            document.getElementById("endDateInput").addEventListener("change", function() {
+                updateDayCountHint();
+            });
+            document.getElementById("yearsSelect").addEventListener("change", function() {
+                executeQuantRaiserSubmit(false);
+            });
+            document.getElementById("customRefPrice").addEventListener("input", function() {
+                renderQuantRaiserView();
+            });
+
+            // Submit Button
+            document.getElementById("runAnalysisBtn").addEventListener("click", function() {
+                executeQuantRaiserSubmit(true);
+            });
+
+            // Card Buttons: 過去數據 & K線圖
+            document.getElementById("histUpBtn").addEventListener("click", function() { openHistoryModal("up"); });
+            document.getElementById("histDownBtn").addEventListener("click", function() { openHistoryModal("down"); });
+            document.getElementById("histMaxBtn").addEventListener("click", function() { openHistoryModal("max"); });
+
+            document.getElementById("klineUpBtn").addEventListener("click", function() { openChartModal("up"); });
+            document.getElementById("klineDownBtn").addEventListener("click", function() { openChartModal("down"); });
+            document.getElementById("klineMaxBtn").addEventListener("click", function() { openChartModal("max"); });
+
+            // Detail Modal Close
+            document.getElementById("closeDetailModalBtn").addEventListener("click", function() {
+                document.getElementById("detailModal").classList.remove("open");
+            });
+
+            // Topbar Mode Pills
+            document.getElementById("modeQuantBtn").addEventListener("click", function() {
+                this.classList.add("active");
+                document.getElementById("modeTouchBtn").classList.remove("active");
+                document.getElementById("reverseTouchCard").style.display = "none";
+            });
+            document.getElementById("modeTouchBtn").addEventListener("click", function() {
+                this.classList.add("active");
+                document.getElementById("modeQuantBtn").classList.remove("active");
+                document.getElementById("reverseTouchCard").style.display = "block";
+                runReverseTouchLookup();
+            });
+            document.getElementById("calcTouchBtn").addEventListener("click", runReverseTouchLookup);
+
+            // Toast Close
+            document.getElementById("closeToastBtn").addEventListener("click", function() {
+                document.getElementById("toastBar").classList.remove("show");
+            });
+
+            // CSV Modal & Export
+            var csvModal = document.getElementById("csvModal");
+            document.getElementById("openCsvModalBtn").addEventListener("click", function() { csvModal.classList.add("open"); });
+            document.getElementById("closeCsvModalBtn").addEventListener("click", function() { csvModal.classList.remove("open"); });
+            document.getElementById("cancelCsvModalBtn").addEventListener("click", function() { csvModal.classList.remove("open"); });
+
+            document.getElementById("csvFileInput").addEventListener("change", function(e) {
+                var file = e.target.files && e.target.files[0];
+                if (!file) return;
+                var reader = new FileReader();
+                reader.onload = function(evt) {
+                    try {
+                        var rows = parseUploadedCsv(evt.target.result);
+                        var symName = file.name.replace(/\.csv$/i, "").toUpperCase();
+                        customCsvCache[symName] = rows;
+                        csvModal.classList.remove("open");
+                        selectSymbol(symName);
+                    } catch (err) {
+                        showToast(err.message);
+                    }
+                };
+                reader.readAsText(file);
+            });
+
+            document.getElementById("exportCsvBtn").addEventListener("click", exportBucketTableToCsv);
+
+            // Initial Auto-Run with SPY (2026-11-09 to 2026-12-21, Percent 95%)
+            executeQuantRaiserSubmit(true);
+        }
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", initQuantRaiserApp);
+        } else {
+            initQuantRaiserApp();
+        }
+    </script>
+</body>
+</html>

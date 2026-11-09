@@ -246,7 +246,7 @@
         .num-soft { transition: color 0.35s ease; }
 
         .top-nav {
-            display: flex; gap: 0.35rem; align-items: center;
+            display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center;
             background: #F8FAFC;
             border: 1px solid #E2E8F0;
             border-radius: 0.65rem;
@@ -265,6 +265,17 @@
             white-space: nowrap;
         }
         .top-nav-btn:hover { color: #0F172A; background: #EEF2F6; }
+        a.top-nav-link {
+            padding: 0.4rem 0.9rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            color: #1E3A8A;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: color 0.15s, background 0.15s;
+        }
+        a.top-nav-link:hover { color: #1D4ED8; background: #EEF2F6; }
         .top-nav-btn.active {
             color: #fff;
             background: #2563EB;
@@ -636,6 +647,7 @@
                         <button type="button" class="top-nav-btn active" id="navPortfolio" onclick="switchAppView('portfolio')">組合</button>
                         <button type="button" class="top-nav-btn" id="navCalc" onclick="switchAppView('calc')">期權計算機</button>
                         <button type="button" class="top-nav-btn" id="navReports" onclick="switchAppView('reports')">月報</button>
+                        <a class="top-nav-link" href="tools/quantraise.html" target="_blank" rel="noopener">波幅機率表</a>
                     </nav>
                 </div>
 
@@ -1010,13 +1022,22 @@
                     <button type="button" class="top-nav-btn" onclick="switchAppView('portfolio')">組合</button>
                     <button type="button" class="top-nav-btn active" onclick="switchAppView('calc')">期權計算機</button>
                     <button type="button" class="top-nav-btn" onclick="switchAppView('reports')">月報</button>
+                    <a class="top-nav-link" href="tools/quantraise.html" target="_blank" rel="noopener">波幅機率表</a>
                 </nav>
                 <span class="text-xs text-muted hidden sm:inline">Ricky's Investment · 期權計算機</span>
             </div>
             <button type="button" class="text-xs text-blue-700 hover:text-blue-800" onclick="switchAppView('portfolio')">← 返回組合</button>
         </div>
-        <div class="opt-guides-strip" aria-label="期權指南">
+        <div class="opt-guides-strip" aria-label="期權工具同指南">
             <div class="opt-guides-strip-inner">
+                <span class="opt-guides-label">工具</span>
+                <a class="opt-guide-link" href="tools/quantraise.html" target="_blank" rel="noopener">
+                    <span class="opt-guide-ico" aria-hidden="true">📊</span>
+                    <span class="opt-guide-text">
+                        <span>QuantRaiser 波幅機率表</span>
+                        <span class="opt-guide-sub">預計價位 · 升跌波幅同觸及機率</span>
+                    </span>
+                </a>
                 <span class="opt-guides-label">期權指南</span>
                 <a class="opt-guide-link" href="guides/options-strategy-guide.html" target="_blank" rel="noopener">
                     <span class="opt-guide-ico" aria-hidden="true">📖</span>
@@ -1058,6 +1079,7 @@
                     <button type="button" class="top-nav-btn" onclick="switchAppView('portfolio')">組合</button>
                     <button type="button" class="top-nav-btn" onclick="switchAppView('calc')">期權計算機</button>
                     <button type="button" class="top-nav-btn active" onclick="switchAppView('reports')">月報</button>
+                    <a class="top-nav-link" href="tools/quantraise.html" target="_blank" rel="noopener">波幅機率表</a>
                 </nav>
                 <span class="text-xs text-muted hidden sm:inline">Ricky's Investment · 經濟月報</span>
             </div>
