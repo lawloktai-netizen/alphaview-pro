@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Stock Screener — 如何選股 Criteria</title>
+<meta name="description" content="Screen US and HK stocks against the 如何選股 course criteria: high-growth, quality, REIT and dividend stocks, using free Yahoo Finance data." />
+<link rel="preconnect" href="https://api.fontshare.com" />
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="./styles.css" />
+<script>window.__API_BASE__ = 'https://hk-stock-screener.pplx.app/port/8000';</script>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <svg viewBox="0 0 32 32" width="28" height="28" aria-label="Screener mark" role="img"><rect x="2" y="2" width="28" height="28" rx="6" fill="var(--accent)"/><path d="M8 21l5-6 4 3 7-9" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div>
+      <a class="home" href="../">← Ricky's Investment</a>
+      <h1>Stock Screener</h1>
+      <p class="sub">如何選股 criteria · US &amp; HK · <span id="asof">—</span></p>
+    </div>
+  </div>
+  <form id="lookup" class="lookup" autocomplete="off">
+    <label for="lookup-input" class="sr">Analyze any ticker</label>
+    <input id="lookup-input" data-testid="input-ticker" placeholder="Analyze ticker, e.g. TSLA or 0700.HK" />
+    <button type="submit" data-testid="button-analyze">Analyze</button>
+  </form>
+</header>
+
+<nav class="tabs" role="tablist" id="tabs"></nav>
+
+<main>
+  <section class="intro" id="intro"></section>
+
+  <section class="kpis" id="kpis"></section>
+
+  <section class="controls">
+    <div class="seg" role="group" aria-label="Market">
+      <button data-mkt="ALL" class="on" data-testid="filter-all">All</button>
+      <button data-mkt="US" data-testid="filter-us">US</button>
+      <button data-mkt="HK" data-testid="filter-hk">HK</button>
+    </div>
+    <input id="q" type="search" placeholder="Filter symbol or name" data-testid="input-filter" />
+    <label class="chk"><input type="checkbox" id="onlyPass" data-testid="toggle-pass" /> Full passes only</label>
+    <label class="chk" id="reitOnlyWrap"><input type="checkbox" id="reitOnly" data-testid="toggle-reit" /> REITs only</label>
+    <label class="mc">Min mkt cap <span>HK$</span><input id="mcap" type="number" min="0" step="5" value="30" data-testid="input-mcap" /><span>bn</span></label>
+  </section>
+
+  <section class="tablewrap">
+    <table id="grid">
+      <thead></thead>
+      <tbody></tbody>
+    </table>
+    <p class="empty" id="empty" hidden>No stocks match these filters.</p>
+  </section>
+
+  <section class="method">
+    <h2>Data and method</h2>
+    <ul>
+      <li><b>Data source:</b> Yahoo Finance via the free, open-source <a href="https://github.com/ranaroussi/yfinance" target="_blank" rel="noopener">yfinance</a> library. No API key needed, and it covers US and HK (.HK) listings. Yahoo provides about 4 to 5 years of annual statements, so "5-year" tests use the longest span available. The span used is shown beside each value.</li>
+      <li><b>Market cap:</b> converted to HKD at the latest FX rate, so the 300億 threshold applies the same way to every market.</li>
+      <li><b>FFO (REITs):</b> net income + D&amp;A + non-cash property items (revaluation, disposal gains, impairments), taken from the cash-flow statement.</li>
+      <li><b>Quarterly EPS:</b> taken from the Yahoo earnings calendar. Many HK companies report half-yearly, so this test shows "n/a" for them. The course says to check half-year results by hand.</li>
+      <li><b>Manual criteria:</b> peer ranking, products and services, industry type, and management background need judgement, so they are not scored here.</li>
+      <li>For study only, not investment advice. Check key figures against the company's filings.</li>
+    </ul>
+  </section>
+</main>
+
+<aside id="drawer" class="drawer" aria-hidden="true">
+  <div class="drawer-inner">
+    <button class="close" id="close" aria-label="Close" data-testid="button-close">×</button>
+    <div id="detail"></div>
+  </div>
+</aside>
+<div id="scrim" class="scrim"></div>
+
+<script src="./data.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
