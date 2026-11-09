@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>期權計算機 | Ricky's Investment</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=20261109cboe">
 
 <script>
 (function(){
@@ -74,7 +74,7 @@
       <details class="adv"><summary>⚙️ 資料來源設定 <span class="hint" id="modeLbl"></span></summary>
         <div class="field" style="margin-top:8px"><label for="proxy">自訂 CORS Proxy（可選）<span class="hint">例：https://你的worker.workers.dev/?url={url}　留空 = 用內置公共代理</span></label>
           <input id="proxy" placeholder="https://..." autocomplete="off"></div>
-        <div class="note">純網頁模式下，瀏覽器會依次試：Yahoo 直連 → 自訂 Proxy → 公共 CORS Proxy（allorigins / corsproxy.io / codetabs / cors.lol）→ 騰訊財經（原生支援 CORS）。全部失敗就請人手輸入現價同股息率。</div>
+        <div class="note">純網頁模式下，正股報價會依次試：Yahoo 直連 → 自訂 Proxy → 公共 CORS Proxy（allorigins / corsproxy.io / codetabs / cors.lol）→ 騰訊財經（原生支援 CORS）。全部失敗就請人手輸入現價同股息率。美股／ETF 期權鏈另外讀 CBOE 延遲報價（直連、讀取器或內置 JSON），唔使本地後端。</div>
       </details>
     </section>
 
@@ -88,7 +88,7 @@
           <div class="dteline" id="dteLine">—</div>
         </div>
         <div class="field">
-          <label for="expSelect">Yahoo 期權到期日 <span class="hint">(只限有期權鏈嘅美股)</span></label>
+          <label for="expSelect">期權到期日 <span class="hint">美股／ETF 用 CBOE 延遲鏈</span></label>
           <select id="expSelect"><option value="">— 未載入 —</option></select>
           <div class="dteline" id="chainNote"></div>
         </div>
@@ -123,7 +123,7 @@
         <button class="btn ghost" id="btnReprice">⟳ 重新報價 (未鎖定腳)</button>
         <button class="btn ghost danger" id="btnClear">🗑 清空</button>
       </div>
-      <div class="note">💡 改「期權金」會自動 🔒 鎖定並反推 IV；改 IV 會用 Black-Scholes 重算期權金。有 Yahoo 期權鏈時，未鎖定嘅腳會自動用 Bid/Ask 中間價同 IV。</div>
+      <div class="note">💡 改「期權金」會自動 🔒 鎖定並反推 IV；改 IV 會用 Black-Scholes 重算期權金。有市場期權鏈時，未鎖定嘅腳用 Bid/Ask 中間價同 IV。冇鏈就會標明係理論價，唔係市場報價。</div>
     </section>
   </div>
 
@@ -191,10 +191,11 @@
     </details>
     <details><summary>資料來源 · 限制</summary>
       <ul>
-        <li>報價次序：Yahoo Finance (yfinance) → Yahoo Chart API → 騰訊財經 → Nasdaq API；股息 = 過去 12 個月派息總和。</li>
-        <li>期權鏈（Bid/Ask/IV）只有 Yahoo 美股；港股期權 Yahoo 冇提供，請人手輸入期權金或 IV（預設用 30 日歷史波幅）。</li>
+        <li>正股報價：Yahoo Finance → 騰訊財經。股息 = 過去 12 個月派息總和。GitHub Pages 係純網頁，唔經本地後端。</li>
+        <li>美股／ETF 期權鏈：CBOE 延遲報價（瀏覽器直連，唔通就經讀取器，再退回 <code>data/chains/</code> 內置鏈，由 <code>tools/refresh_option_chains.py</code> 更新）。未鎖定嘅腳用 Bid/Ask 中間價。</li>
+        <li>冇鏈（例如港股期權，或者到期日唔係真實合約）時，期權金係 Black-Scholes 理論價，畫面會用紅色字標明「理論價，唔係市場報價」。</li>
         <li>港股每張合約股數按港交所股票期權名單預填（例：騰訊 100、阿里 500、美團 500、小米 1000、匯豐 400）。</li>
-        <li>美式期權提早行使、手續費、稅項、孖展利息未計；Yahoo 報價可能有 15 分鐘延遲。本工具只作教學計算用途，不構成投資建議。</li>
+        <li>美式期權提早行使、手續費、稅項、孖展利息未計。CBOE／Yahoo 報價有延遲。本工具只作教學計算用途，不構成投資建議。</li>
       </ul>
     </details>
   </section>
@@ -205,6 +206,7 @@
 <script src="hk_options.js"></script>
 <script src="optmath.js"></script>
 <script src="templates.js"></script>
-<script src="app.js"></script>
+<script src="chain.js?v=20261109cboe"></script>
+<script src="app.js?v=20261109cboe"></script>
 </body>
 </html>

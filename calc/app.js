@@ -21,6 +21,11 @@ const state = {
   expirations: [], proxy: '', multManual: false,
 };
 let chainCache = {};
+let chainMeta = null;       // { via:'live'|'baked'|'session'|null, asOf, transport, pending, failed }
+const chainBook = {};       // symbol -> { parsed, pending, liveAt, failed }
+let chainHoldSym = null;
+let chainDirty = false;
+let quoteGen = 0;
 let backend = null;          // null = 未知, true / false
 let legSeq = 1;
 let chart = null;
@@ -55,13 +60,17 @@ function normalizeSymbol(raw) {
   return s;
 }
 const isHK = s => /\.HK$/.test(s);
+function isUsEquity(sym) {
+  if (!sym || isHK(sym) || /[\^=]/.test(sym)) return false;
+  return /^[A-Z]{1,6}$/.test(sym) || /^[A-Z]{1,5}[.-][A-Z]$/.test(sym);
+}
 
 async function fetchWithTimeout(url, ms = 7000, opts = {}) {
   const c = new AbortController(); const t = setTimeout(() => c.abort(), ms);
   try { const r = await fetch(url, { ...opts, signal: c.signal }); if (!r.ok) throw new Error('HTTP ' + r.status); return r; }
   finally { clearTimeout(t); }
 }
-const fetchJSON = async (url, ms) => (await fetchWithTimeout(url, ms)).json();
+const fetchJSON = async (url, ms, opts) => (await fetchWithTimeout(url, ms, opts || {})).json();
 
 // ================= 資料來源（瀏覽器端） =================
 function hvFromCloses(closes, n = 30) {
@@ -191,18 +200,191 @@ async function getRate() {
   }
   try { const y = await yahooClient('^IRX'); return { rate: y.price / 100, source: '^IRX ' + y._via }; } catch { return null; }
 }
-async function getExpirations(sym) {
-  if (!backend) return [];
-  try { const j = await fetchJSON('api/expirations?symbol=' + encodeURIComponent(sym), 20000); return j.expirations || []; } catch { return []; }
+const CHAIN_FRESH_MS = 10 * 60 * 1000;
+const CHAIN_SESSION_MS = 12 * 60 * 60 * 1000;
+function cboeUrl(sym) {
+  return 'https://cdn-api.cboe.com/api/global/delayed_quotes/options/' + encodeURIComponent(sym) + '.json';
+}
+function cboeSymbolCandidates(sym) {
+  const u = sym.toUpperCase();
+  const flat = u.replace(/[.-]/g, '');
+  return flat === u ? [u] : [u, flat];
+}
+async function fetchJinaJson(url, ms) {
+  const r = await fetchWithTimeout('https://r.jina.ai/' + url, ms, {
+    cache: 'no-store',
+    headers: { Accept: 'text/plain', 'X-Return-Format': 'text' },
+  });
+  const text = (await r.text()).trim();
+  const body = text.startsWith('{') ? text : text.slice(Math.max(0, text.indexOf('{')));
+  const j = JSON.parse(body);
+  if (!j || !j.data || !Array.isArray(j.data.options)) throw new Error('jina');
+  return j;
+}
+async function raceCboe(sym) {
+  const url = cboeUrl(sym);
+  const take = async (transport, p) => {
+    const j = await p;
+    const parsed = window.OptChain.chainsFromCboe(j, sym);
+    if (!parsed) throw new Error('empty chain');
+    parsed.via = 'live';
+    parsed.transport = transport;
+    return parsed;
+  };
+  const jobs = [
+    take('CBOE 直連', fetchJSON(url, 8000, { cache: 'no-store' })),
+    take('Jina 讀取器', fetchJinaJson(url, 28000)),
+  ];
+  const custom = customProxyUrl(url);
+  if (custom) jobs.push(take('自訂 Proxy', fetchJSON(custom, 10000, { cache: 'no-store' })));
+  for (const [name, fn] of PUBLIC_PROXIES) jobs.push(take(name, fetchJSON(fn(url), 8000, { cache: 'no-store' })));
+  try { return await Promise.any(jobs); } catch { return null; }
+}
+async function fetchLiveCboe(sym) {
+  if (!window.OptChain) return null;
+  for (const s of cboeSymbolCandidates(sym)) {
+    const parsed = await raceCboe(s);
+    if (parsed) { parsed.symbol = sym; return parsed; }
+  }
+  return null;
+}
+function readChainSession(sym) {
+  try {
+    const raw = JSON.parse(sessionStorage.getItem('optcalc.chain.' + sym) || 'null');
+    if (!raw || !raw.data || !raw.at || !window.OptChain) return null;
+    const parsed = window.OptChain.chainsFromCompact(raw.data);
+    if (!parsed) return null;
+    const ageMs = Date.now() - raw.at;
+    parsed.via = ageMs < CHAIN_FRESH_MS ? 'live' : 'session';
+    parsed.transport = '瀏覽器快取';
+    parsed.ageMs = ageMs;
+    parsed.fetchedAt = raw.at;
+    return parsed;
+  } catch { return null; }
+}
+function writeChainSession(sym, parsed) {
+  try {
+    if (!window.OptChain) return;
+    const blob = JSON.stringify({ at: Date.now(), data: window.OptChain.toCompact(parsed) });
+    if (blob.length > 450000) return;
+    sessionStorage.setItem('optcalc.chain.' + sym, blob);
+  } catch { /* 快取額度用盡就唔存 */ }
+}
+async function loadBakedChain(sym) {
+  try {
+    const j = await fetchJSON('data/chains/' + encodeURIComponent(sym) + '.json', 8000, { cache: 'no-cache' });
+    const parsed = window.OptChain && window.OptChain.chainsFromCompact(j);
+    if (!parsed) return null;
+    parsed.via = 'baked';
+    parsed.transport = '內置快照';
+    return parsed;
+  } catch { return null; }
+}
+function chainSlot(sym) {
+  return chainBook[sym] || (chainBook[sym] = { parsed: null, pending: null, liveAt: 0, failed: false });
+}
+function startLive(sym) {
+  const slot = chainSlot(sym);
+  if (slot.pending) return slot.pending;
+  slot.pending = (async () => {
+    const live = await fetchLiveCboe(sym);
+    slot.failed = !live;
+    if (live) {
+      slot.parsed = live;
+      slot.liveAt = Date.now();
+      writeChainSession(sym, live);
+    }
+    return slot.parsed;
+  })().finally(() => {
+    slot.pending = null;
+    if (chainHoldSym) { if (sym === chainHoldSym) chainDirty = true; return; }
+    if (state.symbol === sym) applyLiveUpdate();
+  });
+  return slot.pending;
+}
+async function ensureChain(sym, opts = {}) {
+  const slot = chainSlot(sym);
+  if (!slot.parsed) {
+    const ses = readChainSession(sym);
+    if (ses && ses.ageMs < CHAIN_SESSION_MS) {
+      slot.parsed = ses;
+      if (ses.via === 'live') slot.liveAt = ses.fetchedAt;
+    } else {
+      slot.parsed = await loadBakedChain(sym);
+      if (!slot.parsed && ses) slot.parsed = ses;
+    }
+  }
+  const fresh = !!(slot.parsed && slot.parsed.via === 'live' && Date.now() - slot.liveAt < CHAIN_FRESH_MS);
+  if ((opts.refresh || !fresh) && !slot.pending) startLive(sym);
+  if (slot.parsed) return slot.parsed;
+  return slot.pending || null;
+}
+function applyParsed(parsed) {
+  const slot = state.symbol ? chainBook[state.symbol] : null;
+  chainCache = {};
+  if (parsed) {
+    for (const e of parsed.expirations) chainCache[e] = parsed.chains[e];
+    state.expirations = parsed.expirations.slice();
+  } else state.expirations = [];
+  chainMeta = {
+    via: parsed ? parsed.via : null,
+    asOf: (parsed && parsed.asOf) || '',
+    transport: (parsed && parsed.transport) || '',
+    pending: !!(slot && slot.pending),
+    failed: !!(slot && slot.failed),
+  };
+}
+function applyLiveUpdate() {
+  const slot = chainBook[state.symbol];
+  const parsed = slot && slot.parsed;
+  if (!parsed) { renderExpSelect(); return; }
+  applyParsed(parsed);
+  if (state.expiry && state.expirations.length && !state.expirations.includes(state.expiry)) {
+    state.expiry = snapExpiry(state.expiry);
+    updateLegExpiries();
+  }
+  state.legs.forEach(l => {
+    if (l.type === 'stock' || l.locked) return;
+    if (chainCache[l.expiry] && !chainRow(l)) l.strike = snapStrike(l.strike, l.expiry);
+  });
+  priceAll();
+  renderExpSelect(); renderExpChips(); renderDte();
+  if ($('expiry') && state.expiry) $('expiry').value = state.expiry;
+  updateLegFields(true);
+  recalc(true);
+}
+async function getExpirations(sym, opts = {}) {
+  if (backend) {
+    try {
+      const j = await fetchJSON('api/expirations?symbol=' + encodeURIComponent(sym), 20000);
+      chainMeta = null;
+      return j.expirations || [];
+    } catch { return []; }
+  }
+  if (!isUsEquity(sym) || !window.OptChain) return [];
+  const parsed = await ensureChain(sym, opts);
+  if (!parsed) {
+    chainCache = {};
+    chainMeta = { via: null, asOf: '', transport: '', pending: false, failed: true };
+    return [];
+  }
+  applyParsed(parsed);
+  return parsed.expirations.slice();
 }
 async function loadChains() {
-  if (!backend || !state.expirations.length) return;
-  const need = [...new Set(state.legs.filter(l => l.type !== 'stock').map(l => l.expiry))]
-    .filter(e => state.expirations.includes(e) && !chainCache[e]);
-  await Promise.all(need.map(async e => {
-    try { const j = await fetchJSON(`api/chain?symbol=${encodeURIComponent(state.symbol)}&expiry=${e}`, 20000); if (j.calls) chainCache[e] = j; }
-    catch { /* 冇鏈就用 BS */ }
-  }));
+  if (backend) {
+    if (!state.expirations.length) return;
+    const need = [...new Set(state.legs.filter(l => l.type !== 'stock').map(l => l.expiry))]
+      .filter(e => state.expirations.includes(e) && !chainCache[e]);
+    await Promise.all(need.map(async e => {
+      try { const j = await fetchJSON(`api/chain?symbol=${encodeURIComponent(state.symbol)}&expiry=${e}`, 20000); if (j.calls) chainCache[e] = j; }
+      catch { /* 冇鏈就用 BS */ }
+    }));
+    return;
+  }
+  if (!isUsEquity(state.symbol) || !window.OptChain) return;
+  const parsed = await ensureChain(state.symbol);
+  if (parsed) applyParsed(parsed);
 }
 
 // ================= 到期日工具 =================
@@ -350,31 +532,53 @@ function renderQuote(q, err) {
 }
 async function loadQuote(raw, opts = {}) {
   const sym = normalizeSymbol(raw); if (!sym) { toast('請輸入股票代號'); return; }
+  const gen = ++quoteGen;
   const changed = sym !== state.symbol;
+  chainHoldSym = sym;
+  chainDirty = false;
   $('ticker').value = sym; $('quoteBox').classList.add('loading'); $('qName').textContent = `⏳ 攞緊 ${sym} 報價…`;
   $('btnQuote').disabled = true;
   try {
-    const q = await getQuote(sym);
-    state.symbol = sym; state.quote = q; state.spot = r4(q.price);
-    state.currency = q.currency === 'HKD' ? 'HKD' : 'USD';
-    state.divYield = q.dividendYield != null ? r4(q.dividendYield * 100) : 0;
-    if (q.hv30) state.ivDefault = Math.round(q.hv30 * 1000) / 10;
-    if (changed || !state.multManual) { state.multManual = false; setMultFromSymbol(q); }
-    renderQuote(q);
-    $('modeLbl').textContent = q.mode === 'backend' ? '（目前：本地後端模式）' : '（目前：純網頁模式）';
-  } catch (e) {
-    if (changed) { state.symbol = sym; state.quote = null; setMultFromSymbol(null); }
-    renderQuote(null, e); toast('攞唔到報價，請人手輸入現價');
-  } finally { $('btnQuote').disabled = false; $('quoteBox').classList.remove('loading'); }
-  if (changed) { chainCache = {}; state.expirations = []; }
-  state.expirations = await getExpirations(sym);
-  if (!state.expiry || state.expiry <= todayISO()) state.expiry = snapExpiry(M.isoDate(M.addDays(todayISO(), 30)));
-  else if (changed || (state.expirations.length && !state.expirations.includes(state.expiry))) state.expiry = snapExpiry(state.expiry);
-  renderExpSelect();
-  syncInputs();
-  if (changed || !state.legs.length) { applyTemplate(state.tpl || 'short_put', true); }
-  else { updateLegExpiries(); await loadChains(); priceAll(); renderLegs(); recalc(true); }
-  if (!opts.silent) toast(`${sym} 報價已更新`);
+    try {
+      const q = await getQuote(sym);
+      if (gen !== quoteGen) return;
+      state.symbol = sym; state.quote = q; state.spot = r4(q.price);
+      state.currency = q.currency === 'HKD' ? 'HKD' : 'USD';
+      state.divYield = q.dividendYield != null ? r4(q.dividendYield * 100) : 0;
+      if (q.hv30) state.ivDefault = Math.round(q.hv30 * 1000) / 10;
+      if (changed || !state.multManual) { state.multManual = false; setMultFromSymbol(q); }
+      renderQuote(q);
+      $('modeLbl').textContent = q.mode === 'backend' ? '（目前：本地後端模式）' : '（目前：純網頁模式）';
+    } catch (e) {
+      if (gen !== quoteGen) return;
+      if (changed) { state.symbol = sym; state.quote = null; setMultFromSymbol(null); }
+      renderQuote(null, e); toast('攞唔到報價，請人手輸入現價');
+    } finally {
+      if (gen === quoteGen) { $('btnQuote').disabled = false; $('quoteBox').classList.remove('loading'); }
+    }
+    if (gen !== quoteGen) return;
+    if (changed) { chainCache = {}; state.expirations = []; chainMeta = null; }
+    if (isUsEquity(sym) && !backend) {
+      const note = $('chainNote');
+      note.className = 'dteline';
+      note.textContent = '正在載入 CBOE 延遲期權鏈…';
+    }
+    state.expirations = await getExpirations(sym, { refresh: !opts.silent });
+    if (gen !== quoteGen) return;
+    if (!state.expiry || state.expiry <= todayISO()) state.expiry = snapExpiry(M.isoDate(M.addDays(todayISO(), 30)));
+    else if (changed || (state.expirations.length && !state.expirations.includes(state.expiry))) state.expiry = snapExpiry(state.expiry);
+    renderExpSelect();
+    syncInputs();
+    if (changed || !state.legs.length) { applyTemplate(state.tpl || 'short_put', true); }
+    else { updateLegExpiries(); await loadChains(); priceAll(); renderLegs(); recalc(true); }
+    if (!opts.silent && gen === quoteGen) toast(`${sym} 報價已更新`);
+  } finally {
+    if (gen !== quoteGen) return;
+    const dirty = chainDirty && state.symbol === sym;
+    chainHoldSym = null;
+    chainDirty = false;
+    if (dirty) applyLiveUpdate();
+  }
 }
 
 // ================= 介面：到期日 =================
@@ -385,16 +589,41 @@ function renderExpChips() {
     ['本月期', monthlyExpiry(0)], ['下月期', monthlyExpiry(1)], ['再下月', monthlyExpiry(2)]];
   $('expChips').innerHTML = items.map(([n, d]) => { const iso = snapExpiry(M.isoDate(d)); return `<button class="chip${iso === state.expiry ? ' on' : ''}" data-exp="${iso}">${n}<small>${iso.slice(5)}</small></button>`; }).join('');
 }
+function chainStatusNote() {
+  const n = state.expirations.length;
+  if (!n) {
+    const text = isHK(state.symbol)
+      ? '⚠️ 港股期權冇市場鏈。而家顯示嘅期權金係 Black-Scholes 理論價，唔係市場報價，落盤前請改成券商報價。'
+      : (backend
+        ? '⚠️ 冇期權鏈。期權金係 Black-Scholes 理論價，唔係市場報價（可人手改）。'
+        : '⚠️ 攞唔到市場期權鏈。而家顯示嘅期權金係 Black-Scholes 理論價，唔係市場報價，可人手改。');
+    return { bad: true, text };
+  }
+  const asOf = chainMeta && chainMeta.asOf ? chainMeta.asOf + ' UTC' : '';
+  const via = chainMeta && chainMeta.via;
+  let head = '✅ 期權鏈';
+  if (backend && !via) head = '✅ Yahoo 期權鏈';
+  else if (via === 'live') head = '✅ CBOE 延遲期權鏈';
+  else if (via === 'session') head = '✅ 快取 CBOE 期權鏈';
+  else if (via === 'baked') head = '✅ 內置 CBOE 延遲期權鏈';
+  const transport = chainMeta && chainMeta.transport ? '，' + chainMeta.transport : '';
+  let text = `${head}${asOf ? '（截至 ' + asOf + transport + '）' : (transport ? '（' + chainMeta.transport + '）' : '')}：${n} 個到期日，未鎖定嘅腳用 Bid/Ask 中間價同 IV`;
+  if (chainMeta && chainMeta.pending) text += ' · 正在更新';
+  else if (chainMeta && chainMeta.failed && via !== 'live') text += ' · 即時更新失敗，用緊呢份鏈';
+  return { bad: false, text };
+}
 function renderExpSelect() {
   const sel = $('expSelect');
   if (!state.expirations.length) {
-    sel.innerHTML = `<option value="">${backend ? '— 冇期權鏈（港股／無期權）—' : '— 純網頁模式冇期權鏈 —'}</option>`;
-    $('chainNote').textContent = backend ? '期權金用 Black-Scholes 理論價（可人手改）' : '期權鏈需要本地後端 (python app.py)；而家用理論價，可人手改';
+    sel.innerHTML = `<option value="">${backend ? '— 冇期權鏈 —' : '— 冇市場期權鏈 —'}</option>`;
   } else {
     const t = todayISO();
     sel.innerHTML = state.expirations.map(e => `<option value="${e}"${e === state.expiry ? ' selected' : ''}>${e}（${M.daysBetween(t, e)} 日）</option>`).join('');
-    $('chainNote').textContent = `✅ Yahoo 期權鏈：${state.expirations.length} 個到期日，自動填 Bid/Ask 中間價同 IV`;
   }
+  const st = chainStatusNote();
+  const note = $('chainNote');
+  note.className = 'dteline' + (st.bad ? ' bad' : '');
+  note.textContent = st.text;
 }
 function renderDte() {
   const el = $('dteLine'); const e = state.expiry;
@@ -408,17 +637,28 @@ function updateLegExpiries() {
   state.legs.forEach(l => { if (l.type === 'stock') return; if (l.tag === 'near') l.expiry = state.expiry; else if (l.tag === 'far') l.expiry = farExpiry(state.expiry, l.farDays || 28); });
 }
 async function setExpiry(iso) {
-  if (!iso) return; state.expiry = iso; updateLegExpiries();
+  if (!iso) return;
+  if (state.expirations.length && !state.expirations.includes(iso)) iso = snapExpiry(iso);
+  state.expiry = iso; updateLegExpiries();
   renderDte(); renderExpChips(); renderExpSelect(); $('expiry').value = iso;
   await loadChains(); priceAll(); renderLegs(); recalc(true);
 }
 
 // ================= 介面：模板 =================
+function templateMatchesLegs() {
+  const tpl = TEMPLATES.find(t => t.id === state.tpl);
+  if (!tpl || tpl.legs.length !== state.legs.length) return false;
+  for (let i = 0; i < tpl.legs.length; i++) {
+    if (tpl.legs[i].t !== state.legs[i].type || tpl.legs[i].s !== state.legs[i].side) return false;
+  }
+  return true;
+}
 function renderTemplates() {
+  const matched = templateMatchesLegs();
   $('tplTabs').innerHTML = TEMPLATE_CATS.map(c => `<button class="tab${c.id === state.cat ? ' on' : ''}" data-cat="${c.id}">${c.name}</button>`).join('');
   $('tplGrid').innerHTML = TEMPLATES.filter(t => t.cats.includes(state.cat)).map(t =>
-    `<button class="tpl${t.id === state.tpl ? ' on' : ''}" data-tpl="${t.id}"><b>${t.name}</b><span>${t.en}</span><br><span class="tag ${t.type}">${t.type === 'credit' ? '收錢 Credit' : '付錢 Debit'}</span></button>`).join('');
-  const t = TEMPLATES.find(x => x.id === state.tpl);
+    `<button class="tpl${matched && t.id === state.tpl ? ' on' : ''}" data-tpl="${t.id}"><b>${t.name}</b><span>${t.en}</span><br><span class="tag ${t.type}">${t.type === 'credit' ? '收錢 Credit' : '付錢 Debit'}</span></button>`).join('');
+  const t = matched ? TEMPLATES.find(x => x.id === state.tpl) : null;
   $('tplDesc').className = 'tpldesc' + (t ? ' show' : '');
   $('tplDesc').innerHTML = t ? `<b>${t.name} ${t.en}</b>：${t.desc}` : '';
 }
@@ -443,6 +683,7 @@ function renderLegs() {
   $('legs').innerHTML = state.legs.length ? state.legs.map(legHTML).join('') : '<div class="note">未有期權腳 — 揀模板或者撳下面「＋」加腳</div>';
   $('legCount').textContent = state.legs.length ? `（${state.legs.length} 腳）` : '';
   updateLegFields(true);
+  renderTemplates();
 }
 function setVal(el, v, force) { if (!el || (!force && document.activeElement === el)) return; el.value = v; }
 function updateLegFields(force) {
@@ -459,8 +700,11 @@ function updateLegFields(force) {
     if (l.type !== 'stock') {
       const T = legT(l); const g = M.bs(l.type, c.spot, l.strike, T, c.r, c.q, Math.max(0.0001, l.iv));
       const mny = l.type === 'call' ? (c.spot - l.strike) / c.spot : (l.strike - c.spot) / c.spot;
-      const srcTxt = l.locked ? '🔒 手動' : l.src === 'chain' ? 'Yahoo 期權鏈' : 'BS 理論價';
-      info.push(`<span class="src">${srcTxt}</span>`);
+      const theo = !l.locked && l.src === 'bs';
+      const srcTxt = l.locked ? '🔒 手動' : l.src === 'chain'
+        ? ((chainMeta && chainMeta.via === 'live') ? 'CBOE 延遲鏈' : (backend && !(chainMeta && chainMeta.via) ? 'Yahoo 期權鏈' : 'CBOE 鏈'))
+        : '⚠️ 理論價 非市場';
+      info.push(`<span class="src${l.src === 'chain' && !l.locked ? ' mkt' : ''}${theo ? ' theo' : ''}">${srcTxt}</span>`);
       info.push(`理論價 <b>${fmt(g.price, 3)}</b>`);
       if (l.bid != null || l.ask != null) info.push(`Bid/Ask <b>${fmt(l.bid)} / ${fmt(l.ask)}</b>`);
       info.push(`${Math.abs(mny) < 0.005 ? '平價 ATM' : mny > 0 ? '價內 ITM' : '價外 OTM'} <b>${pct(Math.abs(mny), 1)}</b>`);
@@ -595,7 +839,7 @@ function renderSummary(res, legs) {
   const q = state.quote || {};
   const nextEx = q.nextExDividendDate && q.nextExDividendDate > c.today ? q.nextExDividendDate : null;
   if (nextEx && nextEx <= res.expiry && legs.some(l => l.type === 'call' && l.side < 0)) ins.push(`<span class="w">⚠️ 到期前有除息日（${nextEx}），價內嘅 Short Call 有機會被提早行使。</span>`);
-  if (legs.some(l => l.type !== 'stock' && l.src === 'bs' && !l.locked)) ins.push('ℹ️ 部分期權金係 Black-Scholes 理論價（' + (isHK(state.symbol) ? '港股期權 Yahoo 冇報價' : '冇期權鏈報價') + '），落盤前請用券商實際報價修改（改完會自動 🔒 鎖定並反推 IV）。');
+  if (legs.some(l => l.type !== 'stock' && l.src === 'bs' && !l.locked)) ins.push('<span class="w">⚠️ 有期權金係 Black-Scholes 理論價，唔係市場 Bid/Ask。' + (isHK(state.symbol) ? '港股期權冇市場鏈。' : '呢隻腳嘅到期日或行使價唔喺期權鏈上。') + '落盤前請用券商報價修改（改完會自動 🔒 鎖定並反推 IV）。</span>');
   if (new Set(legs.filter(l => l.type !== 'stock').map(l => l.expiry)).size > 1) ins.push('⏳ 呢個係跨到期日組合：「到期盈虧」以最早到期日計，遠期腳用 BS 理論價（受 IV 影響）。');
   $('insight').innerHTML = ins.map(x => `<div>${x}</div>`).join('');
 }

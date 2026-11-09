@@ -1,0 +1,66 @@
+{
+  "source": "CBOE delayed",
+  "generated": "2026-11-09 15:50:03",
+  "symbols": {
+    "AAPL": {
+      "asOf": "2026-11-09 15:49:11",
+      "expirations": 24,
+      "quotes": 3398,
+      "bytes": 94444
+    },
+    "TSLA": {
+      "asOf": "2026-11-09 15:49:15",
+      "expirations": 23,
+      "quotes": 5136,
+      "bytes": 147388
+    },
+    "NVDA": {
+      "asOf": "2026-11-09 15:49:08",
+      "expirations": 25,
+      "quotes": 4188,
+      "bytes": 116983
+    },
+    "MSFT": {
+      "asOf": "2026-11-09 15:49:18",
+      "expirations": 23,
+      "quotes": 3924,
+      "bytes": 111728
+    },
+    "AMZN": {
+      "asOf": "2026-11-09 15:49:06",
+      "expirations": 24,
+      "quotes": 2464,
+      "bytes": 69068
+    },
+    "META": {
+      "asOf": "2026-11-09 15:49:17",
+      "expirations": 24,
+      "quotes": 7116,
+      "bytes": 202384
+    },
+    "GOOGL": {
+      "asOf": "2026-11-09 15:49:09",
+      "expirations": 24,
+      "quotes": 4810,
+      "bytes": 131590
+    },
+    "AMD": {
+      "asOf": "2026-11-09 15:49:09",
+      "expirations": 23,
+      "quotes": 7038,
+      "bytes": 200044
+    },
+    "SPY": {
+      "asOf": "2026-11-09 15:49:08",
+      "expirations": 35,
+      "quotes": 12904,
+      "bytes": 372976
+    },
+    "QQQ": {
+      "asOf": "2026-11-09 15:49:13",
+      "expirations": 32,
+      "quotes": 11578,
+      "bytes": 333063
+    }
+  }
+}

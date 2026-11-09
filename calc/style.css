@@ -51,7 +51,7 @@ background:var(--field);color:var(--ink);cursor:pointer;white-space:nowrap}
 .note.warn{color:var(--warn)}
 .dteline{margin-top:5px;font-size:12.5px;color:var(--muted)}
 .dteline b{color:var(--brand);font-size:15px}
-.dteline.bad,.dteline.bad b{color:var(--neg)}
+.dteline.bad,.dteline.bad b{color:var(--neg);font-weight:700}
 .quick{margin-top:10px}.qlabel{font-size:12.5px;color:var(--muted)}
 .tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
 .tab{font:inherit;font-size:13px;font-weight:700;padding:7px 12px;border-radius:9px;border:0;background:var(--bg);color:var(--muted);cursor:pointer;white-space:nowrap}
@@ -82,6 +82,8 @@ background:var(--field);color:var(--ink);cursor:pointer;white-space:nowrap}
 .leg .locked{border-color:var(--warn)!important;color:var(--warn)}
 .leg.hide-opt .optonly{visibility:hidden}
 .src{font-size:10.5px;padding:0 5px;border-radius:5px;background:var(--bg);font-weight:700}
+.src.mkt{color:var(--pos);background:color-mix(in srgb,var(--pos) 16%,transparent)}
+.src.theo{color:var(--warn);background:color-mix(in srgb,var(--warn) 18%,transparent)}
 .addrow{display:flex;flex-wrap:wrap;gap:8px}
 .hero{text-align:center;padding:6px 0 12px;border-bottom:1px solid var(--line)}
 .hlabel{font-size:13px;color:var(--muted);font-weight:700}
