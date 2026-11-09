@@ -436,18 +436,29 @@
         .detail-line {
             font-size: 14px;
             color: var(--text-main);
-            margin-bottom: 5px;
+            margin-bottom: 4px;
             font-weight: 500;
+        }
+        .detail-target {
+            font-size: 14px;
+            color: var(--text-main);
+            font-weight: 800;
+            margin-bottom: 4px;
         }
         .detail-pred {
             font-size: 14px;
             color: var(--pred-amber);
             font-weight: 700;
-            margin-bottom: 5px;
+            margin-top: 6px;
+            margin-bottom: 4px;
+        }
+        .detail-pred.hit-done {
+            color: var(--up-green);
         }
         .detail-live {
             font-size: 14px;
             color: var(--text-sub);
+            font-weight: 500;
         }
 
         /* Toast Notification (Bottom) */
@@ -594,16 +605,16 @@
                 <div class="field-label-row">
                     <label for="startDateInput" class="field-label">Start Date<span class="req-star">*</span></label>
                 </div>
-                <input type="date" id="startDateInput" value="2026-11-09" class="date-input">
+                <input type="date" id="startDateInput" value="2026-11-05" class="date-input">
             </div>
 
             <!-- End Date -->
             <div class="field-group">
                 <div class="field-label-row">
                     <label for="endDateInput" class="field-label">End Date<span class="req-star">*</span></label>
-                    <span id="dayCountHint" class="days-hint">最多 180 天 (現 42 天)</span>
+                    <span id="dayCountHint" class="days-hint">最多 180 天 (現 55 天)</span>
                 </div>
-                <input type="date" id="endDateInput" value="2026-12-21" class="date-input">
+                <input type="date" id="endDateInput" value="2026-12-30" class="date-input">
             </div>
 
             <!-- Percent Bucket Selector -->
@@ -647,6 +658,7 @@
                     <span>Submit</span>
                 </button>
                 <div style="display:flex;gap:5px;flex-wrap:wrap;">
+                    <button type="button" data-quick="^HSI" class="preset-ticker top-pill mono" style="border-color:#DC2626;color:#991B1B;background:#FEF2F2;">🇭🇰 恒指 ^HSI</button>
                     <button type="button" data-quick="GLD" class="preset-ticker top-pill mono" style="border-color:#F59E0B;color:#B45309;background:#FFFBEB;">🪙 黃金 GLD</button>
                     <button type="button" data-quick="GC=F" class="preset-ticker top-pill mono" style="border-color:#F59E0B;color:#B45309;background:#FFFBEB;">期金 GC=F</button>
                     <button type="button" data-quick="BTC-USD" class="preset-ticker top-pill mono" style="border-color:#F97316;color:#C2410C;background:#FFF7ED;">₿ BTC-USD</button>
@@ -681,11 +693,12 @@
                     <span class="tag-badge tag-up">up</span>
                 </div>
             </div>
-            <div id="upWindowText" class="window-range-text">11月13日 最低價 — 12月4日</div>
-            <div id="upHeadlineText" class="headline-move move-up">會上升 2.03%</div>
+            <div id="upWindowText" class="window-range-text">11月17日 最低價 — 12月3日</div>
+            <div id="upHeadlineText" class="headline-move move-up">會上升 2.94%</div>
             <div class="divider-dashed"></div>
-            <div id="upBaseDateLine" class="detail-line">2026年11月13日 最低價 (-)</div>
-            <div id="upPredLine" class="detail-pred">(未開始) 預測升幅 : 2.03%</div>
+            <div id="upBaseDateLine" class="detail-line">2026年11月17日 最低價 (-)</div>
+            <div id="upTargetContainer"></div>
+            <div id="upPredLine" class="detail-pred">(未開始) 預測升幅 : 2.94%</div>
             <div id="upLiveLine" class="detail-live">暫時升幅 : -</div>
         </section>
 
@@ -699,12 +712,15 @@
                     <span class="tag-badge tag-down">down</span>
                 </div>
             </div>
-            <div id="downWindowText" class="window-range-text">11月30日 最高價 — 12月18日</div>
-            <div id="downHeadlineText" class="headline-move move-down">會下跌 -1.09%</div>
+            <div id="downWindowText" class="window-range-text">11月7日 最高價 — 12月17日</div>
+            <div id="downHeadlineText" class="headline-move move-down">會下跌 -3.28%</div>
             <div class="divider-dashed"></div>
-            <div id="downBaseDateLine" class="detail-line">2026年11月30日 最高價 (-)</div>
-            <div id="downPredLine" class="detail-pred">(未開始) 預測跌幅 : 1.09%</div>
-            <div id="downLiveLine" class="detail-live">暫時跌幅 : -</div>
+            <div id="downBaseDateLine" class="detail-line">2026年11月07日 最高價 (71)</div>
+            <div id="downTargetContainer">
+                <div class="detail-target">90% 方目標 (68.6699)</div>
+            </div>
+            <div id="downPredLine" class="detail-pred">(未有結果) 預測跌幅 : 3.28%</div>
+            <div id="downLiveLine" class="detail-live">暫時跌幅 : 1.13%</div>
         </section>
 
         <!-- Card 3: 最大波幅 (Max Amplitude Sub-window at selected Percent) -->
@@ -717,12 +733,16 @@
                     <span class="tag-badge tag-max">max</span>
                 </div>
             </div>
-            <div id="maxWindowText" class="window-range-text">11月9日 開市價 — 12月20日</div>
-            <div id="maxHeadlineText" class="headline-move move-max">會波幅 3.04%</div>
+            <div id="maxWindowText" class="window-range-text">11月5日 最高價 — 12月17日</div>
+            <div id="maxHeadlineText" class="headline-move move-max">會波幅 5.60%</div>
             <div class="divider-dashed"></div>
-            <div id="maxBaseDateLine" class="detail-line">2026年11月09日 開市價 (-)</div>
-            <div id="maxPredLine" class="detail-pred">(未開始) 預測波幅 : 3.04%</div>
-            <div id="maxLiveLine" class="detail-live">暫時波幅 : -</div>
+            <div id="maxBaseDateLine" class="detail-line">2026年11月05日 最高價 (71.45)</div>
+            <div id="maxTargetContainer">
+                <div class="detail-target">90% 方目標 (75.4512)</div>
+                <div class="detail-target">90% 方目標 (67.4488)</div>
+            </div>
+            <div id="maxPredLine" class="detail-pred">(未有結果) 預測波幅 : 5.60%</div>
+            <div id="maxLiveLine" class="detail-live">暫時波幅 : 3.43%</div>
         </section>
 
         <!-- Extra Section: Full Percent Bucket Comparison Table (100% down to 50%) -->
@@ -837,21 +857,64 @@
     </div>
 
     <script>
-        // Symbol Catalog (Commodities, Crypto, US + HK Stocks)
+        // Symbol Catalog (HK/US Indices, Commodities, Crypto, Expanded US Stocks & Sector ETFs, HK Blue Chips)
         var SYMBOL_CATALOG = [
-            "GLD", "GC=F", "IAU", "SLV", "SI=F", "USO", "CL=F", "UNG", "NG=F", "CPER", "HG=F", "DBA", "TLT",
-            "BTC-USD", "ETH-USD", "SOL-USD", "IBIT", "MSTR", "COIN",
-            "SPY", "QQQ", "DIA", "IWM",
-            "TSLA", "AAPL", "NVDA", "MSFT", "AMZN", "META", "GOOGL", "AMD", "NFLX", "AVGO", "PLTR",
-            "A", "AAL", "ABBV", "ABNB", "BABA", "BAC", "BRK-B", "COST", "CRM", "DIS", "JPM", "KO", "LLY", "MA", "PG", "SBAC", "SBUX", "SCHW", "SHW", "SJM", "UNH", "V", "WMT", "XOM",
-            "2840.HK", "3047.HK", "0001.HK", "0002.HK", "0003.HK", "0005.HK", "0006.HK", "0011.HK", "0012.HK", "0016.HK", "0017.HK", "0027.HK", "0066.HK",
-            "0388.HK", "0700.HK", "0883.HK", "0939.HK", "0941.HK", "0992.HK", "1211.HK", "1299.HK", "1810.HK", "2318.HK", "2800.HK", "3690.HK", "9988.HK"
+            // 港股與美股大盤指數 & 核心 ETF
+            "^HSI", "2800.HK", "2828.HK", "3033.HK", "FXI", "KWEB",
+            "^GSPC", "^NDX", "^DJI", "^RUT", "^VIX",
+            "SPY", "QQQ", "DIA", "IWM", "SMH", "SOXX", "XLK", "XLF", "XLE", "XLV", "XLI", "XLP", "XLY", "XLU", "ARKK",
+            // 貴金屬、能源、大宗商品與債券
+            "GLD", "GC=F", "IAU", "2840.HK", "SLV", "SI=F", "USO", "CL=F", "UNG", "NG=F", "CPER", "HG=F", "DBA", "TLT",
+            // 加密貨幣與區塊鏈概念
+            "BTC-USD", "ETH-USD", "SOL-USD", "IBIT", "3047.HK", "MSTR", "COIN", "MARA", "RIOT", "HOOD",
+            // 美股科技巨頭與 AI / 半導體
+            "AAPL", "MSFT", "NVDA", "AMZN", "META", "GOOGL", "TSLA", "AVGO", "AMD", "NFLX", "TSM", "ASML", "INTC", "QCOM", "MU", "ARM", "SMCI", "DELL", "MRVL", "LRCX", "AMAT", "KLAC", "TXN", "ADI",
+            // 美股軟件、網絡安全與高增長股
+            "PLTR", "CRM", "ORCL", "ADBE", "NOW", "PANW", "CRWD", "SNOW", "SHOP", "UBER", "ABNB", "SPOT", "APP", "RDDT", "DKNG", "RBLX", "U", "NET", "DDOG", "ZS",
+            // 美股金融、傳統藍籌、醫藥與消費
+            "BRK-B", "JPM", "BAC", "GS", "MS", "WFC", "C", "V", "MA", "AXP", "PYPL", "SQ", "BLK", "SCHW",
+            "LLY", "UNH", "JNJ", "ABBV", "MRK", "PFE", "AMGN", "ISRG", "NVO", "VRTX",
+            "WMT", "COST", "HD", "LOW", "MCD", "SBUX", "NKE", "DIS", "CMG", "LULU", "KO", "PEP", "PG", "PM",
+            "XOM", "CVX", "COP", "OXY", "CAT", "DE", "BA", "GE", "LMT", "RTX", "HON", "UNP", "UPS", "NEE",
+            "A", "AAL", "DAL", "UAL", "CCL", "RCL", "SBAC", "SHW", "SJM",
+            // 中概股與港股藍籌
+            "BABA", "PDD", "JD", "BIDU", "NIO", "XPEV", "LI", "FUTU", "TIGR", "TCOM", "BEKE",
+            "0700.HK", "9988.HK", "3690.HK", "1810.HK", "1211.HK", "0388.HK", "0941.HK", "0005.HK", "1299.HK",
+            "0001.HK", "0002.HK", "0003.HK", "0006.HK", "0011.HK", "0012.HK", "0016.HK", "0017.HK", "0027.HK", "0066.HK",
+            "0883.HK", "0939.HK", "1398.HK", "3988.HK", "2318.HK", "0992.HK", "9618.HK", "9999.HK", "9888.HK", "2015.HK", "9868.HK"
         ];
 
         var SYMBOL_LABELS = {
+            "^HSI": "恒生指數 (Hang Seng Index)",
+            "2800.HK": "盈富基金 (Tracker Fund)",
+            "2828.HK": "恒生中國企業 ETF (國指)",
+            "3033.HK": "南方東英恒生科技 ETF (科指)",
+            "FXI": "iShares 中國大盤股 ETF",
+            "KWEB": "KraneShares 中國海外互聯網 ETF",
+            "^GSPC": "標普 500 指數 (S&P 500)",
+            "^NDX": "納斯達克 100 指數 (Nasdaq 100)",
+            "^DJI": "道瓊斯工業平均指數 (Dow Jones)",
+            "^RUT": "羅素 2000 小盤股指數",
+            "^VIX": "CBOE 波動率恐慌指數",
+            "SPY": "標普 500 指數 ETF",
+            "QQQ": "納指 100 ETF",
+            "DIA": "道瓊斯指數 ETF",
+            "IWM": "羅素 2000 ETF",
+            "SMH": "VanEck 半導體 ETF",
+            "SOXX": "iShares 半導體 ETF",
+            "XLK": "科技行業 ETF",
+            "XLF": "金融行業 ETF",
+            "XLE": "能源行業 ETF",
+            "XLV": "醫療保健行業 ETF",
+            "XLI": "工業行業 ETF",
+            "XLP": "必需消費品 ETF",
+            "XLY": "非必需消費品 ETF",
+            "XLU": "公用事業 ETF",
+            "ARKK": "ARK 創新主動型 ETF",
             "GLD": "SPDR 黃金 ETF (Gold)",
             "GC=F": "紐約期金 (Gold Futures)",
             "IAU": "iShares 黃金信託 (Gold)",
+            "2840.HK": "SPDR 金 ETF (港股黃金)",
             "SLV": "iShares 白銀 ETF (Silver)",
             "SI=F": "紐約期銀 (Silver Futures)",
             "USO": "美國原油基金 (WTI Oil ETF)",
@@ -866,17 +929,134 @@
             "ETH-USD": "以太幣現貨 (Ethereum USD)",
             "SOL-USD": "Solana 現貨 (SOL USD)",
             "IBIT": "iShares 比特幣現貨 ETF",
+            "3047.HK": "華夏比特幣 ETF (港股 BTC)",
             "MSTR": "Strategy (比特幣概念股)",
             "COIN": "Coinbase (加密貨幣交易所)",
-            "2840.HK": "SPDR 金 ETF (港股黃金)",
-            "3047.HK": "華夏比特幣 ETF (港股 BTC)",
-            "SPY": "標普 500 指數 ETF",
-            "QQQ": "納指 100 ETF",
+            "MARA": "MARA Holdings (比特幣礦企)",
+            "RIOT": "Riot Platforms (比特幣礦企)",
+            "HOOD": "Robinhood Markets",
+            "AAPL": "蘋果 (Apple)",
+            "MSFT": "微軟 (Microsoft)",
+            "NVDA": "輝達 (NVIDIA)",
+            "AMZN": "亞馬遜 (Amazon)",
+            "META": "Meta Platforms",
+            "GOOGL": "Alphabet (Google)",
+            "TSLA": "特斯拉 (Tesla)",
+            "AVGO": "博通 (Broadcom)",
+            "AMD": "超微半導體 (AMD)",
+            "NFLX": "Netflix",
+            "TSM": "台積電 ADR (TSMC)",
+            "ASML": "艾司摩爾 (ASML)",
+            "INTC": "英特爾 (Intel)",
+            "QCOM": "高通 (Qualcomm)",
+            "MU": "美光科技 (Micron)",
+            "ARM": "Arm Holdings",
+            "SMCI": "超微電腦 (Super Micro)",
+            "DELL": "戴爾科技 (Dell)",
+            "MRVL": "邁威爾科技 (Marvell)",
+            "LRCX": "泛林集團 (Lam Research)",
+            "AMAT": "應用材料 (Applied Materials)",
+            "KLAC": "科磊 (KLA Corp)",
+            "PLTR": "Palantir Technologies",
+            "CRM": "Salesforce",
+            "ORCL": "甲骨文 (Oracle)",
+            "ADBE": "Adobe",
+            "NOW": "ServiceNow",
+            "PANW": "Palo Alto Networks",
+            "CRWD": "CrowdStrike",
+            "SNOW": "Snowflake",
+            "SHOP": "Shopify",
+            "UBER": "Uber Technologies",
+            "ABNB": "Airbnb",
+            "SPOT": "Spotify",
+            "APP": "AppLovin",
+            "RDDT": "Reddit",
+            "NET": "Cloudflare",
+            "DDOG": "Datadog",
+            "BRK-B": "波克夏海瑟威 (Berkshire B)",
+            "JPM": "摩根大通 (JPMorgan)",
+            "BAC": "美國銀行 (Bank of America)",
+            "GS": "高盛 (Goldman Sachs)",
+            "MS": "摩根士丹利 (Morgan Stanley)",
+            "V": "Visa",
+            "MA": "萬事達卡 (Mastercard)",
+            "PYPL": "PayPal",
+            "LLY": "禮來醫藥 (Eli Lilly)",
+            "UNH": "聯合健康 (UnitedHealth)",
+            "JNJ": "強生 (Johnson & Johnson)",
+            "ABBV": "艾伯維 (AbbVie)",
+            "NVO": "諾和諾德 (Novo Nordisk)",
+            "WMT": "沃爾瑪 (Walmart)",
+            "COST": "好市多 (Costco)",
+            "HD": "家得寶 (Home Depot)",
+            "MCD": "麥當勞 (McDonald's)",
+            "SBUX": "星巴克 (Starbucks)",
+            "NKE": "Nike",
+            "DIS": "迪士尼 (Disney)",
+            "KO": "可口可樂 (Coca-Cola)",
+            "PEP": "百事可樂 (PepsiCo)",
+            "PG": "寶潔 (Procter & Gamble)",
+            "XOM": "埃克森美孚 (ExxonMobil)",
+            "CVX": "雪佛龍 (Chevron)",
+            "OXY": "西方石油 (Occidental)",
+            "CAT": "卡特彼勒 (Caterpillar)",
+            "BA": "波音 (Boeing)",
+            "GE": "通用電氣航空 (GE Aerospace)",
+            "LMT": "洛歇馬丁 (Lockheed Martin)",
+            "BABA": "阿里巴巴 ADR (Alibaba)",
+            "PDD": "拼多多 (PDD Holdings)",
+            "JD": "京東 ADR (JD.com)",
+            "BIDU": "百度 ADR (Baidu)",
+            "NIO": "蔚來汽車 (NIO)",
+            "XPEV": "小鵬汽車 (XPeng)",
+            "LI": "理想汽車 (Li Auto)",
+            "FUTU": "富途控股 (Futu)",
             "0700.HK": "騰訊控股",
-            "2800.HK": "盈富基金"
+            "9988.HK": "阿里巴巴-W",
+            "3690.HK": "美團-W",
+            "1810.HK": "小米集團-W",
+            "1211.HK": "比亞迪股份",
+            "0388.HK": "香港交易所",
+            "0941.HK": "中國移動",
+            "0005.HK": "滙豐控股",
+            "1299.HK": "友邦保險",
+            "0001.HK": "長和",
+            "0002.HK": "中電控股",
+            "0003.HK": "香港中華煤氣",
+            "0006.HK": "電能實業",
+            "0011.HK": "恒生銀行",
+            "0012.HK": "恒基地產",
+            "0016.HK": "新鴻基地產",
+            "0017.HK": "新世界發展",
+            "0027.HK": "銀河娛樂",
+            "0066.HK": "港鐵公司",
+            "0883.HK": "中國海洋石油",
+            "0939.HK": "建設銀行",
+            "1398.HK": "工商銀行",
+            "3988.HK": "中國銀行",
+            "2318.HK": "中國平安",
+            "0992.HK": "聯想集團",
+            "9618.HK": "京東集團-SW",
+            "9999.HK": "網易-S",
+            "9888.HK": "百度集團-SW",
+            "2015.HK": "理想汽車-W",
+            "9868.HK": "小鵬汽車-W"
         };
 
         var SYMBOL_ALIASES = {
+            "HSI": "^HSI",
+            "恒指": "^HSI",
+            "恆指": "^HSI",
+            "恒生指數": "^HSI",
+            "恆生指數": "^HSI",
+            "HSCEI": "2828.HK",
+            "國指": "2828.HK",
+            "科指": "3033.HK",
+            "HSTECH": "3033.HK",
+            "SPX": "^GSPC",
+            "NDX": "^NDX",
+            "DJI": "^DJI",
+            "VIX": "^VIX",
             "GOLD": "GC=F",
             "XAUUSD": "GC=F",
             "XAU": "GLD",
@@ -887,7 +1067,9 @@
             "ETH": "ETH-USD",
             "SOL": "SOL-USD",
             "OIL": "CL=F",
-            "WTI": "CL=F"
+            "WTI": "CL=F",
+            "BRK.B": "BRK-B",
+            "BRKB": "BRK-B"
         };
 
         // 20 Percent Buckets: 100%, 95%, 90%, ..., 5% + extra integer steps like 94%
@@ -895,10 +1077,32 @@
 
         // Calibrated Profiles for Commodities (Gold, Silver, Oil, Copper, NatGas), Crypto (BTC, ETH, SOL), and Equities
         var CALIBRATED_PROFILES = {
+            "^HSI":    { basePrice: 13500.0, annualDrift: 0.025, dailyVol: 0.0145, q4Boost: 0.0010, startYear: 2001, spot2026: 20750.0 },
+            "2828.HK": { basePrice: 48.0,    annualDrift: 0.030, dailyVol: 0.0155, q4Boost: 0.0011, startYear: 2004, spot2026: 75.2 },
+            "3033.HK": { basePrice: 4.2,     annualDrift: 0.045, dailyVol: 0.0225, q4Boost: 0.0015, startYear: 2020, spot2026: 4.65 },
+            "^GSPC":   { basePrice: 1200.0,  annualDrift: 0.095, dailyVol: 0.0082, q4Boost: 0.0011, startYear: 2001, spot2026: 5980.0 },
+            "^NDX":    { basePrice: 1800.0,  annualDrift: 0.135, dailyVol: 0.0118, q4Boost: 0.0014, startYear: 2001, spot2026: 21100.0 },
+            "^DJI":    { basePrice: 10500.0, annualDrift: 0.082, dailyVol: 0.0078, q4Boost: 0.0010, startYear: 2001, spot2026: 43950.0 },
+            "MSFT":    { basePrice: 28.0,    annualDrift: 0.165, dailyVol: 0.0145, q4Boost: 0.0013, startYear: 2001, spot2026: 428.0 },
+            "AMZN":    { basePrice: 1.5,     annualDrift: 0.240, dailyVol: 0.0190, q4Boost: 0.0018, startYear: 2001, spot2026: 210.0 },
+            "META":    { basePrice: 38.0,    annualDrift: 0.220, dailyVol: 0.0220, q4Boost: 0.0016, startYear: 2012, spot2026: 595.0 },
+            "GOOGL":   { basePrice: 2.8,     annualDrift: 0.195, dailyVol: 0.0165, q4Boost: 0.0014, startYear: 2004, spot2026: 182.0 },
+            "AMD":     { basePrice: 8.0,     annualDrift: 0.250, dailyVol: 0.0275, q4Boost: 0.0020, startYear: 2001, spot2026: 148.0 },
+            "AVGO":    { basePrice: 2.5,     annualDrift: 0.280, dailyVol: 0.0210, q4Boost: 0.0019, startYear: 2009, spot2026: 178.0 },
+            "NFLX":    { basePrice: 1.2,     annualDrift: 0.290, dailyVol: 0.0245, q4Boost: 0.0021, startYear: 2002, spot2026: 795.0 },
+            "TSM":     { basePrice: 8.5,     annualDrift: 0.195, dailyVol: 0.0195, q4Boost: 0.0018, startYear: 2001, spot2026: 196.0 },
+            "PLTR":    { basePrice: 10.0,    annualDrift: 0.350, dailyVol: 0.0320, q4Boost: 0.0028, startYear: 2020, spot2026: 58.0 },
+            "BRK-B":   { basePrice: 48.0,    annualDrift: 0.098, dailyVol: 0.0088, q4Boost: 0.0009, startYear: 2001, spot2026: 462.0 },
+            "JPM":     { basePrice: 36.0,    annualDrift: 0.105, dailyVol: 0.0145, q4Boost: 0.0012, startYear: 2001, spot2026: 238.0 },
+            "LLY":     { basePrice: 55.0,    annualDrift: 0.180, dailyVol: 0.0155, q4Boost: 0.0014, startYear: 2001, spot2026: 815.0 },
+            "COST":    { basePrice: 38.0,    annualDrift: 0.155, dailyVol: 0.0125, q4Boost: 0.0013, startYear: 2001, spot2026: 935.0 },
+            "WMT":     { basePrice: 18.0,    annualDrift: 0.095, dailyVol: 0.0110, q4Boost: 0.0011, startYear: 2001, spot2026: 84.5 },
             "GLD":     { basePrice: 44.0,  annualDrift: 0.092, dailyVol: 0.0096, q4Boost: 0.0013, startYear: 2004 },
             "GC=F":    { basePrice: 400.0, annualDrift: 0.095, dailyVol: 0.0102, q4Boost: 0.0014, startYear: 2001 },
             "IAU":     { basePrice: 11.0,  annualDrift: 0.092, dailyVol: 0.0095, q4Boost: 0.0013, startYear: 2005 },
-            "2840.HK": { basePrice: 340.0, annualDrift: 0.092, dailyVol: 0.0096, q4Boost: 0.0013, startYear: 2008 },
+            "0001.HK": { basePrice: 48.0,  annualDrift: 0.018, dailyVol: 0.0135, q4Boost: 0.0009, startYear: 2001, spot2026: 71.0 },
+            "0005.HK": { basePrice: 42.0,  annualDrift: 0.025, dailyVol: 0.0125, q4Boost: 0.0010, startYear: 2001, spot2026: 72.5 },
+            "2840.HK": { basePrice: 340.0, annualDrift: 0.092, dailyVol: 0.0096, q4Boost: 0.0013, startYear: 2008, spot2026: 2150.0 },
             "SLV":     { basePrice: 13.0,  annualDrift: 0.075, dailyVol: 0.0175, q4Boost: 0.0016, startYear: 2006 },
             "SI=F":    { basePrice: 6.5,   annualDrift: 0.080, dailyVol: 0.0182, q4Boost: 0.0017, startYear: 2001 },
             "USO":     { basePrice: 68.0,  annualDrift: 0.020, dailyVol: 0.0215, q4Boost: -0.0006, startYear: 2006 },
@@ -1013,6 +1217,16 @@
                     low: Number(lowPrice.toFixed(4)),
                     close: Number(closePrice.toFixed(4))
                 });
+            }
+            if (rows.length > 0 && prof.spot2026) {
+                var lastClose = rows[rows.length - 1].close;
+                var scale = prof.spot2026 / lastClose;
+                for (var idx = 0; idx < rows.length; idx++) {
+                    rows[idx].open = Number((rows[idx].open * scale).toFixed(4));
+                    rows[idx].high = Number((rows[idx].high * scale).toFixed(4));
+                    rows[idx].low = Number((rows[idx].low * scale).toFixed(4));
+                    rows[idx].close = Number((rows[idx].close * scale).toFixed(4));
+                }
             }
             return rows;
         }
@@ -1323,60 +1537,190 @@
             };
         }
 
+        // Format price cleanly (strip trailing zeros if integer or 2 decimals, or up to 4 decimals for targets)
+        function fmtBasePrice(val) {
+            if (val === null || val === undefined || isNaN(val)) return "-";
+            var s = Number(val).toFixed(2);
+            return s.replace(/\.00$/, "").replace(/(\.\d)0$/, "$1");
+        }
+
+        function fmtTargetPrice(val) {
+            if (val === null || val === undefined || isNaN(val)) return "-";
+            return Number(val).toFixed(4);
+        }
+
+        // Evaluate whether a sub-window [dStart, dEnd] has already started relative to today / dataset,
+        // and extract the triggered base price + live progress so far up to today
+        function evaluateLiveWindowState(dStart, dEnd, mode, expectedPct) {
+            var now = new Date();
+            // Use current date in HK time (2026-11-09) or latest bar in dataset
+            var todayUtc = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+            var startMs = Date.UTC(dStart.getUTCFullYear(), dStart.getUTCMonth(), dStart.getUTCDate());
+            var endMs = Date.UTC(dEnd.getUTCFullYear(), dEnd.getUTCMonth(), dEnd.getUTCDate());
+
+            var refOverride = parseFloat(document.getElementById("customRefPrice").value);
+            var hasOverride = !isNaN(refOverride) && refOverride > 0;
+
+            // If start date is strictly in the future and user didn't force an override price
+            if (startMs > todayUtc && !hasOverride) {
+                return {
+                    triggered: false,
+                    basePrice: null,
+                    livePct: null,
+                    statusLabel: "(未開始)"
+                };
+            }
+
+            // Find bars in currentDataset from startMs up to min(todayUtc, endMs)
+            var cutoffMs = Math.min(todayUtc, endMs);
+            var windowBars = [];
+            if (currentDataset && currentDataset.length > 0) {
+                // Find bars between startMs - 3 days (in case dStart falls on a weekend/holiday like Nov 7 Saturday) and cutoffMs
+                windowBars = currentDataset.filter(function(r) {
+                    return r.timestamp >= (startMs - 3 * 86400 * 1000) && r.timestamp <= cutoffMs;
+                });
+                // Prefer bars on or after startMs if available
+                var onOrAfter = windowBars.filter(function(r) { return r.timestamp >= startMs; });
+                if (onOrAfter.length > 0) {
+                    windowBars = onOrAfter;
+                } else if (windowBars.length > 0) {
+                    windowBars = [windowBars[windowBars.length - 1]];
+                }
+            }
+
+            if (windowBars.length === 0 && !hasOverride) {
+                return {
+                    triggered: false,
+                    basePrice: null,
+                    livePct: null,
+                    statusLabel: "(未開始)"
+                };
+            }
+
+            var firstBar = windowBars.length > 0 ? windowBars[0] : null;
+            var basePrice = null;
+            if (hasOverride) {
+                basePrice = refOverride;
+            } else if (firstBar) {
+                if (mode === "up") basePrice = firstBar.low;
+                else if (mode === "down") basePrice = firstBar.high;
+                else basePrice = firstBar.high; // 最大波幅基準價 (如 11月05日 最高價 / 開市價)
+            }
+
+            // Compute live excursion from firstBar up to latest bar in windowBars
+            var livePct = 0;
+            if (windowBars.length > 0 && basePrice > 0) {
+                var maxHighSoFar = -Infinity;
+                var minLowSoFar = Infinity;
+                for (var i = 0; i < windowBars.length; i++) {
+                    if (windowBars[i].high > maxHighSoFar) maxHighSoFar = windowBars[i].high;
+                    if (windowBars[i].low < minLowSoFar) minLowSoFar = windowBars[i].low;
+                }
+                var lastBar = windowBars[windowBars.length - 1];
+                if (mode === "up") {
+                    livePct = Math.max(0, ((maxHighSoFar / basePrice) - 1) * 100);
+                } else if (mode === "down") {
+                    livePct = Math.max(0, ((basePrice - minLowSoFar) / basePrice) * 100);
+                } else {
+                    var upEx = Math.abs(maxHighSoFar - basePrice) / basePrice * 100;
+                    var downEx = Math.abs(basePrice - minLowSoFar) / basePrice * 100;
+                    var rangeEx = ((maxHighSoFar - minLowSoFar) / basePrice) * 100;
+                    livePct = Math.max(upEx, downEx, rangeEx);
+                }
+            }
+
+            var isDone = livePct >= (expectedPct - 1e-4);
+            var isExpired = todayUtc > endMs;
+            var statusLabel = isDone ? "(已達標)" : (isExpired ? "(已結束)" : "(未有結果)");
+
+            return {
+                triggered: true,
+                basePrice: basePrice,
+                livePct: livePct,
+                statusLabel: statusLabel,
+                isDone: isDone
+            };
+        }
+
         // Render the 3 QuantRaiser Result Cards + Bucket Overview Table
         function renderQuantRaiserView() {
             if (!lastComputedScan || !lastComputedScan.byBucket[currentPercent]) return;
 
             var bucketData = lastComputedScan.byBucket[currentPercent];
-            var refPriceInput = parseFloat(document.getElementById("customRefPrice").value);
-            var hasRefPrice = !isNaN(refPriceInput) && refPriceInput > 0;
-
-            var todayStr = new Date().toISOString().slice(0, 10);
+            var pctLabel = currentPercent + "%";
 
             // 1. 升波幅 Card
             var u = bucketData.up;
+            var uState = evaluateLiveWindowState(u.dStart, u.dEnd, "up", u.expectedPct);
             var uRangeStr = formatChineseMonthDay(u.dStart) + " 最低價 — " + formatChineseMonthDay(u.dEnd);
             var uFullStartStr = formatFullChineseDate(u.dStart);
-            var uStartIso = u.dStart.toISOString().slice(0, 10);
-            var uStatusPrefix = uStartIso >= todayStr ? "(未開始) " : "(進行中) ";
-            var uTargetPriceStr = hasRefPrice
-                ? (" → 預計目標價 $" + (refPriceInput * (1 + u.expectedPct / 100)).toFixed(2))
-                : "";
 
             document.getElementById("upWindowText").textContent = uRangeStr;
-            document.getElementById("upHeadlineText").textContent = "會上升 " + u.expectedPct.toFixed(2) + "%" + uTargetPriceStr;
-            document.getElementById("upBaseDateLine").textContent = uFullStartStr + " 最低價 (" + (hasRefPrice ? "$" + refPriceInput.toFixed(2) : "-") + ")";
-            document.getElementById("upPredLine").textContent = uStatusPrefix + "預測升幅 : " + u.expectedPct.toFixed(2) + "%";
-            document.getElementById("upLiveLine").textContent = "暫時升幅 : -";
+            document.getElementById("upHeadlineText").textContent = "會上升 " + u.expectedPct.toFixed(2) + "%";
+            document.getElementById("upBaseDateLine").textContent = uFullStartStr + " 最低價 (" + (uState.triggered ? fmtBasePrice(uState.basePrice) : "-") + ")";
+
+            var upTargetEl = document.getElementById("upTargetContainer");
+            if (uState.triggered && uState.basePrice > 0) {
+                var uTargetPrice = uState.basePrice * (1 + u.expectedPct / 100);
+                upTargetEl.innerHTML = '<div class="detail-target">' + pctLabel + ' 方目標 (' + fmtTargetPrice(uTargetPrice) + ')</div>';
+            } else {
+                upTargetEl.innerHTML = "";
+            }
+
+            var upPredEl = document.getElementById("upPredLine");
+            upPredEl.textContent = uState.statusLabel + " 預測升幅 : " + u.expectedPct.toFixed(2) + "%";
+            upPredEl.className = "detail-pred" + (uState.isDone ? " hit-done" : "");
+            document.getElementById("upLiveLine").textContent = "暫時升幅 : " + (uState.triggered ? (uState.livePct.toFixed(2) + "%") : "-");
 
             // 2. 跌波幅 Card
             var d = bucketData.down;
+            var dState = evaluateLiveWindowState(d.dStart, d.dEnd, "down", d.expectedPct);
             var dRangeStr = formatChineseMonthDay(d.dStart) + " 最高價 — " + formatChineseMonthDay(d.dEnd);
             var dFullStartStr = formatFullChineseDate(d.dStart);
-            var dStartIso = d.dStart.toISOString().slice(0, 10);
-            var dStatusPrefix = dStartIso >= todayStr ? "(未開始) " : "(進行中) ";
-            var dTargetPriceStr = hasRefPrice
-                ? (" → 預計目標價 $" + (refPriceInput * (1 - d.expectedPct / 100)).toFixed(2))
-                : "";
 
             document.getElementById("downWindowText").textContent = dRangeStr;
-            document.getElementById("downHeadlineText").textContent = "會下跌 -" + d.expectedPct.toFixed(2) + "%" + dTargetPriceStr;
-            document.getElementById("downBaseDateLine").textContent = dFullStartStr + " 最高價 (" + (hasRefPrice ? "$" + refPriceInput.toFixed(2) : "-") + ")";
-            document.getElementById("downPredLine").textContent = dStatusPrefix + "預測跌幅 : " + d.expectedPct.toFixed(2) + "%";
-            document.getElementById("downLiveLine").textContent = "暫時跌幅 : -";
+            document.getElementById("downHeadlineText").textContent = "會下跌 -" + d.expectedPct.toFixed(2) + "%";
+            document.getElementById("downBaseDateLine").textContent = dFullStartStr + " 最高價 (" + (dState.triggered ? fmtBasePrice(dState.basePrice) : "-") + ")";
+
+            var downTargetEl = document.getElementById("downTargetContainer");
+            if (dState.triggered && dState.basePrice > 0) {
+                var dTargetPrice = dState.basePrice * (1 - d.expectedPct / 100);
+                downTargetEl.innerHTML = '<div class="detail-target">' + pctLabel + ' 方目標 (' + fmtTargetPrice(dTargetPrice) + ')</div>';
+            } else {
+                downTargetEl.innerHTML = "";
+            }
+
+            var downPredEl = document.getElementById("downPredLine");
+            downPredEl.textContent = dState.statusLabel + " 預測跌幅 : " + d.expectedPct.toFixed(2) + "%";
+            downPredEl.className = "detail-pred" + (dState.isDone ? " hit-done" : "");
+            document.getElementById("downLiveLine").textContent = "暫時跌幅 : " + (dState.triggered ? (dState.livePct.toFixed(2) + "%") : "-");
 
             // 3. 最大波幅 Card
             var m = bucketData.max;
-            var mRangeStr = formatChineseMonthDay(m.dStart) + " 開市價 — " + formatChineseMonthDay(m.dEnd);
+            var mState = evaluateLiveWindowState(m.dStart, m.dEnd, "max", m.expectedPct);
+            var mPriceTypeLabel = mState.triggered ? "最高價" : "開市價";
+            var mRangeStr = formatChineseMonthDay(m.dStart) + " " + mPriceTypeLabel + " — " + formatChineseMonthDay(m.dEnd);
             var mFullStartStr = formatFullChineseDate(m.dStart);
-            var mStartIso = m.dStart.toISOString().slice(0, 10);
-            var mStatusPrefix = mStartIso >= todayStr ? "(未開始) " : "(進行中) ";
 
             document.getElementById("maxWindowText").textContent = mRangeStr;
             document.getElementById("maxHeadlineText").textContent = "會波幅 " + m.expectedPct.toFixed(2) + "%";
-            document.getElementById("maxBaseDateLine").textContent = mFullStartStr + " 開市價 (" + (hasRefPrice ? "$" + refPriceInput.toFixed(2) : "-") + ")";
-            document.getElementById("maxPredLine").textContent = mStatusPrefix + "預測波幅 : " + m.expectedPct.toFixed(2) + "%";
-            document.getElementById("maxLiveLine").textContent = "暫時波幅 : -";
+            document.getElementById("maxBaseDateLine").textContent = mFullStartStr + " " + mPriceTypeLabel + " (" + (mState.triggered ? fmtBasePrice(mState.basePrice) : "-") + ")";
+
+            var maxTargetEl = document.getElementById("maxTargetContainer");
+            if (mState.triggered && mState.basePrice > 0) {
+                var mUpperTarget = mState.basePrice * (1 + m.expectedPct / 100);
+                var mLowerTarget = mState.basePrice * (1 - m.expectedPct / 100);
+                maxTargetEl.innerHTML =
+                    '<div class="detail-target">' + pctLabel + ' 方目標 (' + fmtTargetPrice(mUpperTarget) + ')</div>' +
+                    '<div class="detail-target">' + pctLabel + ' 方目標 (' + fmtTargetPrice(mLowerTarget) + ')</div>';
+            } else {
+                maxTargetEl.innerHTML = "";
+            }
+
+            var maxPredEl = document.getElementById("maxPredLine");
+            maxPredEl.textContent = mState.statusLabel + " 預測波幅 : " + m.expectedPct.toFixed(2) + "%";
+            maxPredEl.className = "detail-pred" + (mState.isDone ? " hit-done" : "");
+            document.getElementById("maxLiveLine").textContent = "暫時波幅 : " + (mState.triggered ? (mState.livePct.toFixed(2) + "%") : "-");
 
             // 4. Populate 20 Percent Bucket Overview Table
             var tbody = document.getElementById("bucketTableBody");
@@ -1520,7 +1864,7 @@
             document.getElementById("detailModal").classList.add("open");
         }
 
-        // Update Date Difference Hint ("最多 180 天 (現 42 天)")
+        // Update Date Difference Hint ("最多 180 天 (現 55 天)")
         function updateDayCountHint() {
             var sVal = document.getElementById("startDateInput").value;
             var eVal = document.getElementById("endDateInput").value;
