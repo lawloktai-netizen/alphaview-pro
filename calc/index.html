@@ -74,7 +74,7 @@
       <details class="adv"><summary>⚙️ 資料來源設定 <span class="hint" id="modeLbl"></span></summary>
         <div class="field" style="margin-top:8px"><label for="proxy">自訂 CORS Proxy（可選）<span class="hint">例：https://你的worker.workers.dev/?url={url}　留空 = 用內置公共代理</span></label>
           <input id="proxy" placeholder="https://..." autocomplete="off"></div>
-        <div class="note">純網頁模式下，正股報價會依次試：Yahoo 直連 → 自訂 Proxy → 公共 CORS Proxy（allorigins / corsproxy.io / codetabs / cors.lol）→ 騰訊財經（原生支援 CORS）。全部失敗就請人手輸入現價同股息率。美股／ETF 期權鏈另外讀 CBOE 延遲報價（直連、讀取器或內置 JSON），唔使本地後端。</div>
+        <div class="note">純網頁模式下，正股報價會依次試：Yahoo 直連 → 自訂 Proxy → 公共 CORS Proxy（allorigins / corsproxy.io / codetabs / cors.lol）→ 騰訊財經（原生支援 CORS）。全部失敗就請人手輸入現價同股息率。美股／ETF 期權鏈讀 CBOE 延遲報價；港股期權讀港交所延遲鏈（HKATS 代號，直連或內置 JSON）。唔使本地後端。</div>
       </details>
     </section>
 
@@ -88,7 +88,7 @@
           <div class="dteline" id="dteLine">—</div>
         </div>
         <div class="field">
-          <label for="expSelect">期權到期日 <span class="hint">美股／ETF 用 CBOE 延遲鏈</span></label>
+          <label for="expSelect">期權到期日 <span class="hint">美股 CBOE、港股 HKEX 延遲鏈</span></label>
           <select id="expSelect"><option value="">— 未載入 —</option></select>
           <div class="dteline" id="chainNote"></div>
         </div>
@@ -192,10 +192,11 @@
     <details><summary>資料來源 · 限制</summary>
       <ul>
         <li>正股報價：Yahoo Finance → 騰訊財經。股息 = 過去 12 個月派息總和。GitHub Pages 係純網頁，唔經本地後端。</li>
-        <li>美股／ETF 期權鏈：CBOE 延遲報價（瀏覽器直連，唔通就經讀取器，再退回 <code>data/chains/</code> 內置鏈，由 <code>tools/refresh_option_chains.py</code> 更新）。未鎖定嘅腳用 Bid/Ask 中間價。</li>
-        <li>冇鏈（例如港股期權，或者到期日唔係真實合約）時，期權金係 Black-Scholes 理論價，畫面會用紅色字標明「理論價，唔係市場報價」。</li>
+        <li>美股／ETF 期權鏈：CBOE 延遲報價（瀏覽器直連，唔通就經讀取器，再退回 <code>data/chains/</code> 內置鏈）。未鎖定嘅腳用 Bid/Ask 中間價。</li>
+        <li>港股期權鏈：港交所延遲報價（股票期權頁同一套 hkexwidget，用 HKATS 代號，例如騰訊 TCH）。瀏覽器直連，唔通就退回 <code>data/chains/0700.HK.json</code> 呢類內置鏈。兩邊都由 <code>tools/refresh_option_chains.py</code> 更新。</li>
+        <li>冇鏈（到期日或行使價唔係真實合約，或者呢隻港股冇期權）時，期權金係 Black-Scholes 理論價，畫面會用紅色字標明「理論價，唔係市場報價」。</li>
         <li>港股每張合約股數按港交所股票期權名單預填（例：騰訊 100、阿里 500、美團 500、小米 1000、匯豐 400）。</li>
-        <li>美式期權提早行使、手續費、稅項、孖展利息未計。CBOE／Yahoo 報價有延遲。本工具只作教學計算用途，不構成投資建議。</li>
+        <li>美式期權提早行使、手續費、稅項、孖展利息未計。CBOE／港交所／Yahoo 報價有延遲（港交所至少 15 分鐘）。本工具只作教學計算用途，不構成投資建議。</li>
       </ul>
     </details>
   </section>
@@ -206,7 +207,7 @@
 <script src="hk_options.js"></script>
 <script src="optmath.js"></script>
 <script src="templates.js"></script>
-<script src="chain.js?v=20261109cboe"></script>
-<script src="app.js?v=20261109cboe"></script>
+<script src="chain.js?v=20261109hkex"></script>
+<script src="app.js?v=20261109hkex2"></script>
 </body>
 </html>
