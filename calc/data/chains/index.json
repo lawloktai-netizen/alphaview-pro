@@ -1,48 +1,110 @@
 {
-  "source": "CBOE delayed",
-  "generated": "2026-11-09 15:50:03",
+  "source": "CBOE delayed + HKEX delayed",
+  "generated": "2026-11-09 16:11:37",
   "symbols": {
+    "0005.HK": {
+      "asOf": "2026-11-09 15:59 HKT",
+      "expirations": 7,
+      "quotes": 193,
+      "bytes": 4661,
+      "source": "HKEX delayed"
+    },
+    "0388.HK": {
+      "asOf": "2026-11-09 15:59 HKT",
+      "expirations": 7,
+      "quotes": 216,
+      "bytes": 5531,
+      "source": "HKEX delayed"
+    },
+    "0700.HK": {
+      "asOf": "2026-11-09 15:59 HKT",
+      "expirations": 7,
+      "quotes": 388,
+      "bytes": 8900,
+      "source": "HKEX delayed"
+    },
+    "0823.HK": {
+      "asOf": "2026-11-09 15:57 HKT",
+      "expirations": 7,
+      "quotes": 135,
+      "bytes": 3163,
+      "source": "HKEX delayed"
+    },
+    "0883.HK": {
+      "asOf": "2026-11-09 15:56 HKT",
+      "expirations": 7,
+      "quotes": 125,
+      "bytes": 3042,
+      "source": "HKEX delayed"
+    },
+    "0941.HK": {
+      "asOf": "2026-11-09 15:54 HKT",
+      "expirations": 7,
+      "quotes": 86,
+      "bytes": 2140,
+      "source": "HKEX delayed"
+    },
+    "1211.HK": {
+      "asOf": "2026-11-09 15:59 HKT",
+      "expirations": 7,
+      "quotes": 205,
+      "bytes": 5154,
+      "source": "HKEX delayed"
+    },
+    "1299.HK": {
+      "asOf": "2026-11-09 15:59 HKT",
+      "expirations": 7,
+      "quotes": 147,
+      "bytes": 3757,
+      "source": "HKEX delayed"
+    },
+    "1810.HK": {
+      "asOf": "2026-11-09 15:58 HKT",
+      "expirations": 7,
+      "quotes": 287,
+      "bytes": 6715,
+      "source": "HKEX delayed"
+    },
+    "1833.HK": {
+      "asOf": "2026-11-10 00:11 HKT",
+      "expirations": 6,
+      "quotes": 19,
+      "bytes": 670,
+      "source": "HKEX delayed"
+    },
+    "2800.HK": {
+      "asOf": "2026-11-10 00:11 HKT",
+      "expirations": 7,
+      "quotes": 58,
+      "bytes": 1507,
+      "source": "HKEX delayed"
+    },
+    "2823.HK": {
+      "asOf": "2026-11-10 00:11 HKT",
+      "expirations": 5,
+      "quotes": 21,
+      "bytes": 702,
+      "source": "HKEX delayed"
+    },
+    "3690.HK": {
+      "asOf": "2026-11-09 15:59 HKT",
+      "expirations": 7,
+      "quotes": 252,
+      "bytes": 5777,
+      "source": "HKEX delayed"
+    },
+    "9988.HK": {
+      "asOf": "2026-11-09 15:59 HKT",
+      "expirations": 7,
+      "quotes": 304,
+      "bytes": 7083,
+      "source": "HKEX delayed"
+    },
     "AAPL": {
       "asOf": "2026-11-09 15:49:11",
       "expirations": 24,
       "quotes": 3398,
       "bytes": 94444
-    },
-    "TSLA": {
-      "asOf": "2026-11-09 15:49:15",
-      "expirations": 23,
-      "quotes": 5136,
-      "bytes": 147388
-    },
-    "NVDA": {
-      "asOf": "2026-11-09 15:49:08",
-      "expirations": 25,
-      "quotes": 4188,
-      "bytes": 116983
-    },
-    "MSFT": {
-      "asOf": "2026-11-09 15:49:18",
-      "expirations": 23,
-      "quotes": 3924,
-      "bytes": 111728
-    },
-    "AMZN": {
-      "asOf": "2026-11-09 15:49:06",
-      "expirations": 24,
-      "quotes": 2464,
-      "bytes": 69068
-    },
-    "META": {
-      "asOf": "2026-11-09 15:49:17",
-      "expirations": 24,
-      "quotes": 7116,
-      "bytes": 202384
-    },
-    "GOOGL": {
-      "asOf": "2026-11-09 15:49:09",
-      "expirations": 24,
-      "quotes": 4810,
-      "bytes": 131590
     },
     "AMD": {
       "asOf": "2026-11-09 15:49:09",
@@ -50,17 +112,53 @@
       "quotes": 7038,
       "bytes": 200044
     },
-    "SPY": {
+    "AMZN": {
+      "asOf": "2026-11-09 15:49:06",
+      "expirations": 24,
+      "quotes": 2464,
+      "bytes": 69068
+    },
+    "GOOGL": {
+      "asOf": "2026-11-09 15:49:09",
+      "expirations": 24,
+      "quotes": 4810,
+      "bytes": 131590
+    },
+    "META": {
+      "asOf": "2026-11-09 15:49:17",
+      "expirations": 24,
+      "quotes": 7116,
+      "bytes": 202384
+    },
+    "MSFT": {
+      "asOf": "2026-11-09 15:49:18",
+      "expirations": 23,
+      "quotes": 3924,
+      "bytes": 111728
+    },
+    "NVDA": {
       "asOf": "2026-11-09 15:49:08",
-      "expirations": 35,
-      "quotes": 12904,
-      "bytes": 372976
+      "expirations": 25,
+      "quotes": 4188,
+      "bytes": 116983
     },
     "QQQ": {
       "asOf": "2026-11-09 15:49:13",
       "expirations": 32,
       "quotes": 11578,
       "bytes": 333063
+    },
+    "SPY": {
+      "asOf": "2026-11-09 15:49:08",
+      "expirations": 35,
+      "quotes": 12904,
+      "bytes": 372976
+    },
+    "TSLA": {
+      "asOf": "2026-11-09 15:49:15",
+      "expirations": 23,
+      "quotes": 5136,
+      "bytes": 147388
     }
   }
 }

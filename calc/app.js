@@ -64,6 +64,13 @@ function isUsEquity(sym) {
   if (!sym || isHK(sym) || /[\^=]/.test(sym)) return false;
   return /^[A-Z]{1,6}$/.test(sym) || /^[A-Z]{1,5}[.-][A-Z]$/.test(sym);
 }
+function hkAts(sym) {
+  const spec = (window.HK_OPTION_SPECS || {})[sym];
+  return spec ? spec[1] : null;
+}
+function hasListedChain(sym) {
+  return !!(window.OptChain && (isUsEquity(sym) || hkAts(sym)));
+}
 
 async function fetchWithTimeout(url, ms = 7000, opts = {}) {
   const c = new AbortController(); const t = setTimeout(() => c.abort(), ms);
@@ -248,6 +255,123 @@ async function fetchLiveCboe(sym) {
   }
   return null;
 }
+function parseJsonp(text) {
+  const s = String(text || '');
+  const i = s.indexOf('{');
+  const j = s.lastIndexOf('}');
+  if (i < 0 || j <= i) throw new Error('jsonp');
+  return JSON.parse(s.slice(i, j + 1));
+}
+function hkexAsOf(lastupd) {
+  const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}:\d{2})/.exec(String(lastupd || '').trim());
+  if (!m) return null;
+  return m[3] + '-' + m[2].padStart(2, '0') + '-' + m[1].padStart(2, '0') + ' ' + m[4] + ' HKT';
+}
+function hkexTokenFromHtml(html) {
+  const re = /return\s+"([^"]+)"/g;
+  let m;
+  while ((m = re.exec(html))) {
+    if (m[1] && m[1] !== 'Base64-AES-Encrypted-Token' && m[1].length > 20) {
+      try { return decodeURIComponent(m[1]); } catch { return m[1]; }
+    }
+  }
+  return null;
+}
+function hkexJobs(url, ms) {
+  const jobs = [['HKEX 直連', () => fetchWithTimeout(url, ms, { cache: 'no-store' }).then(r => r.text())]];
+  const custom = customProxyUrl(url);
+  if (custom) jobs.push(['自訂 Proxy', () => fetchWithTimeout(custom, ms, { cache: 'no-store' }).then(r => r.text())]);
+  for (const [name, fn] of PUBLIC_PROXIES) jobs.push([name, () => fetchWithTimeout(fn(url), ms, { cache: 'no-store' }).then(r => r.text())]);
+  return jobs;
+}
+async function hkexToken() {
+  const page = 'https://www.hkex.com.hk/Market-Data/Securities-Prices/Equities/Equities-Quote?sym=700&sc_lang=en';
+  const hit = await Promise.any(hkexJobs(page, 8000).map(async ([name, fn]) => {
+    const token = hkexTokenFromHtml(await fn());
+    if (!token) throw new Error('hkex token');
+    return { name, token };
+  }));
+  return hit.token;
+}
+async function hkexData(token, api, params) {
+  const q = new URLSearchParams();
+  q.set('lang', 'eng');
+  q.set('token', token);
+  q.set('qid', String(Date.now()));
+  q.set('callback', 'cb');
+  for (const [k, v] of Object.entries(params || {})) if (v != null && v !== '') q.set(k, String(v));
+  const url = 'https://www1.hkex.com.hk/hkexwidget/data/' + api + '?' + q.toString();
+  const hit = await Promise.any(hkexJobs(url, 12000).map(async ([name, fn]) => {
+    const payload = parseJsonp(await fn());
+    const data = payload && (payload.data || payload);
+    const rc = data && data.responsecode;
+    if (!data || (rc && rc !== '000' && rc !== '0')) throw new Error('hkex ' + api);
+    data._transport = name;
+    return data;
+  }));
+  return hit;
+}
+async function hkexExpiryMap() {
+  try {
+    const j = await fetchJSON('data/hkex_calendar.json', 8000, { cache: 'no-cache' });
+    return (j && j.expiries) || {};
+  } catch { return {}; }
+}
+async function mapPool(items, limit, fn) {
+  const out = new Array(items.length);
+  let next = 0;
+  async function worker() {
+    while (next < items.length) {
+      const i = next++;
+      try { out[i] = await fn(items[i]); } catch { out[i] = null; }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return out;
+}
+async function fetchLiveHkex(sym) {
+  const ats = hkAts(sym);
+  if (!ats || !window.OptChain) return null;
+  try {
+    const [token, cal] = await Promise.all([hkexToken(), hkexExpiryMap()]);
+    const list = await hkexData(token, 'getoptioncontractlist', { ats, type: '1' });
+    const cons = (list.conlist || []).filter(c => c && /^\d{6}$/.test(c.id));
+    if (!cons.length) return null;
+    const code = String(parseInt(sym, 10));
+    const months = await mapPool(cons, 4, async con => {
+      const probe = await hkexData(token, 'getderivativesoption', { ats, type: '1', con: con.id });
+      const lo = String(probe.min || '').replace(/,/g, '');
+      const hi = String(probe.max || '').replace(/,/g, '');
+      const full = (lo && hi)
+        ? await hkexData(token, 'getderivativesoption', { ats, type: '1', con: con.id, fr: lo, to: hi })
+        : probe;
+      return {
+        id: con.id,
+        expiry: cal[con.id] || window.OptChain.expiryFromContractId(con.id),
+        lastupd: full.lastupd || probe.lastupd || '',
+        optionlist: full.optionlist || [],
+      };
+    });
+    let spot = null;
+    try {
+      const quote = (await hkexData(token, 'getequityquote', { sym: code })).quote || {};
+      const px = parseFloat(String(quote.ls || quote.hc || '').replace(/,/g, ''));
+      if (px > 0) spot = px;
+    } catch { /* 正股報價另外由 Yahoo／騰訊提供 */ }
+    const stamps = months.filter(Boolean).map(m => hkexAsOf(m.lastupd)).filter(Boolean).sort();
+    const parsed = window.OptChain.chainsFromHkex({
+      symbol: sym, ats, spot, asOf: stamps[stamps.length - 1] || null, months: months.filter(Boolean),
+    });
+    if (!parsed) return null;
+    parsed.via = 'live';
+    parsed.transport = (list && list._transport) || 'HKEX 直連';
+    return parsed;
+  } catch { return null; }
+}
+async function fetchLiveChain(sym) {
+  if (hkAts(sym)) return fetchLiveHkex(sym);
+  return fetchLiveCboe(sym);
+}
 function readChainSession(sym) {
   try {
     const raw = JSON.parse(sessionStorage.getItem('optcalc.chain.' + sym) || 'null');
@@ -287,7 +411,7 @@ function startLive(sym) {
   const slot = chainSlot(sym);
   if (slot.pending) return slot.pending;
   slot.pending = (async () => {
-    const live = await fetchLiveCboe(sym);
+    const live = await fetchLiveChain(sym);
     slot.failed = !live;
     if (live) {
       slot.parsed = live;
@@ -330,6 +454,7 @@ function applyParsed(parsed) {
     via: parsed ? parsed.via : null,
     asOf: (parsed && parsed.asOf) || '',
     transport: (parsed && parsed.transport) || '',
+    source: (parsed && parsed.source) || '',
     pending: !!(slot && slot.pending),
     failed: !!(slot && slot.failed),
   };
@@ -361,7 +486,7 @@ async function getExpirations(sym, opts = {}) {
       return j.expirations || [];
     } catch { return []; }
   }
-  if (!isUsEquity(sym) || !window.OptChain) return [];
+  if (!hasListedChain(sym)) return [];
   const parsed = await ensureChain(sym, opts);
   if (!parsed) {
     chainCache = {};
@@ -382,7 +507,7 @@ async function loadChains() {
     }));
     return;
   }
-  if (!isUsEquity(state.symbol) || !window.OptChain) return;
+  if (!hasListedChain(state.symbol)) return;
   const parsed = await ensureChain(state.symbol);
   if (parsed) applyParsed(parsed);
 }
@@ -558,10 +683,10 @@ async function loadQuote(raw, opts = {}) {
     }
     if (gen !== quoteGen) return;
     if (changed) { chainCache = {}; state.expirations = []; chainMeta = null; }
-    if (isUsEquity(sym) && !backend) {
+    if (hasListedChain(sym) && !backend) {
       const note = $('chainNote');
       note.className = 'dteline';
-      note.textContent = '正在載入 CBOE 延遲期權鏈…';
+      note.textContent = hkAts(sym) ? '正在載入 HKEX 延遲期權鏈…' : '正在載入 CBOE 延遲期權鏈…';
     }
     state.expirations = await getExpirations(sym, { refresh: !opts.silent });
     if (gen !== quoteGen) return;
@@ -589,23 +714,37 @@ function renderExpChips() {
     ['本月期', monthlyExpiry(0)], ['下月期', monthlyExpiry(1)], ['再下月', monthlyExpiry(2)]];
   $('expChips').innerHTML = items.map(([n, d]) => { const iso = snapExpiry(M.isoDate(d)); return `<button class="chip${iso === state.expiry ? ' on' : ''}" data-exp="${iso}">${n}<small>${iso.slice(5)}</small></button>`; }).join('');
 }
+function chainVendor() {
+  const src = (chainMeta && chainMeta.source) || '';
+  if (/HKEX/i.test(src)) return 'HKEX';
+  if (/CBOE/i.test(src)) return 'CBOE';
+  if (hkAts(state.symbol) && state.expirations.length) return 'HKEX';
+  return 'CBOE';
+}
+function asOfText(asOf) {
+  if (!asOf) return '';
+  return /\b(UTC|HKT)\b/.test(asOf) ? asOf : asOf + ' UTC';
+}
 function chainStatusNote() {
   const n = state.expirations.length;
   if (!n) {
-    const text = isHK(state.symbol)
-      ? '⚠️ 港股期權冇市場鏈。而家顯示嘅期權金係 Black-Scholes 理論價，唔係市場報價，落盤前請改成券商報價。'
-      : (backend
-        ? '⚠️ 冇期權鏈。期權金係 Black-Scholes 理論價，唔係市場報價（可人手改）。'
-        : '⚠️ 攞唔到市場期權鏈。而家顯示嘅期權金係 Black-Scholes 理論價，唔係市場報價，可人手改。');
+    const text = hkAts(state.symbol)
+      ? '⚠️ 攞唔到港交所期權鏈。而家顯示嘅期權金係 Black-Scholes 理論價，唔係市場報價，落盤前請改成券商報價。'
+      : (isHK(state.symbol)
+        ? '⚠️ 港交所期權名單冇呢隻。期權金係 Black-Scholes 理論價，唔係市場報價。'
+        : (backend
+          ? '⚠️ 冇期權鏈。期權金係 Black-Scholes 理論價，唔係市場報價（可人手改）。'
+          : '⚠️ 攞唔到市場期權鏈。而家顯示嘅期權金係 Black-Scholes 理論價，唔係市場報價，可人手改。'));
     return { bad: true, text };
   }
-  const asOf = chainMeta && chainMeta.asOf ? chainMeta.asOf + ' UTC' : '';
+  const asOf = asOfText(chainMeta && chainMeta.asOf);
   const via = chainMeta && chainMeta.via;
+  const vendor = chainVendor();
   let head = '✅ 期權鏈';
   if (backend && !via) head = '✅ Yahoo 期權鏈';
-  else if (via === 'live') head = '✅ CBOE 延遲期權鏈';
-  else if (via === 'session') head = '✅ 快取 CBOE 期權鏈';
-  else if (via === 'baked') head = '✅ 內置 CBOE 延遲期權鏈';
+  else if (via === 'live') head = `✅ ${vendor} 延遲期權鏈`;
+  else if (via === 'session') head = `✅ 快取 ${vendor} 期權鏈`;
+  else if (via === 'baked') head = `✅ 內置 ${vendor} 延遲期權鏈`;
   const transport = chainMeta && chainMeta.transport ? '，' + chainMeta.transport : '';
   let text = `${head}${asOf ? '（截至 ' + asOf + transport + '）' : (transport ? '（' + chainMeta.transport + '）' : '')}：${n} 個到期日，未鎖定嘅腳用 Bid/Ask 中間價同 IV`;
   if (chainMeta && chainMeta.pending) text += ' · 正在更新';
@@ -701,9 +840,16 @@ function updateLegFields(force) {
       const T = legT(l); const g = M.bs(l.type, c.spot, l.strike, T, c.r, c.q, Math.max(0.0001, l.iv));
       const mny = l.type === 'call' ? (c.spot - l.strike) / c.spot : (l.strike - c.spot) / c.spot;
       const theo = !l.locked && l.src === 'bs';
-      const srcTxt = l.locked ? '🔒 手動' : l.src === 'chain'
-        ? ((chainMeta && chainMeta.via === 'live') ? 'CBOE 延遲鏈' : (backend && !(chainMeta && chainMeta.via) ? 'Yahoo 期權鏈' : 'CBOE 鏈'))
-        : '⚠️ 理論價 非市場';
+      let srcTxt = '⚠️ 理論價 非市場';
+      if (l.locked) srcTxt = '🔒 手動';
+      else if (l.src === 'chain') {
+        if (backend && !(chainMeta && chainMeta.via)) srcTxt = 'Yahoo 期權鏈';
+        else {
+          const vendor = chainVendor();
+          const via = chainMeta && chainMeta.via;
+          srcTxt = via === 'baked' ? `內置 ${vendor} 延遲鏈` : via === 'session' ? `快取 ${vendor} 鏈` : `${vendor} 延遲鏈`;
+        }
+      }
       info.push(`<span class="src${l.src === 'chain' && !l.locked ? ' mkt' : ''}${theo ? ' theo' : ''}">${srcTxt}</span>`);
       info.push(`理論價 <b>${fmt(g.price, 3)}</b>`);
       if (l.bid != null || l.ask != null) info.push(`Bid/Ask <b>${fmt(l.bid)} / ${fmt(l.ask)}</b>`);
@@ -839,7 +985,7 @@ function renderSummary(res, legs) {
   const q = state.quote || {};
   const nextEx = q.nextExDividendDate && q.nextExDividendDate > c.today ? q.nextExDividendDate : null;
   if (nextEx && nextEx <= res.expiry && legs.some(l => l.type === 'call' && l.side < 0)) ins.push(`<span class="w">⚠️ 到期前有除息日（${nextEx}），價內嘅 Short Call 有機會被提早行使。</span>`);
-  if (legs.some(l => l.type !== 'stock' && l.src === 'bs' && !l.locked)) ins.push('<span class="w">⚠️ 有期權金係 Black-Scholes 理論價，唔係市場 Bid/Ask。' + (isHK(state.symbol) ? '港股期權冇市場鏈。' : '呢隻腳嘅到期日或行使價唔喺期權鏈上。') + '落盤前請用券商報價修改（改完會自動 🔒 鎖定並反推 IV）。</span>');
+  if (legs.some(l => l.type !== 'stock' && l.src === 'bs' && !l.locked)) ins.push('<span class="w">⚠️ 有期權金係 Black-Scholes 理論價，唔係市場 Bid/Ask。' + (!state.expirations.length ? '未有市場期權鏈。' : '呢隻腳嘅到期日或行使價唔喺期權鏈上。') + '落盤前請用券商報價修改（改完會自動 🔒 鎖定並反推 IV）。</span>');
   if (new Set(legs.filter(l => l.type !== 'stock').map(l => l.expiry)).size > 1) ins.push('⏳ 呢個係跨到期日組合：「到期盈虧」以最早到期日計，遠期腳用 BS 理論價（受 IV 影響）。');
   $('insight').innerHTML = ins.map(x => `<div>${x}</div>`).join('');
 }

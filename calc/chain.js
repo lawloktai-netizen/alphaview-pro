@@ -1,11 +1,12 @@
-/* CBOE delayed option chain parser — browser and Node.
+/* Delayed option-chain parser — browser and Node.
    Compact file (calc/data/chains/SYM.json), written by tools/refresh_option_chains.py:
 
    { "symbol":"NVDA", "source":"CBOE delayed", "asOf":"2026-11-09 15:40:07", "spot":178.8,
      "expiries": { "2026-12-24": { "c":[[strike,bid,ask,iv,last],...], "p":[...] } } }
 
+   HK files use the same shape with source "HKEX delayed" (0700.HK.json, ATS code TCH).
    iv is a decimal (0.62 = 62%). bid/ask/last are per share. 0 means missing.
-   Only the standard root (NVDA, not an adjusted deliverable) is kept. */
+   US chains keep only the standard root (NVDA, not an adjusted deliverable). */
 (function (root) {
   'use strict';
 
@@ -87,6 +88,55 @@
     };
   }
 
+  /** Stock-option expiry: weekday before the last weekday of contract month MMYYYY. */
+  function expiryFromContractId(id) {
+    if (!/^\d{6}$/.test(id || '')) return null;
+    const month = +id.slice(0, 2);
+    const year = +id.slice(2);
+    if (month < 1 || month > 12 || year < 2000) return null;
+    let last = new Date(year, month, 0);
+    while (last.getDay() === 0 || last.getDay() === 6) last = new Date(last.getFullYear(), last.getMonth(), last.getDate() - 1);
+    let exp = new Date(last.getFullYear(), last.getMonth(), last.getDate() - 1);
+    while (exp.getDay() === 0 || exp.getDay() === 6) exp = new Date(exp.getFullYear(), exp.getMonth(), exp.getDate() - 1);
+    return exp.getFullYear() + '-' + String(exp.getMonth() + 1).padStart(2, '0') + '-' + String(exp.getDate()).padStart(2, '0');
+  }
+  function commaNum(x) {
+    if (typeof x === 'string') x = x.replace(/,/g, '').trim();
+    if (x === '-' || x === '') return 0;
+    return num(x);
+  }
+
+  /**
+   * HKEX widget months: { symbol, asOf, spot, ats, months:[{ id, expiry, optionlist }] }.
+   * optionlist rows are { strike, c:{bd,as,ls,iv}, p:{...} }. IV from HKEX is a percent.
+   */
+  function chainsFromHkex(bundle) {
+    if (!bundle) return null;
+    const chains = {};
+    for (const month of bundle.months || []) {
+      const expiry = (month && (month.expiry || expiryFromContractId(month.id))) || null;
+      if (!expiry) continue;
+      const bucket = chains[expiry] || (chains[expiry] = { calls: [], puts: [] });
+      for (const row of (month && month.optionlist) || []) {
+        const strike = commaNum(row.strike);
+        for (const [type, key] of [['call', 'c'], ['put', 'p']]) {
+          const q = row[key] || {};
+          let iv = commaNum(q.iv);
+          if (iv > 0) iv = iv / 100;
+          const parsed = rowFromQuote(strike, commaNum(q.bd), commaNum(q.as), iv, commaNum(q.ls));
+          if (!parsed) continue;
+          upsert(type === 'call' ? bucket.calls : bucket.puts, parsed);
+        }
+      }
+      if (!bucket.calls.length && !bucket.puts.length) delete chains[expiry];
+    }
+    const parsed = finish(bundle.symbol, bundle.asOf, bundle.spot, chains);
+    if (!parsed) return null;
+    parsed.source = 'HKEX delayed';
+    if (bundle.ats) parsed.ats = bundle.ats;
+    return parsed;
+  }
+
   function chainsFromCboe(payload, symbol) {
     const data = payload && payload.data;
     const options = data && data.options;
@@ -102,7 +152,9 @@
       const bucket = chains[p.expiry] || (chains[p.expiry] = { calls: [], puts: [] });
       upsert(p.type === 'call' ? bucket.calls : bucket.puts, row);
     }
-    return finish(symbol || data.symbol, payload.timestamp, data.current_price, chains);
+    const parsed = finish(symbol || data.symbol, payload.timestamp, data.current_price, chains);
+    if (parsed) parsed.source = 'CBOE delayed';
+    return parsed;
   }
 
   function chainsFromCompact(j) {
@@ -117,7 +169,11 @@
       if (bucket.calls.length || bucket.puts.length) chains[exp] = bucket;
     }
     const parsed = finish(j.symbol, j.asOf, j.spot, chains);
-    if (parsed) parsed.via = j.via === 'live' ? 'live' : (j.via || 'baked');
+    if (parsed) {
+      parsed.via = j.via === 'live' ? 'live' : (j.via || 'baked');
+      if (j.source) parsed.source = j.source;
+      if (j.ats) parsed.ats = j.ats;
+    }
     return parsed;
   }
 
@@ -133,16 +189,21 @@
     for (const e of parsed.expirations) {
       expiries[e] = { c: pack(parsed.chains[e].calls), p: pack(parsed.chains[e].puts) };
     }
-    return {
+    const out = {
       symbol: parsed.symbol,
-      source: 'CBOE delayed',
+      source: parsed.source || 'CBOE delayed',
       asOf: parsed.asOf,
       spot: parsed.spot || null,
       expiries,
     };
+    if (parsed.ats) out.ats = parsed.ats;
+    return out;
   }
 
-  const api = { occParts, normRoot, chainsFromCboe, chainsFromCompact, toCompact, rowFromQuote };
+  const api = {
+    occParts, normRoot, expiryFromContractId,
+    chainsFromCboe, chainsFromHkex, chainsFromCompact, toCompact, rowFromQuote,
+  };
   root.OptChain = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
