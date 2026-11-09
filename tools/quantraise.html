@@ -1136,6 +1136,9 @@
         var currentSourceLabel = "內建歷史數據";
         var customCsvCache = {};
         var lastComputedScan = null;
+        var ALLOW_SYNTHETIC = false; // never silently use fake prices for displayed results
+        var bakedIndexCache = null;
+        var bakedDataCache = {};
 
         // Deterministic PRNG
         function mulberry32(a) {
@@ -1231,27 +1234,84 @@
             return rows;
         }
 
-        async function fetchMarketData(ticker, years) {
-            var clean = ticker.trim().toUpperCase();
-            if (customCsvCache[clean]) {
-                currentSourceLabel = "本地 CSV (" + clean + ")";
-                return customCsvCache[clean];
-            }
+        function bakedFilenameFallback(symbol) {
+            return String(symbol).replace(/\^/g, "_") + ".json";
+        }
 
+        async function loadBakedIndex() {
+            if (bakedIndexCache) return bakedIndexCache;
+            try {
+                var resp = await fetch("./data/index.json", { cache: "no-cache" });
+                if (!resp.ok) throw new Error("index " + resp.status);
+                bakedIndexCache = await resp.json();
+            } catch (e) {
+                bakedIndexCache = {};
+            }
+            return bakedIndexCache;
+        }
+
+        async function loadBakedMarketData(ticker) {
+            var clean = ticker.trim().toUpperCase();
+            if (bakedDataCache[clean]) {
+                currentSourceLabel = "Yahoo 焗檔 (" + clean + ")";
+                return bakedDataCache[clean];
+            }
+            var indexMap = await loadBakedIndex();
+            var fileName = indexMap[clean] || bakedFilenameFallback(clean);
+            var controller = new AbortController();
+            var timer = setTimeout(function() { controller.abort(); }, 8000);
+            try {
+                var resp = await fetch("./data/" + fileName, { signal: controller.signal, cache: "no-cache" });
+                clearTimeout(timer);
+                if (!resp.ok) return null;
+                var json = await resp.json();
+                var rows = Array.isArray(json) ? json : (json && Array.isArray(json.rows) ? json.rows : null);
+                if (!rows || rows.length < 60) return null;
+                // Normalize numeric fields
+                var parsed = [];
+                for (var i = 0; i < rows.length; i++) {
+                    var r = rows[i];
+                    if (!r || r.close == null || r.high == null || isNaN(r.close) || isNaN(r.high)) continue;
+                    parsed.push({
+                        date: r.date,
+                        timestamp: r.timestamp,
+                        year: r.year,
+                        month: r.month,
+                        day: r.day,
+                        mmdd: r.mmdd,
+                        open: Number(r.open),
+                        high: Number(r.high),
+                        low: Number(r.low),
+                        close: Number(r.close)
+                    });
+                }
+                if (parsed.length < 60) return null;
+                bakedDataCache[clean] = parsed;
+                currentSourceLabel = "Yahoo 焗檔 (" + clean + ")";
+                return parsed;
+            } catch (e) {
+                clearTimeout(timer);
+                return null;
+            }
+        }
+
+        async function fetchYahooLive(ticker, years) {
+            var clean = ticker.trim().toUpperCase();
             var nowSec = Math.floor(Date.now() / 1000);
             var startSec = nowSec - ((years + 2) * 365 * 86400);
             var yahooUrl = "https://query1.finance.yahoo.com/v8/finance/chart/" + encodeURIComponent(clean) + "?period1=" + startSec + "&period2=" + nowSec + "&interval=1d&events=history";
 
+            // Prefer allorigins before corsproxy (corsproxy often 403 from browsers)
             var endpoints = [
                 yahooUrl,
-                "https://corsproxy.io/?" + encodeURIComponent(yahooUrl),
-                "https://api.allorigins.win/raw?url=" + encodeURIComponent(yahooUrl)
+                "https://api.allorigins.win/raw?url=" + encodeURIComponent(yahooUrl),
+                "https://corsproxy.io/?" + encodeURIComponent(yahooUrl)
             ];
 
             for (var i = 0; i < endpoints.length; i++) {
                 try {
                     var controller = new AbortController();
-                    var timer = setTimeout(function() { controller.abort(); }, 2200);
+                    var timer = setTimeout(function() { controller.abort(); }, 8000);
                     var resp = await fetch(endpoints[i], { signal: controller.signal });
                     clearTimeout(timer);
                     if (!resp.ok) continue;
@@ -1303,9 +1363,31 @@
                     // try next
                 }
             }
+            return null;
+        }
 
-            currentSourceLabel = "內建量化數據 (" + clean + ")";
-            return generateHistoricalSeries(clean);
+        async function fetchMarketData(ticker, years) {
+            var clean = ticker.trim().toUpperCase();
+            if (customCsvCache[clean]) {
+                currentSourceLabel = "本地 CSV (" + clean + ")";
+                return customCsvCache[clean];
+            }
+
+            // 1) Same-origin baked Yahoo JSON
+            var baked = await loadBakedMarketData(clean);
+            if (baked && baked.length > 60) return baked;
+
+            // 2) Live Yahoo (+ proxies)
+            var live = await fetchYahooLive(clean, years);
+            if (live && live.length > 60) return live;
+
+            // 3) Do NOT silently invent prices
+            if (ALLOW_SYNTHETIC) {
+                currentSourceLabel = "內建量化數據 (" + clean + ")";
+                return generateHistoricalSeries(clean);
+            }
+            currentSourceLabel = "未能載入真實行情 (" + clean + ")";
+            return null;
         }
 
         // Helper: calculate quantile for Percent Win-Rate (e.g. Percent=95% -> 5th percentile of historical moves, meaning 95% of years achieved AT LEAST this move)
@@ -1994,30 +2076,32 @@
                 currentSymbol + " / " + sDate + " ~ " + eDate + " / percent " + currentPercent;
             banner.classList.add("active");
 
-            // Immediate synchronous computation using pre-calibrated dataset so UI never lags
-            currentDataset = customCsvCache[currentSymbol] || generateHistoricalSeries(currentSymbol);
-            currentSourceLabel = customCsvCache[currentSymbol] ? ("本地 CSV (" + currentSymbol + ")") : ("量化歷史庫 (" + currentSymbol + ")");
-            document.getElementById("sourceLabelText").textContent = currentSourceLabel;
-
-            lastComputedScan = computeQuantRaiserScan(currentDataset, sDate, eDate, lookback);
-            renderQuantRaiserView();
-            runReverseTouchLookup();
-
-            // Attempt live Yahoo Finance sync in background
             try {
-                var liveRows = await fetchMarketData(currentSymbol, lookback);
-                currentDataset = liveRows;
+                var rows = await fetchMarketData(currentSymbol, lookback);
                 document.getElementById("sourceLabelText").textContent = currentSourceLabel;
+                if (!rows || rows.length < 60) {
+                    currentDataset = [];
+                    lastComputedScan = null;
+                    showToast("未能載入真實行情，請匯入 CSV");
+                    // Keep UI honest: do not render synthetic prices
+                    try { renderQuantRaiserView(); } catch (ignore) {}
+                    return;
+                }
+                currentDataset = rows;
                 lastComputedScan = computeQuantRaiserScan(currentDataset, sDate, eDate, lookback);
                 renderQuantRaiserView();
                 runReverseTouchLookup();
+                if (showBucketToast) {
+                    showToast("已載入真實行情 (" + currentSymbol + ") · " + currentSourceLabel);
+                }
             } catch (e) {
-                // Keep pre-computed scan
+                currentDataset = [];
+                lastComputedScan = null;
+                currentSourceLabel = "未能載入真實行情 (" + currentSymbol + ")";
+                document.getElementById("sourceLabelText").textContent = currentSourceLabel;
+                showToast("未能載入真實行情，請匯入 CSV");
             } finally {
                 banner.classList.remove("active");
-                if (showBucketToast) {
-                    showToast("已載入 20 個 percent bucket (" + currentSymbol + ")");
-                }
             }
         }
 
