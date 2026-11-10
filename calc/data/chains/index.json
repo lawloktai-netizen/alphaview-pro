@@ -1,6 +1,6 @@
 {
   "source": "CBOE delayed + HKEX delayed",
-  "generated": "2026-11-09 22:15:05",
+  "generated": "2026-11-10 22:11:25",
   "symbols": {
     "0005.HK": {
       "asOf": "2026-11-09 15:59 HKT",
@@ -101,73 +101,73 @@
       "source": "HKEX delayed"
     },
     "AAPL": {
-      "asOf": "2026-11-09 22:14:25",
+      "asOf": "2026-11-10 22:10:33",
       "expirations": 24,
-      "quotes": 3398,
-      "bytes": 94512,
+      "quotes": 3396,
+      "bytes": 94345,
       "source": "CBOE delayed"
     },
     "AMD": {
-      "asOf": "2026-11-09 22:14:23",
+      "asOf": "2026-11-10 22:10:30",
       "expirations": 23,
-      "quotes": 7038,
-      "bytes": 199760,
+      "quotes": 6888,
+      "bytes": 197299,
       "source": "CBOE delayed"
     },
     "AMZN": {
-      "asOf": "2026-11-09 22:14:20",
+      "asOf": "2026-11-10 22:10:34",
       "expirations": 24,
-      "quotes": 2464,
-      "bytes": 69128,
+      "quotes": 2456,
+      "bytes": 69168,
       "source": "CBOE delayed"
     },
     "GOOGL": {
-      "asOf": "2026-11-09 22:14:22",
+      "asOf": "2026-11-10 22:10:27",
       "expirations": 24,
-      "quotes": 4810,
-      "bytes": 130842,
+      "quotes": 4806,
+      "bytes": 129825,
       "source": "CBOE delayed"
     },
     "META": {
-      "asOf": "2026-11-09 22:14:30",
+      "asOf": "2026-11-10 22:10:32",
       "expirations": 24,
-      "quotes": 7116,
-      "bytes": 201137,
+      "quotes": 7072,
+      "bytes": 198881,
       "source": "CBOE delayed"
     },
     "MSFT": {
-      "asOf": "2026-11-09 22:14:31",
+      "asOf": "2026-11-10 22:10:24",
       "expirations": 23,
-      "quotes": 3924,
-      "bytes": 111618,
+      "quotes": 3900,
+      "bytes": 111824,
       "source": "CBOE delayed"
     },
     "NVDA": {
-      "asOf": "2026-11-09 22:14:21",
+      "asOf": "2026-11-10 22:10:31",
       "expirations": 25,
-      "quotes": 4188,
-      "bytes": 116106,
+      "quotes": 4180,
+      "bytes": 116444,
       "source": "CBOE delayed"
     },
     "QQQ": {
-      "asOf": "2026-11-09 22:14:26",
+      "asOf": "2026-11-10 22:10:32",
       "expirations": 32,
-      "quotes": 11578,
-      "bytes": 329894,
+      "quotes": 11522,
+      "bytes": 327199,
       "source": "CBOE delayed"
     },
     "SPY": {
-      "asOf": "2026-11-09 22:14:21",
+      "asOf": "2026-11-10 22:10:30",
       "expirations": 35,
-      "quotes": 12904,
-      "bytes": 369842,
+      "quotes": 13000,
+      "bytes": 371288,
       "source": "CBOE delayed"
     },
     "TSLA": {
-      "asOf": "2026-11-09 22:13:29",
+      "asOf": "2026-11-10 22:10:31",
       "expirations": 23,
-      "quotes": 5136,
-      "bytes": 145129,
+      "quotes": 5082,
+      "bytes": 145730,
       "source": "CBOE delayed"
     }
   }
