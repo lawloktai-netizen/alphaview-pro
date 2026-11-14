@@ -1,173 +1,173 @@
 {
   "source": "CBOE delayed + HKEX delayed",
-  "generated": "2026-11-13 02:02:31",
+  "generated": "2026-11-14 01:36:17",
   "symbols": {
     "0005.HK": {
-      "asOf": "2026-11-13 10:02 HKT",
+      "asOf": "2026-11-14 09:36 HKT",
       "expirations": 7,
-      "quotes": 1024,
-      "bytes": 25770,
+      "quotes": 192,
+      "bytes": 4790,
       "source": "HKEX delayed"
     },
     "0388.HK": {
-      "asOf": "2026-11-13 09:47 HKT",
+      "asOf": "2026-11-13 15:59 HKT",
       "expirations": 7,
-      "quotes": 936,
-      "bytes": 23796,
+      "quotes": 203,
+      "bytes": 5302,
       "source": "HKEX delayed"
     },
     "0700.HK": {
-      "asOf": "2026-11-13 09:47 HKT",
+      "asOf": "2026-11-13 15:59 HKT",
       "expirations": 7,
-      "quotes": 1032,
-      "bytes": 26776,
+      "quotes": 440,
+      "bytes": 10723,
       "source": "HKEX delayed"
     },
     "0823.HK": {
-      "asOf": "2026-11-13 10:02 HKT",
+      "asOf": "2026-11-13 15:59 HKT",
       "expirations": 7,
-      "quotes": 342,
-      "bytes": 8061,
+      "quotes": 128,
+      "bytes": 3108,
       "source": "HKEX delayed"
     },
     "0883.HK": {
-      "asOf": "2026-11-13 10:02 HKT",
+      "asOf": "2026-11-13 15:59 HKT",
       "expirations": 7,
-      "quotes": 892,
-      "bytes": 20799,
+      "quotes": 112,
+      "bytes": 2807,
       "source": "HKEX delayed"
     },
     "0941.HK": {
-      "asOf": "2026-11-13 10:02 HKT",
+      "asOf": "2026-11-13 15:56 HKT",
       "expirations": 7,
-      "quotes": 890,
-      "bytes": 21266,
+      "quotes": 83,
+      "bytes": 2109,
       "source": "HKEX delayed"
     },
     "1211.HK": {
-      "asOf": "2026-11-13 10:02 HKT",
+      "asOf": "2026-11-13 15:59 HKT",
       "expirations": 7,
-      "quotes": 973,
-      "bytes": 23858,
+      "quotes": 240,
+      "bytes": 5950,
       "source": "HKEX delayed"
     },
     "1299.HK": {
-      "asOf": "2026-11-13 10:02 HKT",
+      "asOf": "2026-11-13 15:59 HKT",
       "expirations": 7,
-      "quotes": 908,
-      "bytes": 22126,
+      "quotes": 195,
+      "bytes": 5022,
       "source": "HKEX delayed"
     },
     "1810.HK": {
-      "asOf": "2026-11-13 09:46 HKT",
+      "asOf": "2026-11-13 15:59 HKT",
       "expirations": 7,
-      "quotes": 950,
-      "bytes": 22705,
+      "quotes": 293,
+      "bytes": 6929,
       "source": "HKEX delayed"
     },
     "1833.HK": {
-      "asOf": "2026-11-13 10:02 HKT",
-      "expirations": 7,
-      "quotes": 466,
-      "bytes": 11077,
+      "asOf": "2026-11-14 09:36 HKT",
+      "expirations": 6,
+      "quotes": 17,
+      "bytes": 630,
       "source": "HKEX delayed"
     },
     "2800.HK": {
-      "asOf": "2026-11-13 10:02 HKT",
+      "asOf": "2026-11-14 09:36 HKT",
       "expirations": 7,
-      "quotes": 310,
-      "bytes": 7247,
+      "quotes": 68,
+      "bytes": 1746,
       "source": "HKEX delayed"
     },
     "2823.HK": {
-      "asOf": "2026-11-13 10:02 HKT",
-      "expirations": 7,
-      "quotes": 406,
-      "bytes": 9575,
+      "asOf": "2026-11-14 09:36 HKT",
+      "expirations": 6,
+      "quotes": 27,
+      "bytes": 843,
       "source": "HKEX delayed"
     },
     "3690.HK": {
-      "asOf": "2026-11-13 10:02 HKT",
+      "asOf": "2026-11-13 15:58 HKT",
       "expirations": 7,
-      "quotes": 960,
-      "bytes": 23713,
+      "quotes": 274,
+      "bytes": 6470,
       "source": "HKEX delayed"
     },
     "9988.HK": {
-      "asOf": "2026-11-13 09:47 HKT",
+      "asOf": "2026-11-13 15:59 HKT",
       "expirations": 7,
-      "quotes": 1036,
-      "bytes": 26337,
+      "quotes": 424,
+      "bytes": 10126,
       "source": "HKEX delayed"
     },
     "AAPL": {
-      "asOf": "2026-11-13 01:04:26",
+      "asOf": "2026-11-14 01:04:40",
       "expirations": 24,
-      "quotes": 3396,
-      "bytes": 94877,
+      "quotes": 3440,
+      "bytes": 94585,
       "source": "CBOE delayed"
     },
     "AMD": {
-      "asOf": "2026-11-13 01:04:34",
+      "asOf": "2026-11-14 01:04:30",
       "expirations": 23,
-      "quotes": 6886,
-      "bytes": 198842,
+      "quotes": 6998,
+      "bytes": 199241,
       "source": "CBOE delayed"
     },
     "AMZN": {
-      "asOf": "2026-11-13 01:04:37",
+      "asOf": "2026-11-14 01:04:35",
       "expirations": 24,
-      "quotes": 2440,
-      "bytes": 68775,
+      "quotes": 2466,
+      "bytes": 69080,
       "source": "CBOE delayed"
     },
     "GOOGL": {
-      "asOf": "2026-11-13 01:04:36",
+      "asOf": "2026-11-14 01:04:34",
       "expirations": 24,
-      "quotes": 4802,
-      "bytes": 132893,
+      "quotes": 4866,
+      "bytes": 132657,
       "source": "CBOE delayed"
     },
     "META": {
-      "asOf": "2026-11-13 01:04:38",
+      "asOf": "2026-11-14 01:04:34",
       "expirations": 24,
-      "quotes": 7022,
-      "bytes": 199684,
+      "quotes": 7176,
+      "bytes": 201607,
       "source": "CBOE delayed"
     },
     "MSFT": {
-      "asOf": "2026-11-13 01:04:34",
+      "asOf": "2026-11-14 01:04:42",
       "expirations": 23,
-      "quotes": 3876,
-      "bytes": 109879,
+      "quotes": 4072,
+      "bytes": 115020,
       "source": "CBOE delayed"
     },
     "NVDA": {
-      "asOf": "2026-11-13 01:04:37",
+      "asOf": "2026-11-14 01:04:37",
       "expirations": 25,
-      "quotes": 4326,
-      "bytes": 120948,
+      "quotes": 4384,
+      "bytes": 121399,
       "source": "CBOE delayed"
     },
     "QQQ": {
-      "asOf": "2026-11-13 01:04:28",
-      "expirations": 31,
-      "quotes": 11350,
-      "bytes": 321854,
+      "asOf": "2026-11-14 01:04:39",
+      "expirations": 30,
+      "quotes": 11052,
+      "bytes": 319848,
       "source": "CBOE delayed"
     },
     "SPY": {
-      "asOf": "2026-11-13 01:04:35",
-      "expirations": 34,
-      "quotes": 12996,
-      "bytes": 371589,
+      "asOf": "2026-11-14 01:04:33",
+      "expirations": 33,
+      "quotes": 12738,
+      "bytes": 365557,
       "source": "CBOE delayed"
     },
     "TSLA": {
-      "asOf": "2026-11-13 01:04:39",
+      "asOf": "2026-11-14 01:04:42",
       "expirations": 23,
-      "quotes": 5198,
-      "bytes": 148986,
+      "quotes": 5284,
+      "bytes": 150288,
       "source": "CBOE delayed"
     }
   }
