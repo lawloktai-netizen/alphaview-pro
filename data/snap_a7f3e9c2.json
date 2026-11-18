@@ -1,16 +1,16 @@
 {
   "baseCurrency": "HKD",
-  "syncedAt": "2026-11-17 15:24 HKT",
-  "syncedAtISO": "2026-11-17T15:24:58+08:00",
-  "note": "Positions/qty/cost/prices snapshot from Futu+IBKR at sync time. Page load uses broker snapshot prices for holdings P&L (no Yahoo/Tencent for normal holdings). TradingView widgets stay live for indices/calendar/earnings. Republish/sync always refreshes broker prices even if composition unchanged. Futu positions/funds/crypto/BTC are live this sync. IBKR positions, cash-by-currency, FX, net liquidation, cash value, and leverage were carried forward from 2026-11-16 12:43 HKT because the IBKR connector needs re-authentication. BTC mark from Futu CC.BTCUSD (64609.81). Futu funds_assets 80579.943 plus pending_asset 2107.4491 stored together in futuFundsAssetsHKD so in-transit fund value is not dropped from cash+funds.",
+  "syncedAt": "2026-11-18 08:12 HKT",
+  "syncedAtISO": "2026-11-18T08:12:06+08:00",
+  "note": "Positions/qty/cost/prices snapshot from Futu+IBKR at sync time. Page load uses broker snapshot prices for holdings P&L (no Yahoo/Tencent for normal holdings). TradingView widgets stay live for indices/calendar/earnings. Republish/sync always refreshes broker prices even if composition unchanged. Futu positions/funds/crypto/BTC are live this sync. IBKR positions, cash-by-currency, FX, net liquidation, cash value, and leverage were carried forward from 2026-11-16 12:43 HKT because the IBKR connector needs re-authentication. BTC mark from Futu CC.BTCUSD (64886.54). Futu funds_assets 80591.6822 plus pending_asset 2107.4937 stored together in futuFundsAssetsHKD so in-transit fund value is not dropped from cash+funds.",
   "fxSeed": {
     "CNYHKD": 1.1758150305309938,
     "JPYHKD": 0.04913672798948752,
     "USDHKD": 7.84537410736084
   },
   "cash": {
-    "futuSecuritiesCashHKD": 180129.51,
-    "futuFundsAssetsHKD": 82687.3921,
+    "futuSecuritiesCashHKD": 176001.54,
+    "futuFundsAssetsHKD": 82699.1759,
     "futuCryptoCash": [
       {
         "currency": "HKD",
@@ -39,8 +39,8 @@
         "amount": -24.38
       }
     ],
-    "futuTotalAssetsHKD": 804719.9853,
-    "futuUnrealizedPLHKD": -211546.362969957,
+    "futuTotalAssetsHKD": 804054.7359,
+    "futuUnrealizedPLHKD": -210531.5491667009,
     "ibkrNetLiquidationHKD": 402253.5501474486,
     "ibkrCashValueHKD": 10558.567910946207,
     "ibkrLeverage": 0.97
@@ -61,15 +61,15 @@
       "multiplier": 100,
       "quoteKind": "option",
       "underlying": "NVDA",
-      "strike": 150.0,
+      "strike": 150,
       "right": "P",
       "expiry": "2026-12-18",
       "qty": -1.0,
       "cost": 3.55,
-      "seedPrice": 8.425,
-      "seedMv": -842.5,
-      "seedPl": -487.5,
-      "seedTodayPl": 0.0
+      "seedPrice": 8.825,
+      "seedMv": -882.5,
+      "seedPl": -527.5,
+      "seedTodayPl": -40.0
     },
     {
       "id": "futu-HK.CHT261127C82500",
@@ -111,7 +111,7 @@
       "multiplier": 1000,
       "quoteKind": "option",
       "underlying": "00883.HK",
-      "strike": 26.0,
+      "strike": 26,
       "right": "C",
       "expiry": "2026-11-27",
       "qty": -1.0,
@@ -119,7 +119,7 @@
       "seedPrice": 0.02,
       "seedMv": -20.0,
       "seedPl": 360.0,
-      "seedTodayPl": 10.0
+      "seedTodayPl": 0.0
     },
     {
       "id": "futu-HK.TCH261127C460000",
@@ -136,7 +136,7 @@
       "multiplier": 100,
       "quoteKind": "option",
       "underlying": "00700.HK",
-      "strike": 460.0,
+      "strike": 460,
       "right": "C",
       "expiry": "2026-11-27",
       "qty": -1.0,
@@ -144,7 +144,7 @@
       "seedPrice": 0.28,
       "seedMv": -28.0,
       "seedPl": 827.0,
-      "seedTodayPl": 11.0
+      "seedTodayPl": 0.0
     },
     {
       "id": "futu-HK.TCH261127C430000",
@@ -161,40 +161,15 @@
       "multiplier": 100,
       "quoteKind": "option",
       "underlying": "00700.HK",
-      "strike": 430.0,
+      "strike": 430,
       "right": "C",
       "expiry": "2026-11-27",
       "qty": -1.0,
       "cost": 3.27,
-      "seedPrice": 0.62,
-      "seedMv": -62.0,
-      "seedPl": 265.0,
-      "seedTodayPl": 57.0
-    },
-    {
-      "id": "futu-US.XSP261231P710000",
-      "broker": "Futu",
-      "code": "US.XSP261231P710000",
-      "symbol": "XSP",
-      "display": "XSP 710.00 P",
-      "name": "XSP 710.00 P",
-      "yahoo": null,
-      "tencent": null,
-      "currency": "USD",
-      "market": "OPT",
-      "type": "OPT",
-      "multiplier": 100,
-      "quoteKind": "option",
-      "underlying": "XSP",
-      "strike": 710.0,
-      "right": "P",
-      "expiry": "2026-12-31",
-      "qty": -5.0,
-      "cost": 6.95,
-      "seedPrice": 9.04,
-      "seedMv": -4520.0,
-      "seedPl": -1045.0,
-      "seedTodayPl": -67.2
+      "seedPrice": 0.61,
+      "seedMv": -61.0,
+      "seedPl": 266.0,
+      "seedTodayPl": 0.0
     },
     {
       "id": "futu-US.UGL",
@@ -212,10 +187,10 @@
       "quoteKind": "equity",
       "qty": 40.0,
       "cost": 53.058,
-      "seedPrice": 38.63,
-      "seedMv": 1545.2,
-      "seedPl": -577.1,
-      "seedTodayPl": 0.0
+      "seedPrice": 38.5,
+      "seedMv": 1540.0,
+      "seedPl": -582.3,
+      "seedTodayPl": -5.2
     },
     {
       "id": "futu-US.TSM",
@@ -233,10 +208,10 @@
       "quoteKind": "equity",
       "qty": 7.3594,
       "cost": 423.832,
-      "seedPrice": 373.45,
-      "seedMv": 2748.37,
-      "seedPl": -370.7821,
-      "seedTodayPl": 0.0
+      "seedPrice": 381.25,
+      "seedMv": 2805.77,
+      "seedPl": -313.3788,
+      "seedTodayPl": 57.4033
     },
     {
       "id": "futu-US.TQQQ",
@@ -254,10 +229,10 @@
       "quoteKind": "equity",
       "qty": 30.8958,
       "cost": 71.108,
-      "seedPrice": 53.03,
-      "seedMv": 1638.4,
-      "seedPl": -558.5457,
-      "seedTodayPl": 0.0
+      "seedPrice": 53.97,
+      "seedMv": 1667.46,
+      "seedPl": -529.4944,
+      "seedTodayPl": 29.0513
     },
     {
       "id": "futu-US.SPCX",
@@ -275,10 +250,10 @@
       "quoteKind": "equity",
       "qty": 8.0,
       "cost": 170.9,
-      "seedPrice": 137.36,
-      "seedMv": 1098.88,
-      "seedPl": -268.32,
-      "seedTodayPl": 0.0
+      "seedPrice": 143.3,
+      "seedMv": 1146.4,
+      "seedPl": -220.8,
+      "seedTodayPl": 47.52
     },
     {
       "id": "futu-US.PFN",
@@ -296,10 +271,10 @@
       "quoteKind": "equity",
       "qty": 1500.0,
       "cost": 6.565,
-      "seedPrice": 6.08,
-      "seedMv": 9120.0,
-      "seedPl": -727.2,
-      "seedTodayPl": 0.0
+      "seedPrice": 6.04,
+      "seedMv": 9060.0,
+      "seedPl": -787.2,
+      "seedTodayPl": -60.0
     },
     {
       "id": "futu-US.PCN",
@@ -317,10 +292,10 @@
       "quoteKind": "equity",
       "qty": 700.0,
       "cost": 11.016,
-      "seedPrice": 10.49,
-      "seedMv": 7343.0,
-      "seedPl": -368.36,
-      "seedTodayPl": 0.0
+      "seedPrice": 10.41,
+      "seedMv": 7287.0,
+      "seedPl": -424.36,
+      "seedTodayPl": -56.0
     },
     {
       "id": "futu-US.NVDA",
@@ -338,10 +313,10 @@
       "quoteKind": "equity",
       "qty": 10.0,
       "cost": 211.15,
-      "seedPrice": 156.14,
-      "seedMv": 1561.4,
-      "seedPl": -550.1,
-      "seedTodayPl": 0.0
+      "seedPrice": 161.79,
+      "seedMv": 1617.9,
+      "seedPl": -493.6,
+      "seedTodayPl": 56.5
     },
     {
       "id": "futu-US.MSFT",
@@ -359,10 +334,10 @@
       "quoteKind": "equity",
       "qty": 3.0,
       "cost": 448.46,
-      "seedPrice": 517.99,
-      "seedMv": 1553.97,
-      "seedPl": 208.59,
-      "seedTodayPl": 0.0
+      "seedPrice": 510.137,
+      "seedMv": 1530.41,
+      "seedPl": 185.0319,
+      "seedTodayPl": -23.5581
     },
     {
       "id": "futu-US.LLY",
@@ -380,10 +355,10 @@
       "quoteKind": "equity",
       "qty": 2.0,
       "cost": 1366.8,
-      "seedPrice": 1431.67,
-      "seedMv": 2863.34,
-      "seedPl": 129.74,
-      "seedTodayPl": 0.0
+      "seedPrice": 1403.0,
+      "seedMv": 2806.0,
+      "seedPl": 72.4,
+      "seedTodayPl": -57.34
     },
     {
       "id": "futu-US.KORU",
@@ -401,10 +376,10 @@
       "quoteKind": "equity",
       "qty": 50.0,
       "cost": 28.75,
-      "seedPrice": 6.67,
-      "seedMv": 333.5,
-      "seedPl": -1104.0,
-      "seedTodayPl": 0.0
+      "seedPrice": 7.1,
+      "seedMv": 355.01,
+      "seedPl": -1082.495,
+      "seedTodayPl": 21.505
     },
     {
       "id": "futu-US.IRE",
@@ -422,10 +397,10 @@
       "quoteKind": "equity",
       "qty": 300.0,
       "cost": 11.167,
-      "seedPrice": 1.11,
-      "seedMv": 333.0,
-      "seedPl": -3016.96,
-      "seedTodayPl": 0.0
+      "seedPrice": 1.219,
+      "seedMv": 365.76,
+      "seedPl": -2984.2,
+      "seedTodayPl": 32.76
     },
     {
       "id": "futu-US.GOOG",
@@ -443,10 +418,10 @@
       "quoteKind": "equity",
       "qty": 8.0,
       "cost": 363.745,
-      "seedPrice": 281.26,
-      "seedMv": 2250.08,
-      "seedPl": -659.88,
-      "seedTodayPl": 0.0
+      "seedPrice": 281.0,
+      "seedMv": 2248.0,
+      "seedPl": -661.96,
+      "seedTodayPl": -2.08
     },
     {
       "id": "futu-US.GLD",
@@ -464,10 +439,10 @@
       "quoteKind": "equity",
       "qty": 2.603,
       "cost": 384.145,
-      "seedPrice": 352.93,
-      "seedMv": 918.68,
-      "seedPl": -81.2532,
-      "seedTodayPl": 0.0
+      "seedPrice": 352.0,
+      "seedMv": 916.26,
+      "seedPl": -83.674,
+      "seedTodayPl": -2.4208
     },
     {
       "id": "futu-US.COST",
@@ -485,10 +460,10 @@
       "quoteKind": "equity",
       "qty": 4.0,
       "cost": 954.76,
-      "seedPrice": 1113.74,
-      "seedMv": 4454.96,
-      "seedPl": 635.92,
-      "seedTodayPl": 0.0
+      "seedPrice": 1107.5,
+      "seedMv": 4430.0,
+      "seedPl": 610.96,
+      "seedTodayPl": -24.96
     },
     {
       "id": "futu-US.AMAT",
@@ -506,10 +481,10 @@
       "quoteKind": "equity",
       "qty": 3.0,
       "cost": 544.81,
-      "seedPrice": 350.25,
-      "seedMv": 1050.75,
-      "seedPl": -583.68,
-      "seedTodayPl": 0.0
+      "seedPrice": 361.5,
+      "seedMv": 1084.5,
+      "seedPl": -549.93,
+      "seedTodayPl": 33.75
     },
     {
       "id": "futu-SH.601878",
@@ -530,7 +505,7 @@
       "seedPrice": 8.64,
       "seedMv": 6048.0,
       "seedPl": -4441.5,
-      "seedTodayPl": -28.0
+      "seedTodayPl": 0.0
     },
     {
       "id": "futu-SH.601615",
@@ -551,7 +526,7 @@
       "seedPrice": 7.49,
       "seedMv": 1498.0,
       "seedPl": -5786.7,
-      "seedTodayPl": -34.0
+      "seedTodayPl": 0.0
     },
     {
       "id": "futu-SH.601012",
@@ -572,7 +547,7 @@
       "seedPrice": 11.26,
       "seedMv": 2252.0,
       "seedPl": -4278.0,
-      "seedTodayPl": -28.0
+      "seedTodayPl": 0.0
     },
     {
       "id": "futu-SH.600779",
@@ -593,7 +568,7 @@
       "seedPrice": 27.65,
       "seedMv": 5530.0,
       "seedPl": -11295.5,
-      "seedTodayPl": 2.0
+      "seedTodayPl": 0.0
     },
     {
       "id": "futu-SH.600764",
@@ -614,7 +589,7 @@
       "seedPrice": 16.18,
       "seedMv": 1618.0,
       "seedPl": -2150.39,
-      "seedTodayPl": -2.0
+      "seedTodayPl": 0.0
     },
     {
       "id": "futu-SH.600598",
@@ -635,7 +610,7 @@
       "seedPrice": 13.2,
       "seedMv": 10560.0,
       "seedPl": -4628.0,
-      "seedTodayPl": -232.0
+      "seedTodayPl": 0.0
     },
     {
       "id": "futu-HK.08269",
@@ -653,10 +628,10 @@
       "quoteKind": "equity",
       "qty": 30000.0,
       "cost": 0.495,
-      "seedPrice": 0.18,
-      "seedMv": 5400.0,
-      "seedPl": -9450.0,
-      "seedTodayPl": -300.0
+      "seedPrice": 0.192,
+      "seedMv": 5760.0,
+      "seedPl": -9090.0,
+      "seedTodayPl": 0.0
     },
     {
       "id": "futu-HK.06993",
@@ -674,10 +649,10 @@
       "quoteKind": "equity",
       "qty": 1000.0,
       "cost": 15.72,
-      "seedPrice": 2.89,
-      "seedMv": 2890.0,
-      "seedPl": -12830.0,
-      "seedTodayPl": 40.0
+      "seedPrice": 2.895,
+      "seedMv": 2895.0,
+      "seedPl": -12825.0,
+      "seedTodayPl": 0.0
     },
     {
       "id": "futu-HK.03800",
@@ -698,7 +673,7 @@
       "seedPrice": 0.56,
       "seedMv": 1120.0,
       "seedPl": -8050.0,
-      "seedTodayPl": -20.0
+      "seedTodayPl": 0.0
     },
     {
       "id": "futu-HK.03419",
@@ -716,10 +691,10 @@
       "quoteKind": "equity",
       "qty": 2200.0,
       "cost": 9.015,
-      "seedPrice": 8.48,
-      "seedMv": 18656.0,
-      "seedPl": -1177.0,
-      "seedTodayPl": -121.0
+      "seedPrice": 8.485,
+      "seedMv": 18667.0,
+      "seedPl": -1166.0,
+      "seedTodayPl": 0.0
     },
     {
       "id": "futu-HK.02823",
@@ -737,10 +712,10 @@
       "quoteKind": "equity",
       "qty": 1500.0,
       "cost": 18.117,
-      "seedPrice": 14.2,
-      "seedMv": 21300.0,
-      "seedPl": -5875.37,
-      "seedTodayPl": -60.0
+      "seedPrice": 14.26,
+      "seedMv": 21390.0,
+      "seedPl": -5785.37,
+      "seedTodayPl": 0.0
     },
     {
       "id": "futu-HK.02806",
@@ -761,7 +736,7 @@
       "seedPrice": 39.36,
       "seedMv": 5904.0,
       "seedPl": -8430.0,
-      "seedTodayPl": 45.0
+      "seedTodayPl": 0.0
     },
     {
       "id": "futu-HK.01833",
@@ -782,7 +757,7 @@
       "seedPrice": 5.135,
       "seedMv": 513.5,
       "seedPl": -11846.5,
-      "seedTodayPl": -17.0
+      "seedTodayPl": 0.0
     },
     {
       "id": "futu-HK.01610",
@@ -800,10 +775,10 @@
       "quoteKind": "equity",
       "qty": 1000.0,
       "cost": 4.59,
-      "seedPrice": 1.21,
-      "seedMv": 1210.0,
-      "seedPl": -3380.0,
-      "seedTodayPl": -25.0
+      "seedPrice": 1.2,
+      "seedMv": 1200.0,
+      "seedPl": -3390.0,
+      "seedTodayPl": 0.0
     },
     {
       "id": "futu-HK.00941",
@@ -821,10 +796,10 @@
       "quoteKind": "equity",
       "qty": 500.0,
       "cost": 81.24,
-      "seedPrice": 80.8,
-      "seedMv": 40400.0,
-      "seedPl": -219.87,
-      "seedTodayPl": 150.0
+      "seedPrice": 80.5,
+      "seedMv": 40250.0,
+      "seedPl": -369.87,
+      "seedTodayPl": 0.0
     },
     {
       "id": "futu-HK.00883",
@@ -842,10 +817,10 @@
       "quoteKind": "equity",
       "qty": 1000.0,
       "cost": 23.314,
-      "seedPrice": 22.66,
-      "seedMv": 22660.0,
-      "seedPl": -654.0,
-      "seedTodayPl": -460.0
+      "seedPrice": 22.62,
+      "seedMv": 22620.0,
+      "seedPl": -694.0,
+      "seedTodayPl": 0.0
     },
     {
       "id": "futu-HK.00823",
@@ -863,10 +838,10 @@
       "quoteKind": "equity",
       "qty": 103.0,
       "cost": 103.468,
-      "seedPrice": 40.76,
-      "seedMv": 4198.28,
-      "seedPl": -6458.93,
-      "seedTodayPl": -32.96
+      "seedPrice": 40.8,
+      "seedMv": 4202.4,
+      "seedPl": -6454.81,
+      "seedTodayPl": 0.0
     },
     {
       "id": "futu-HK.00700",
@@ -884,10 +859,10 @@
       "quoteKind": "equity",
       "qty": 200.0,
       "cost": 417.0,
-      "seedPrice": 377.2,
-      "seedMv": 75440.0,
-      "seedPl": -7960.0,
-      "seedTodayPl": -2640.0
+      "seedPrice": 376.0,
+      "seedMv": 75200.0,
+      "seedPl": -8200.0,
+      "seedTodayPl": 0.0
     },
     {
       "id": "futu-HK.00357",
@@ -905,10 +880,10 @@
       "quoteKind": "equity",
       "qty": 1000.0,
       "cost": 38.25,
-      "seedPrice": 3.51,
-      "seedMv": 3510.0,
-      "seedPl": -34740.0,
-      "seedTodayPl": -10.0
+      "seedPrice": 3.535,
+      "seedMv": 3535.0,
+      "seedPl": -34715.0,
+      "seedTodayPl": 0.0
     },
     {
       "id": "futu-SZ.000089",
@@ -929,32 +904,7 @@
       "seedPrice": 6.75,
       "seedMv": 10125.0,
       "seedPl": -1659.0,
-      "seedTodayPl": -15.0
-    },
-    {
-      "id": "futu-US.XSP261231P705000",
-      "broker": "Futu",
-      "code": "US.XSP261231P705000",
-      "symbol": "XSP",
-      "display": "XSP 705.00 P",
-      "name": "XSP 705.00 P",
-      "yahoo": null,
-      "tencent": null,
-      "currency": "USD",
-      "market": "OPT",
-      "type": "OPT",
-      "multiplier": 100,
-      "quoteKind": "option",
-      "underlying": "XSP",
-      "strike": 705.0,
-      "right": "P",
-      "expiry": "2026-12-31",
-      "qty": 5.0,
-      "cost": 6.33,
-      "seedPrice": 8.22,
-      "seedMv": 4110.0,
-      "seedPl": 945.0,
-      "seedTodayPl": 35.45
+      "seedTodayPl": 0.0
     },
     {
       "id": "futu-crypto-BTC",
@@ -973,8 +923,8 @@
       "costUnknown": true,
       "qty": 0.06667,
       "cost": 0,
-      "seedPrice": 64609.81,
-      "seedMv": 4307.5360327,
+      "seedPrice": 64886.54,
+      "seedMv": 4325.9856217999995,
       "seedPl": 0,
       "seedTodayPl": 0
     },
@@ -992,12 +942,12 @@
       "type": "Other",
       "multiplier": 1,
       "quoteKind": "equity",
-      "qty": 15.0,
+      "qty": 15,
       "cost": 71477.136,
       "seedPrice": 62624.41015625,
       "seedMv": 939366.15234375,
       "seedPl": -132790.88765625004,
-      "seedTodayPl": 0.0
+      "seedTodayPl": 0
     },
     {
       "id": "ibkr-1475-JPY",
@@ -1013,12 +963,12 @@
       "type": "Other",
       "multiplier": 1,
       "quoteKind": "equity",
-      "qty": 3000.0,
+      "qty": 3000,
       "cost": 430.14384,
       "seedPrice": 406.0811462402344,
       "seedMv": 1218243.4387207031,
       "seedPl": -72188.0812792969,
-      "seedTodayPl": 0.0
+      "seedTodayPl": 0
     },
     {
       "id": "ibkr-JEPI-USD",
@@ -1034,12 +984,12 @@
       "type": "US",
       "multiplier": 1,
       "quoteKind": "equity",
-      "qty": 100.0,
+      "qty": 100,
       "cost": 57.930003,
       "seedPrice": 57.84000015258789,
       "seedMv": 5784.000015258789,
       "seedPl": -9.000284741210635,
-      "seedTodayPl": 0.0
+      "seedTodayPl": 0
     },
     {
       "id": "ibkr-PCN-USD",
@@ -1055,12 +1005,12 @@
       "type": "US",
       "multiplier": 1,
       "quoteKind": "equity",
-      "qty": 60.0,
+      "qty": 60,
       "cost": 11.75167,
       "seedPrice": 10.630000114440918,
       "seedMv": 637.8000068664551,
       "seedPl": -67.3001931335449,
-      "seedTodayPl": 0.0
+      "seedTodayPl": 0
     },
     {
       "id": "ibkr-PFN-USD",
@@ -1076,12 +1026,12 @@
       "type": "US",
       "multiplier": 1,
       "quoteKind": "equity",
-      "qty": 3000.0,
+      "qty": 3000,
       "cost": 10.269333333333334,
       "seedPrice": 6.110850811004639,
       "seedMv": 18332.552433013916,
       "seedPl": -12475.447566986084,
-      "seedTodayPl": 0.0
+      "seedTodayPl": 0
     },
     {
       "id": "ibkr-TLT-USD",
@@ -1097,12 +1047,12 @@
       "type": "US",
       "multiplier": 1,
       "quoteKind": "equity",
-      "qty": 145.0,
+      "qty": 145,
       "cost": 95.40722896551725,
       "seedPrice": 79.44000244140625,
       "seedMv": 11518.800354003906,
       "seedPl": -2315.247845996093,
-      "seedTodayPl": 0.0
+      "seedTodayPl": 0
     }
   ]
 }
