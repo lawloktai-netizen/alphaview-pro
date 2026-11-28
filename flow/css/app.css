@@ -665,6 +665,11 @@ details dd { margin: 2px 0 0; color: var(--muted); }
     max-height: 400px;
   }
   .chart-head { flex-wrap: wrap; }
-  .symbol-picker { max-width: none; width: 100%; }
+  .symbol-picker {
+    flex: 0 0 auto;
+    height: auto;
+    max-width: none;
+    width: 100%;
+  }
   .switches { align-items: stretch; }
 }
