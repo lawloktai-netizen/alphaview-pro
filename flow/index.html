@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-HK">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>資金流與價格行為</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-row">
+        <div class="brand">
+          <a class="home" href="../">← Ricky's Investment</a>
+          <p class="kicker">私人分析草稿</p>
+          <h1>資金流與價格行為</h1>
+        </div>
+        <div class="updated">
+          <p class="kicker">最後更新</p>
+          <p id="updated-time"><time>—</time></p>
+          <p id="updated-tz" class="tz">HKT · Asia/Hong_Kong</p>
+          <p id="data-label" class="badge">讀取中</p>
+        </div>
+      </div>
+      <div class="topbar-row switches">
+        <div id="market-switch" class="switch-block" role="group" aria-label="市場"></div>
+        <div id="symbol-switch" class="switch-block" role="group" aria-label="代號"></div>
+      </div>
+    </div>
+  </header>
+  <main id="main" class="wrap">
+    <p class="loading" id="boot">正在載入示範數據…</p>
+  </main>
+  <noscript>
+    <p class="wrap noscript">需要啟用 JavaScript，先可以讀取示範數據。</p>
+  </noscript>
+  <script src="js/app.js"></script>
+</body>
+</html>
