@@ -5,14 +5,14 @@
     "label": "示範數據",
     "asOf": "2026-11-28T09:00:00+08:00",
     "timezone": "Asia/Hong_Kong",
-    "watchlist": ["SPX", "MES", "NVDA", "0700.HK", "0883.HK"],
-    "disclaimer": "本檔是個人讀圖草稿。價格、均線、AVWAP、ATR、結構、大單、散戶、南北向及背離旗標全部是手作示範，不是即時報價，也不是暗池、逐筆大單、經紀商庫存或帳戶持倉。本工具只做呈現，不提供落單。富途資金流不在這一版。",
+    "watchlist": ["SPX", "MES", "NVDA", "SPY", "VOO", "QQQ", "DIA", "VTI", "IWM", "MCHI", "FXI", "0700.HK", "0883.HK", "2800.HK", "2828.HK", "3033.HK", "2823.HK", "510300.SH"],
+    "disclaimer": "本檔是個人讀圖草稿。SPX、MES、NVDA、0700.HK、0883.HK 的價格、均線、AVWAP、ATR、結構、大單、散戶、南北向及背離旗標是手作示範，不是即時報價，也不是暗池、逐筆大單、經紀商庫存或帳戶持倉。其後加入的基金沒有這些手作數字，頁面會標明暫無資金流示範，不會套用其他代號的數字。本工具只做呈現，不提供落單。富途資金流不在這一版。價格圖表若由 TradingView 官方元件顯示，只是公開行情圖表，不是資金流。",
     "methods": {
       "movingAverage": "日線簡單移動平均（SMA）20、50、250。距離 = 最新價 − 均線；距離百分比 = 距離 / 均線 × 100，單位是百分點。",
       "atr": "ATR(14)。基準是 ATR(14) 的 60 日簡單平均。比率低於 0.90 為收縮，高於 1.15 為擴張，其餘為中性。",
       "avwap": "自標明的錨定低點起，以典型價 (高+低+收)/3 乘成交量累計。示範檔的錨點是手作假設，不是機構專用錨。",
       "structure": "以該週期最近擺動高點、低點的抬高或下移，標成上升、下跌、橫行或過渡。這是簡化讀法，不是交易訊號。示範檔的句子是人手寫的。",
-      "flow": "v1 的大單與散戶淨額全部是示範。正數代表淨流入，負數代表淨流出。公開 K 線不可解讀成資金流。"
+      "flow": "v1 的大單與散戶淨額全部是示範。正數代表淨流入，負數代表淨流出。公開 K 線不可解讀成資金流。沒有寫進檔案的代號不會顯示別人的數字，只會標明暫無資金流示範。"
     }
   },
   "sources": [
@@ -20,7 +20,7 @@
       "id": "demo-file",
       "kind": "demo",
       "title": "示範數據檔",
-      "detail": "data/demo.json 是私人草稿的示範夾具，涵蓋預設觀察名單。整份價格與資金流都是手作數字，用來先跑通版面，不是交易所即時推送。",
+      "detail": "data/demo.json 是私人草稿的示範夾具。SPX、MES、NVDA、0700.HK、0883.HK 的價格與資金流是手作數字，用來先跑通版面，不是交易所即時推送。其後加入的基金沒有手作資金流，頁面會標明暫無資金流示範，不會套用其他代號的數字。",
       "appliesTo": ["price", "movingAverages", "avwap", "atr", "structure", "flow", "connectFlow", "alerts", "commentary"]
     },
     {
@@ -697,6 +697,97 @@
           "appliesTo": ["connectFlow"]
         }
       ]
+    },
+    {
+      "symbol": "SPY",
+      "name": "標普500",
+      "market": "US",
+      "instrument": "fund",
+      "currency": "USD"
+    },
+    {
+      "symbol": "VOO",
+      "name": "Vanguard 標普500",
+      "market": "US",
+      "instrument": "fund",
+      "currency": "USD"
+    },
+    {
+      "symbol": "QQQ",
+      "name": "納指100",
+      "market": "US",
+      "instrument": "fund",
+      "currency": "USD"
+    },
+    {
+      "symbol": "DIA",
+      "name": "道指",
+      "market": "US",
+      "instrument": "fund",
+      "currency": "USD"
+    },
+    {
+      "symbol": "VTI",
+      "name": "美國全市場",
+      "market": "US",
+      "instrument": "fund",
+      "currency": "USD"
+    },
+    {
+      "symbol": "IWM",
+      "name": "羅素2000",
+      "market": "US",
+      "instrument": "fund",
+      "currency": "USD"
+    },
+    {
+      "symbol": "MCHI",
+      "name": "iShares MSCI 中國",
+      "market": "US",
+      "instrument": "fund",
+      "currency": "USD"
+    },
+    {
+      "symbol": "FXI",
+      "name": "iShares 中國大型股",
+      "market": "US",
+      "instrument": "fund",
+      "currency": "USD"
+    },
+    {
+      "symbol": "2800.HK",
+      "name": "盈富基金",
+      "market": "HK",
+      "instrument": "fund",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "2828.HK",
+      "name": "恒生中國企業",
+      "market": "HK",
+      "instrument": "fund",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "3033.HK",
+      "name": "恒生科技",
+      "market": "HK",
+      "instrument": "fund",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "2823.HK",
+      "name": "安碩A50",
+      "market": "HK",
+      "instrument": "fund",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "510300.SH",
+      "name": "滬深300ETF",
+      "market": "CN",
+      "instrument": "fund",
+      "currency": "CNY"
     }
   ]
 }

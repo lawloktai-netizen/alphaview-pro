@@ -115,27 +115,22 @@
     "symbol": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "symbol",
-        "name",
-        "market",
-        "instrument",
-        "currency",
-        "quote",
-        "structure",
-        "movingAverages",
-        "avwap",
-        "atr",
-        "flow",
-        "alerts",
-        "commentary"
-      ],
+      "required": ["symbol", "name", "market", "instrument", "currency"],
+      "description": "沒有真實或手作數字的欄位應省略，頁面標明暫無示範，不可套用其他代號的數字。",
       "properties": {
         "symbol": { "type": "string", "minLength": 1 },
         "name": { "type": "string", "minLength": 1 },
-        "market": { "type": "string", "enum": ["US", "HK"] },
-        "instrument": { "type": "string", "enum": ["index", "future", "stock"] },
-        "currency": { "type": "string", "enum": ["USD", "HKD", "point"] },
+        "market": {
+          "type": "string",
+          "enum": ["US", "HK", "CN"],
+          "description": "US 美股、HK 港股、CN 中國（滬深）。美國上市的中國 ETF 仍屬 US。"
+        },
+        "instrument": {
+          "type": "string",
+          "enum": ["index", "future", "stock", "fund"],
+          "description": "fund 是 ETF 或交易所基金，頁面標成「基金」。"
+        },
+        "currency": { "type": "string", "enum": ["USD", "HKD", "CNY", "point"] },
         "quote": { "$ref": "#/$defs/quote" },
         "structure": { "$ref": "#/$defs/structureSet" },
         "movingAverages": { "$ref": "#/$defs/movingAverages" },
