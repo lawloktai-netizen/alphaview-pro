@@ -5,8 +5,124 @@
     "label": "示範數據",
     "asOf": "2026-11-28T09:00:00+08:00",
     "timezone": "Asia/Hong_Kong",
-    "watchlist": ["SPX", "MES", "NVDA", "SPY", "VOO", "QQQ", "DIA", "VTI", "IWM", "MCHI", "FXI", "0700.HK", "0883.HK", "2800.HK", "2828.HK", "3033.HK", "2823.HK", "510300.SH"],
-    "disclaimer": "本檔是個人讀圖草稿。SPX、MES、NVDA、0700.HK、0883.HK 的價格、均線、AVWAP、ATR、結構、大單、散戶、南北向及背離旗標是手作示範，不是即時報價，也不是暗池、逐筆大單、經紀商庫存或帳戶持倉。其後加入的基金沒有這些手作數字，頁面會標明暫無資金流示範，不會套用其他代號的數字。本工具只做呈現，不提供落單。富途資金流不在這一版。價格圖表若由 TradingView 官方元件顯示，只是公開行情圖表，不是資金流。",
+    "watchlist": [
+      "SPX",
+      "MES",
+      "NVDA",
+      "SPY",
+      "VOO",
+      "QQQ",
+      "DIA",
+      "VTI",
+      "IWM",
+      "MCHI",
+      "FXI",
+      "0700.HK",
+      "0883.HK",
+      "2800.HK",
+      "2828.HK",
+      "3033.HK",
+      "2823.HK",
+      "510300.SH",
+      "AAPL",
+      "MSFT",
+      "GOOG",
+      "AMZN",
+      "SPCX",
+      "META",
+      "TSLA",
+      "AVGO",
+      "LLY",
+      "BRK.B",
+      "ANT",
+      "WMT",
+      "JPM",
+      "V",
+      "MU",
+      "AMD",
+      "JNJ",
+      "XOM",
+      "MA",
+      "ABBV",
+      "COST",
+      "KO",
+      "PLTR",
+      "CVX",
+      "PG",
+      "CSCO",
+      "HD",
+      "MRK",
+      "BAC",
+      "GE",
+      "ORCL",
+      "UNH",
+      "INTC",
+      "PANW",
+      "PM",
+      "RTX",
+      "MS",
+      "TXN",
+      "CAT",
+      "AMGN",
+      "AMAT",
+      "TMO",
+      "NFLX",
+      "WFC",
+      "LRCX",
+      "IBM",
+      "GS",
+      "CRWD",
+      "ANET",
+      "1398.HK",
+      "1288.HK",
+      "0939.HK",
+      "0857.HK",
+      "3988.HK",
+      "0005.HK",
+      "9988.HK",
+      "0941.HK",
+      "3968.HK",
+      "1088.HK",
+      "3750.HK",
+      "2318.HK",
+      "2628.HK",
+      "3328.HK",
+      "0300.HK",
+      "1299.HK",
+      "0386.HK",
+      "2899.HK",
+      "0981.HK",
+      "3308.HK",
+      "1810.HK",
+      "0728.HK",
+      "1211.HK",
+      "0998.HK",
+      "1658.HK",
+      "0945.HK",
+      "2359.HK",
+      "9999.HK",
+      "9633.HK",
+      "2388.HK",
+      "0388.HK",
+      "2475.HK",
+      "6030.HK",
+      "2888.HK",
+      "3690.HK",
+      "6160.HK",
+      "1276.HK",
+      "2328.HK",
+      "0267.HK",
+      "1339.HK",
+      "2601.HK",
+      "0016.HK",
+      "2611.HK",
+      "2259.HK",
+      "3993.HK",
+      "1919.HK",
+      "2714.HK",
+      "9618.HK"
+    ],
+    "disclaimer": "本檔是個人讀圖草稿。SPX、MES、NVDA、0700.HK、0883.HK 的價格、均線、AVWAP、ATR、結構、大單、散戶、南北向及背離旗標是手作示範，不是即時報價，也不是暗池、逐筆大單、經紀商庫存或帳戶持倉。其後加入的基金，以及按市值補入的美股與港股名單，沒有這些手作數字，頁面會標明暫無資金流示範，不會套用其他代號的數字。本工具只做呈現，不提供落單。富途資金流不在這一版。價格圖表若由 TradingView 官方元件顯示，只是公開行情圖表，不是資金流。",
     "methods": {
       "movingAverage": "日線簡單移動平均（SMA）20、50、250。距離 = 最新價 − 均線；距離百分比 = 距離 / 均線 × 100，單位是百分點。",
       "atr": "ATR(14)。基準是 ATR(14) 的 60 日簡單平均。比率低於 0.90 為收縮，高於 1.15 為擴張，其餘為中性。",
@@ -20,15 +136,46 @@
       "id": "demo-file",
       "kind": "demo",
       "title": "示範數據檔",
-      "detail": "data/demo.json 是私人草稿的示範夾具。SPX、MES、NVDA、0700.HK、0883.HK 的價格與資金流是手作數字，用來先跑通版面，不是交易所即時推送。其後加入的基金沒有手作資金流，頁面會標明暫無資金流示範，不會套用其他代號的數字。",
-      "appliesTo": ["price", "movingAverages", "avwap", "atr", "structure", "flow", "connectFlow", "alerts", "commentary"]
+      "detail": "data/demo.json 是私人草稿的示範夾具。SPX、MES、NVDA、0700.HK、0883.HK 的價格與資金流是手作數字，用來先跑通版面，不是交易所即時推送。其後加入的基金，以及按市值補入的美股與港股名單，沒有手作資金流，頁面會標明暫無資金流示範，不會套用其他代號的數字。",
+      "appliesTo": [
+        "price",
+        "movingAverages",
+        "avwap",
+        "atr",
+        "structure",
+        "flow",
+        "connectFlow",
+        "alerts",
+        "commentary"
+      ]
     },
     {
       "id": "scope-note",
       "kind": "manual",
       "title": "範圍說明",
       "detail": "這一版沒有接入富途或其他經紀的資金流。公開 OHLCV（包括 yfinance 一類來源）只可當作價格，不可當作暗池、機構或真實大單。頁面不讀取持倉，也不接受 API 金鑰。",
-      "appliesTo": ["flow", "connectFlow"]
+      "appliesTo": [
+        "flow",
+        "connectFlow"
+      ]
+    },
+    {
+      "id": "top50-us-marketcap",
+      "kind": "manual",
+      "title": "美股市值前 50 名單",
+      "detail": "搜尋器補入的美股大型股，取自 CompaniesMarketCap《Largest American companies by market capitalization》（https://companiesmarketcap.com/usa/largest-companies-in-the-usa-by-market-cap/），以 2026-11-27 收市為準（2026-11-28 為星期六，美股休市；頁面數字與當日收市價一致，例如 AAPL 收市 358.54 美元）。名單是美國總部上市公司，按公司總市值排序；同一公司只列一個股份類別（Alphabet 用 GOOG，Berkshire Hathaway 用 BRK.B）。已與頁面原有代號去重（NVDA 早已在名單內）。這些代號沒有手作資金流數字。",
+      "appliesTo": [
+        "price"
+      ]
+    },
+    {
+      "id": "top50-hk-marketcap",
+      "kind": "manual",
+      "title": "港股市值前 50 名單",
+      "detail": "搜尋器補入的港股大型股，取自 TradingView《Large Cap Stocks — Hong Kong, China》（https://www.tradingview.com/markets/stocks-hong-kong/market-movers-large-cap/）及同一套官方掃描資料，以 2026-11-27 收市為準（2026-11-28 為星期六，港股休市）。範圍是港交所普通股的港元櫃台，已剔除同一公司的人民幣櫃台（8 字頭五位數代號），按 TradingView market_cap_basic（公司總市值）排序。已與頁面原有代號去重（0700.HK、0883.HK 早已在名單內）。這些代號沒有手作資金流數字。官方 widget 不能顯示港交所股票；若有同一公司且已核對可開圖的預託證券、場外報價或 A 股，圖表會標明替代代號，並註明貨幣與價格與港股上市不同，不是港股資金流。",
+      "appliesTo": [
+        "price"
+      ]
     }
   ],
   "symbols": [
@@ -147,14 +294,23 @@
           "kind": "demo",
           "title": "示範價格快照",
           "detail": "最新價、均線、AVWAP、ATR 與結構是手作數字，用來先跑通版面，不是即時報價。",
-          "appliesTo": ["price", "movingAverages", "avwap", "atr", "structure"]
+          "appliesTo": [
+            "price",
+            "movingAverages",
+            "avwap",
+            "atr",
+            "structure"
+          ]
         },
         {
           "id": "demo-flow-spx",
           "kind": "demo",
           "title": "示範資金流",
           "detail": "大單與散戶淨額是虛構的。不可當作暗池、逐筆大單、經紀商或機構流向。",
-          "appliesTo": ["flow", "alerts"]
+          "appliesTo": [
+            "flow",
+            "alerts"
+          ]
         }
       ]
     },
@@ -273,14 +429,23 @@
           "kind": "demo",
           "title": "示範價格快照",
           "detail": "最新價、均線、AVWAP、ATR 與結構是手作數字，用來先跑通版面，不是即時報價。",
-          "appliesTo": ["price", "movingAverages", "avwap", "atr", "structure"]
+          "appliesTo": [
+            "price",
+            "movingAverages",
+            "avwap",
+            "atr",
+            "structure"
+          ]
         },
         {
           "id": "demo-flow-mes",
           "kind": "demo",
           "title": "示範資金流",
           "detail": "大單與散戶淨額是虛構的。不可當作暗池、逐筆大單、經紀商或機構流向。",
-          "appliesTo": ["flow", "alerts"]
+          "appliesTo": [
+            "flow",
+            "alerts"
+          ]
         }
       ]
     },
@@ -399,14 +564,23 @@
           "kind": "demo",
           "title": "示範價格快照",
           "detail": "最新價、均線、AVWAP、ATR 與結構是手作數字，用來先跑通版面，不是即時報價。",
-          "appliesTo": ["price", "movingAverages", "avwap", "atr", "structure"]
+          "appliesTo": [
+            "price",
+            "movingAverages",
+            "avwap",
+            "atr",
+            "structure"
+          ]
         },
         {
           "id": "demo-flow-nvda",
           "kind": "demo",
           "title": "示範資金流",
           "detail": "大單與散戶淨額是虛構的，用來展示「新高配大單淨流出」。不可當作暗池、逐筆大單、經紀商或機構流向。",
-          "appliesTo": ["flow", "alerts"]
+          "appliesTo": [
+            "flow",
+            "alerts"
+          ]
         }
       ]
     },
@@ -536,21 +710,32 @@
           "kind": "demo",
           "title": "示範價格快照",
           "detail": "最新價、均線、AVWAP、ATR 與結構是手作數字，用來先跑通版面，不是即時報價。",
-          "appliesTo": ["price", "movingAverages", "avwap", "atr", "structure"]
+          "appliesTo": [
+            "price",
+            "movingAverages",
+            "avwap",
+            "atr",
+            "structure"
+          ]
         },
         {
           "id": "demo-flow-0700",
           "kind": "demo",
           "title": "示範資金流",
           "detail": "大單與散戶淨額是虛構的，用來展示「回測支持配大單淨流入」。不可當作暗池、逐筆大單、經紀商或機構流向。",
-          "appliesTo": ["flow", "alerts"]
+          "appliesTo": [
+            "flow",
+            "alerts"
+          ]
         },
         {
           "id": "demo-connect-0700",
           "kind": "demo",
           "title": "示範南北向",
           "detail": "南向淨額是本股的手作例子；北向是市場合計的手作例子。兩者都不是帳戶持倉。",
-          "appliesTo": ["connectFlow"]
+          "appliesTo": [
+            "connectFlow"
+          ]
         }
       ]
     },
@@ -680,21 +865,32 @@
           "kind": "demo",
           "title": "示範價格快照",
           "detail": "最新價、均線、AVWAP、ATR 與結構是手作數字，用來先跑通版面，不是即時報價。",
-          "appliesTo": ["price", "movingAverages", "avwap", "atr", "structure"]
+          "appliesTo": [
+            "price",
+            "movingAverages",
+            "avwap",
+            "atr",
+            "structure"
+          ]
         },
         {
           "id": "demo-flow-0883",
           "kind": "demo",
           "title": "示範資金流",
           "detail": "大單與散戶淨額是虛構的。不可當作暗池、逐筆大單、經紀商或機構流向。",
-          "appliesTo": ["flow", "alerts"]
+          "appliesTo": [
+            "flow",
+            "alerts"
+          ]
         },
         {
           "id": "demo-connect-0883",
           "kind": "demo",
           "title": "示範南北向",
           "detail": "南向淨額是本股的手作例子；北向是市場合計的手作例子。兩者都不是帳戶持倉。",
-          "appliesTo": ["connectFlow"]
+          "appliesTo": [
+            "connectFlow"
+          ]
         }
       ]
     },
@@ -788,6 +984,685 @@
       "market": "CN",
       "instrument": "fund",
       "currency": "CNY"
+    },
+    {
+      "symbol": "AAPL",
+      "name": "蘋果",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "MSFT",
+      "name": "微軟",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "GOOG",
+      "name": "Alphabet（Google）",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "AMZN",
+      "name": "亞馬遜",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "SPCX",
+      "name": "SpaceX",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "META",
+      "name": "Meta（Facebook）",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "TSLA",
+      "name": "特斯拉",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "AVGO",
+      "name": "博通",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "LLY",
+      "name": "禮來",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "BRK.B",
+      "name": "伯克希爾B",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "ANT",
+      "name": "Anthropic",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "WMT",
+      "name": "沃爾瑪",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "JPM",
+      "name": "摩根大通",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "V",
+      "name": "Visa",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "MU",
+      "name": "美光",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "AMD",
+      "name": "AMD",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "JNJ",
+      "name": "強生",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "XOM",
+      "name": "埃克森美孚",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "MA",
+      "name": "Mastercard",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "ABBV",
+      "name": "艾伯維",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "COST",
+      "name": "好市多",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "KO",
+      "name": "可口可樂",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "PLTR",
+      "name": "Palantir",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "CVX",
+      "name": "雪佛龍",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "PG",
+      "name": "寶潔",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "CSCO",
+      "name": "思科",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "HD",
+      "name": "家得寶",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "MRK",
+      "name": "默沙東",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "BAC",
+      "name": "美國銀行",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "GE",
+      "name": "GE Aerospace",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "ORCL",
+      "name": "甲骨文",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "UNH",
+      "name": "聯合健康",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "INTC",
+      "name": "英特爾",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "PANW",
+      "name": "Palo Alto",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "PM",
+      "name": "菲利普莫里斯",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "RTX",
+      "name": "RTX",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "MS",
+      "name": "摩根士丹利",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "TXN",
+      "name": "德州儀器",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "CAT",
+      "name": "卡特彼勒",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "AMGN",
+      "name": "安進",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "AMAT",
+      "name": "應用材料",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "TMO",
+      "name": "賽默飛世爾",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "NFLX",
+      "name": "Netflix",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "WFC",
+      "name": "富國銀行",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "LRCX",
+      "name": "拉姆研究",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "IBM",
+      "name": "IBM",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "GS",
+      "name": "高盛",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "CRWD",
+      "name": "CrowdStrike",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "ANET",
+      "name": "Arista",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD"
+    },
+    {
+      "symbol": "1398.HK",
+      "name": "工商銀行",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "1288.HK",
+      "name": "農業銀行",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "0939.HK",
+      "name": "建設銀行",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "0857.HK",
+      "name": "中國石油股份",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "3988.HK",
+      "name": "中國銀行",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "0005.HK",
+      "name": "匯豐控股",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "9988.HK",
+      "name": "阿里巴巴-SW",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "0941.HK",
+      "name": "中國移動",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "3968.HK",
+      "name": "招商銀行",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "1088.HK",
+      "name": "中國神華",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "3750.HK",
+      "name": "寧德時代",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "2318.HK",
+      "name": "中國平安",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "2628.HK",
+      "name": "中國人壽",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "3328.HK",
+      "name": "交通銀行",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "0300.HK",
+      "name": "美的集團",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "1299.HK",
+      "name": "友邦保險",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "0386.HK",
+      "name": "中國石油化工股份",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "2899.HK",
+      "name": "紫金礦業",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "0981.HK",
+      "name": "中芯國際",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "3308.HK",
+      "name": "中際旭創",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "1810.HK",
+      "name": "小米集團-W",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "0728.HK",
+      "name": "中國電信",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "1211.HK",
+      "name": "比亞迪股份",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "0998.HK",
+      "name": "中信銀行",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "1658.HK",
+      "name": "郵儲銀行",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "0945.HK",
+      "name": "宏利金融-S",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "2359.HK",
+      "name": "藥明康德",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "9999.HK",
+      "name": "網易-S",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "9633.HK",
+      "name": "農夫山泉",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "2388.HK",
+      "name": "中銀香港",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "0388.HK",
+      "name": "香港交易所",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "2475.HK",
+      "name": "立訊精密",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "6030.HK",
+      "name": "中信証券",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "2888.HK",
+      "name": "渣打集團",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "3690.HK",
+      "name": "美團-W",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "6160.HK",
+      "name": "百濟神州",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "1276.HK",
+      "name": "恒瑞醫藥",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "2328.HK",
+      "name": "中國財險",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "0267.HK",
+      "name": "中信股份",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "1339.HK",
+      "name": "中國人民保險集團",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "2601.HK",
+      "name": "中國太保",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "0016.HK",
+      "name": "新鴻基地產",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "2611.HK",
+      "name": "國泰海通證券",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "2259.HK",
+      "name": "紫金黃金國際",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "3993.HK",
+      "name": "洛陽鉬業",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "1919.HK",
+      "name": "中遠海控",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "2714.HK",
+      "name": "牧原股份",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
+    },
+    {
+      "symbol": "9618.HK",
+      "name": "京東集團-SW",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD"
     }
   ]
 }
