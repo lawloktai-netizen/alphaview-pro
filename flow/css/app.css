@@ -160,7 +160,15 @@ button { cursor: pointer; }
   display: flex;
   align-items: center;
   gap: 6px;
-  flex: 1 1 260px;
+  /* Width only: never use a px flex-basis, or it becomes height when the top bar stacks. */
+  flex-grow: 0;
+  flex-shrink: 1;
+  flex-basis: auto;
+  align-self: flex-start;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  width: min(440px, 100%);
   max-width: 440px;
   min-width: 0;
 }
@@ -667,9 +675,17 @@ details dd { margin: 2px 0 0; color: var(--muted); }
   .chart-head { flex-wrap: wrap; }
   .symbol-picker {
     flex: 0 0 auto;
+    flex-grow: 0;
+    flex-basis: auto;
+    align-self: flex-start;
     height: auto;
+    min-height: 0;
+    max-height: none;
     max-width: none;
     width: 100%;
   }
-  .switches { align-items: stretch; }
+  .switches {
+    align-items: flex-start;
+    gap: 8px;
+  }
 }

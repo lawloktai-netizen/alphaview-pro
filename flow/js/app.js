@@ -445,7 +445,7 @@ async function boot() {
 
 function resolveDataUrl() {
   const raw = new URLSearchParams(location.search).get("data");
-  if (!raw) return "data/demo.json";
+  if (!raw) return "data/public-price.json";
   if (!/^[A-Za-z0-9_./-]+\.json$/.test(raw) || raw.includes("..") || raw.startsWith("/")) {
     throw new Error("數據路徑不接受。只可讀取本站內的 .json 檔。");
   }
