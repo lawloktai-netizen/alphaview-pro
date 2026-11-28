@@ -1,0 +1,702 @@
+{
+  "meta": {
+    "schemaVersion": "1.0.0",
+    "dataMode": "demo",
+    "label": "示範數據",
+    "asOf": "2026-11-28T09:00:00+08:00",
+    "timezone": "Asia/Hong_Kong",
+    "watchlist": ["SPX", "MES", "NVDA", "0700.HK", "0883.HK"],
+    "disclaimer": "本檔是個人讀圖草稿。價格、均線、AVWAP、ATR、結構、大單、散戶、南北向及背離旗標全部是手作示範，不是即時報價，也不是暗池、逐筆大單、經紀商庫存或帳戶持倉。本工具只做呈現，不提供落單。富途資金流不在這一版。",
+    "methods": {
+      "movingAverage": "日線簡單移動平均（SMA）20、50、250。距離 = 最新價 − 均線；距離百分比 = 距離 / 均線 × 100，單位是百分點。",
+      "atr": "ATR(14)。基準是 ATR(14) 的 60 日簡單平均。比率低於 0.90 為收縮，高於 1.15 為擴張，其餘為中性。",
+      "avwap": "自標明的錨定低點起，以典型價 (高+低+收)/3 乘成交量累計。示範檔的錨點是手作假設，不是機構專用錨。",
+      "structure": "以該週期最近擺動高點、低點的抬高或下移，標成上升、下跌、橫行或過渡。這是簡化讀法，不是交易訊號。示範檔的句子是人手寫的。",
+      "flow": "v1 的大單與散戶淨額全部是示範。正數代表淨流入，負數代表淨流出。公開 K 線不可解讀成資金流。"
+    }
+  },
+  "sources": [
+    {
+      "id": "demo-file",
+      "kind": "demo",
+      "title": "示範數據檔",
+      "detail": "data/demo.json 是私人草稿的示範夾具，涵蓋預設觀察名單。整份價格與資金流都是手作數字，用來先跑通版面，不是交易所即時推送。",
+      "appliesTo": ["price", "movingAverages", "avwap", "atr", "structure", "flow", "connectFlow", "alerts", "commentary"]
+    },
+    {
+      "id": "scope-note",
+      "kind": "manual",
+      "title": "範圍說明",
+      "detail": "這一版沒有接入富途或其他經紀的資金流。公開 OHLCV（包括 yfinance 一類來源）只可當作價格，不可當作暗池、機構或真實大單。頁面不讀取持倉，也不接受 API 金鑰。",
+      "appliesTo": ["flow", "connectFlow"]
+    }
+  ],
+  "symbols": [
+    {
+      "symbol": "SPX",
+      "name": "標普500指數",
+      "market": "US",
+      "instrument": "index",
+      "currency": "point",
+      "quote": {
+        "last": 6024.5,
+        "previousClose": 6002.18,
+        "change": 22.32,
+        "changePct": 0.37,
+        "session": "2026-11-27",
+        "sessionNote": "手作示範，對應 2026-11-27 美股時段，不是即時報價。",
+        "asOf": "2026-11-28T09:00:00+08:00",
+        "priceKind": "demo"
+      },
+      "structure": {
+        "daily": {
+          "timeframe": "1D",
+          "bias": "up",
+          "label": "上升結構",
+          "summary": "近兩個擺動高點與低點都在抬高，收市貼近區間上沿，但仍略低於擺動高點。",
+          "swingHigh": 6032.4,
+          "swingLow": 5884.0
+        },
+        "h4": {
+          "timeframe": "4H",
+          "bias": "up",
+          "label": "上升結構",
+          "summary": "回調低點高於前低，四小時節奏尚未破壞日線上升。",
+          "swingHigh": 6030.0,
+          "swingLow": 5962.0
+        },
+        "h1": {
+          "timeframe": "1H",
+          "bias": "range",
+          "label": "橫行",
+          "summary": "在 6008–6028 一帶整固，短線未再創新高。",
+          "swingHigh": 6028.5,
+          "swingLow": 6008.2
+        }
+      },
+      "movingAverages": {
+        "ma20": {
+          "period": 20,
+          "value": 5968.4,
+          "distanceAbs": 56.1,
+          "distancePct": 0.94,
+          "priceVersus": "above"
+        },
+        "ma50": {
+          "period": 50,
+          "value": 5842.15,
+          "distanceAbs": 182.35,
+          "distancePct": 3.12,
+          "priceVersus": "above"
+        },
+        "ma250": {
+          "period": 250,
+          "value": 5488.7,
+          "distanceAbs": 535.8,
+          "distancePct": 9.76,
+          "priceVersus": "above"
+        }
+      },
+      "avwap": {
+        "value": 5710.25,
+        "anchorDate": "2026-04-21",
+        "anchorLabel": "示範擺動低點",
+        "anchorPrice": 5128.4,
+        "distanceAbs": 314.25,
+        "distancePct": 5.5,
+        "priceVersus": "above"
+      },
+      "atr": {
+        "period": 14,
+        "value": 62.4,
+        "baseline": 71.8,
+        "baselineLabel": "60 個交易日 ATR 均值",
+        "ratio": 0.87,
+        "state": "contraction",
+        "label": "收縮"
+      },
+      "flow": {
+        "isDemo": true,
+        "demoLabel": "示範數據",
+        "window": "示範淨額 · 單日時段",
+        "unit": "百萬美元",
+        "largeOrderNet": 420.0,
+        "retailNet": 85.0,
+        "note": "正數為淨流入，負數為淨流出。數字是手作示範，並非逐筆大單、暗池或機構成交。"
+      },
+      "alerts": [
+        {
+          "type": "alignment",
+          "severity": "info",
+          "timeframe": "1D",
+          "title": "未見明顯背離",
+          "detail": "示範大單為淨流入，價格同時處於上升結構。旗標只說明這組示範數字的方向大致同向。"
+        }
+      ],
+      "commentary": {
+        "locale": "zh-HK",
+        "origin": "demo",
+        "label": "示範預填",
+        "text": "示範短評：日線仍是上升結構，現價在 20、50、250 日均線之上，ATR 輕微收縮。示範大單與價格同向，未見這一版所定義的派發或吸籌背離。資金流數字是手作例子，不是真實大單。",
+        "modelId": null,
+        "generatedAt": null
+      },
+      "sources": [
+        {
+          "id": "demo-price-spx",
+          "kind": "demo",
+          "title": "示範價格快照",
+          "detail": "最新價、均線、AVWAP、ATR 與結構是手作數字，用來先跑通版面，不是即時報價。",
+          "appliesTo": ["price", "movingAverages", "avwap", "atr", "structure"]
+        },
+        {
+          "id": "demo-flow-spx",
+          "kind": "demo",
+          "title": "示範資金流",
+          "detail": "大單與散戶淨額是虛構的。不可當作暗池、逐筆大單、經紀商或機構流向。",
+          "appliesTo": ["flow", "alerts"]
+        }
+      ]
+    },
+    {
+      "symbol": "MES",
+      "name": "微型標普500期貨",
+      "market": "US",
+      "instrument": "future",
+      "currency": "point",
+      "quote": {
+        "last": 6031.25,
+        "previousClose": 6006.5,
+        "change": 24.75,
+        "changePct": 0.41,
+        "session": "2026-11-27",
+        "sessionNote": "手作示範，對應 2026-11-27 美股時段，不是即時報價。",
+        "asOf": "2026-11-28T09:00:00+08:00",
+        "priceKind": "demo"
+      },
+      "structure": {
+        "daily": {
+          "timeframe": "1D",
+          "bias": "up",
+          "label": "上升結構",
+          "summary": "期貨價格貼近指數，日線低點逐步抬高，升勢仍在。",
+          "swingHigh": 6036.0,
+          "swingLow": 5890.0
+        },
+        "h4": {
+          "timeframe": "4H",
+          "bias": "up",
+          "label": "上升結構",
+          "summary": "回調仍守住前低，四小時未出現下移結構。",
+          "swingHigh": 6034.0,
+          "swingLow": 5970.0
+        },
+        "h1": {
+          "timeframe": "1H",
+          "bias": "range",
+          "label": "橫行",
+          "summary": "沖高後回到區間中軸，短線動能放緩。",
+          "swingHigh": 6032.0,
+          "swingLow": 6014.0
+        }
+      },
+      "movingAverages": {
+        "ma20": {
+          "period": 20,
+          "value": 5974.0,
+          "distanceAbs": 57.25,
+          "distancePct": 0.96,
+          "priceVersus": "above"
+        },
+        "ma50": {
+          "period": 50,
+          "value": 5848.5,
+          "distanceAbs": 182.75,
+          "distancePct": 3.12,
+          "priceVersus": "above"
+        },
+        "ma250": {
+          "period": 250,
+          "value": 5496.0,
+          "distanceAbs": 535.25,
+          "distancePct": 9.74,
+          "priceVersus": "above"
+        }
+      },
+      "avwap": {
+        "value": 5722.0,
+        "anchorDate": "2026-04-21",
+        "anchorLabel": "示範擺動低點",
+        "anchorPrice": 5136.0,
+        "distanceAbs": 309.25,
+        "distancePct": 5.4,
+        "priceVersus": "above"
+      },
+      "atr": {
+        "period": 14,
+        "value": 58.2,
+        "baseline": 74.6,
+        "baselineLabel": "60 個交易日 ATR 均值",
+        "ratio": 0.78,
+        "state": "contraction",
+        "label": "收縮"
+      },
+      "flow": {
+        "isDemo": true,
+        "demoLabel": "示範數據",
+        "window": "示範淨額 · 單日時段",
+        "unit": "百萬美元",
+        "largeOrderNet": 36.5,
+        "retailNet": -12.0,
+        "note": "正數為淨流入，負數為淨流出。數字是手作示範，並非逐筆大單、暗池或機構成交。"
+      },
+      "alerts": [
+        {
+          "type": "alignment",
+          "severity": "info",
+          "timeframe": "1D",
+          "title": "未見明顯背離",
+          "detail": "價格處於日線上升、一小時橫行。示範大單仍為淨流入，雖然散戶略為淨流出，但不符合「新高配合大單淨流出」的派發條件。"
+        }
+      ],
+      "commentary": {
+        "locale": "zh-HK",
+        "origin": "demo",
+        "label": "示範預填",
+        "text": "示範短評：微型期貨日線方向與指數相近，一小時則在高位附近橫行，ATR 收縮更明顯。示範大單仍是淨流入，散戶略為淨流出，未構成派發式條件。全部資金流只供版面演練。",
+        "modelId": null,
+        "generatedAt": null
+      },
+      "sources": [
+        {
+          "id": "demo-price-mes",
+          "kind": "demo",
+          "title": "示範價格快照",
+          "detail": "最新價、均線、AVWAP、ATR 與結構是手作數字，用來先跑通版面，不是即時報價。",
+          "appliesTo": ["price", "movingAverages", "avwap", "atr", "structure"]
+        },
+        {
+          "id": "demo-flow-mes",
+          "kind": "demo",
+          "title": "示範資金流",
+          "detail": "大單與散戶淨額是虛構的。不可當作暗池、逐筆大單、經紀商或機構流向。",
+          "appliesTo": ["flow", "alerts"]
+        }
+      ]
+    },
+    {
+      "symbol": "NVDA",
+      "name": "輝達",
+      "market": "US",
+      "instrument": "stock",
+      "currency": "USD",
+      "quote": {
+        "last": 152.48,
+        "previousClose": 148.05,
+        "change": 4.43,
+        "changePct": 2.99,
+        "session": "2026-11-27",
+        "sessionNote": "手作示範，對應 2026-11-27 美股時段，不是即時報價。",
+        "asOf": "2026-11-28T09:00:00+08:00",
+        "priceKind": "demo"
+      },
+      "structure": {
+        "daily": {
+          "timeframe": "1D",
+          "bias": "up",
+          "label": "上升結構",
+          "summary": "收市等於近段擺動高點，屬價格新高；擺動低點仍在上移。",
+          "swingHigh": 152.48,
+          "swingLow": 136.2
+        },
+        "h4": {
+          "timeframe": "4H",
+          "bias": "up",
+          "label": "上升結構",
+          "summary": "連續更高高點，上升角度變陡，四小時高點與收市重疊。",
+          "swingHigh": 152.48,
+          "swingLow": 145.1
+        },
+        "h1": {
+          "timeframe": "1H",
+          "bias": "up",
+          "label": "上升結構",
+          "summary": "時段末段再推高，一小時未跌破前低。",
+          "swingHigh": 152.48,
+          "swingLow": 149.6
+        }
+      },
+      "movingAverages": {
+        "ma20": {
+          "period": 20,
+          "value": 142.36,
+          "distanceAbs": 10.12,
+          "distancePct": 7.11,
+          "priceVersus": "above"
+        },
+        "ma50": {
+          "period": 50,
+          "value": 131.9,
+          "distanceAbs": 20.58,
+          "distancePct": 15.6,
+          "priceVersus": "above"
+        },
+        "ma250": {
+          "period": 250,
+          "value": 112.4,
+          "distanceAbs": 40.08,
+          "distancePct": 35.66,
+          "priceVersus": "above"
+        }
+      },
+      "avwap": {
+        "value": 124.85,
+        "anchorDate": "2026-04-07",
+        "anchorLabel": "示範擺動低點",
+        "anchorPrice": 86.2,
+        "distanceAbs": 27.63,
+        "distancePct": 22.13,
+        "priceVersus": "above"
+      },
+      "atr": {
+        "period": 14,
+        "value": 4.85,
+        "baseline": 3.62,
+        "baselineLabel": "60 個交易日 ATR 均值",
+        "ratio": 1.34,
+        "state": "expansion",
+        "label": "擴張"
+      },
+      "flow": {
+        "isDemo": true,
+        "demoLabel": "示範數據",
+        "window": "示範淨額 · 單日時段",
+        "unit": "百萬美元",
+        "largeOrderNet": -246.8,
+        "retailNet": 131.5,
+        "note": "正數為淨流入，負數為淨流出。數字是手作示範，並非逐筆大單、暗池或機構成交。"
+      },
+      "alerts": [
+        {
+          "type": "distribution",
+          "severity": "high",
+          "timeframe": "1D",
+          "title": "派發式背離（示範）",
+          "detail": "最新價 152.48 對到日線擺動高點，屬近段新高；同期示範大單淨流出 246.8 百萬美元，散戶則淨流入。這是預先放進示範檔的背離例子，不是真實成交分佈。"
+        }
+      ],
+      "commentary": {
+        "locale": "zh-HK",
+        "origin": "demo",
+        "label": "示範預填",
+        "text": "示範短評：日線收市創近段高位，價格遠離 20 日均線，ATR 處於擴張。同期示範大單淨流出、散戶淨流入，版面上屬派發式背離。這些資金流是虛構數字，不是暗池或逐筆大單，亦不是買賣指示。",
+        "modelId": null,
+        "generatedAt": null
+      },
+      "sources": [
+        {
+          "id": "demo-price-nvda",
+          "kind": "demo",
+          "title": "示範價格快照",
+          "detail": "最新價、均線、AVWAP、ATR 與結構是手作數字，用來先跑通版面，不是即時報價。",
+          "appliesTo": ["price", "movingAverages", "avwap", "atr", "structure"]
+        },
+        {
+          "id": "demo-flow-nvda",
+          "kind": "demo",
+          "title": "示範資金流",
+          "detail": "大單與散戶淨額是虛構的，用來展示「新高配大單淨流出」。不可當作暗池、逐筆大單、經紀商或機構流向。",
+          "appliesTo": ["flow", "alerts"]
+        }
+      ]
+    },
+    {
+      "symbol": "0700.HK",
+      "name": "騰訊控股",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD",
+      "quote": {
+        "last": 407.4,
+        "previousClose": 415.8,
+        "change": -8.4,
+        "changePct": -2.02,
+        "session": "2026-11-27",
+        "sessionNote": "手作示範，對應 2026-11-27 港股收市，不是即時報價。",
+        "asOf": "2026-11-28T09:00:00+08:00",
+        "priceKind": "demo"
+      },
+      "structure": {
+        "daily": {
+          "timeframe": "1D",
+          "bias": "transition",
+          "label": "回調貼近支持",
+          "summary": "自前高回落，現價貼近前低 406.10 及 50 日均線，屬於回測支持，長線仍在 250 日均線之上。",
+          "swingHigh": 438.6,
+          "swingLow": 406.1
+        },
+        "h4": {
+          "timeframe": "4H",
+          "bias": "down",
+          "label": "下跌結構",
+          "summary": "四小時高點下移，正在測試日線前低。",
+          "swingHigh": 422.4,
+          "swingLow": 406.1
+        },
+        "h1": {
+          "timeframe": "1H",
+          "bias": "range",
+          "label": "止跌橫行",
+          "summary": "跌勢放緩，最近一段在支持上方窄幅波動。",
+          "swingHigh": 412.8,
+          "swingLow": 406.4
+        }
+      },
+      "movingAverages": {
+        "ma20": {
+          "period": 20,
+          "value": 421.8,
+          "distanceAbs": -14.4,
+          "distancePct": -3.41,
+          "priceVersus": "below"
+        },
+        "ma50": {
+          "period": 50,
+          "value": 409.5,
+          "distanceAbs": -2.1,
+          "distancePct": -0.51,
+          "priceVersus": "below"
+        },
+        "ma250": {
+          "period": 250,
+          "value": 376.2,
+          "distanceAbs": 31.2,
+          "distancePct": 8.29,
+          "priceVersus": "above"
+        }
+      },
+      "avwap": {
+        "value": 398.4,
+        "anchorDate": "2026-01-13",
+        "anchorLabel": "示範擺動低點",
+        "anchorPrice": 352.8,
+        "distanceAbs": 9.0,
+        "distancePct": 2.26,
+        "priceVersus": "above"
+      },
+      "atr": {
+        "period": 14,
+        "value": 8.4,
+        "baseline": 11.2,
+        "baselineLabel": "60 個交易日 ATR 均值",
+        "ratio": 0.75,
+        "state": "contraction",
+        "label": "收縮"
+      },
+      "flow": {
+        "isDemo": true,
+        "demoLabel": "示範數據",
+        "window": "示範淨額 · 單日時段",
+        "unit": "百萬港元",
+        "largeOrderNet": 318.0,
+        "retailNet": -96.4,
+        "note": "正數為淨流入，負數為淨流出。數字是手作示範，並非逐筆大單、暗池或機構成交。"
+      },
+      "connectFlow": {
+        "isDemo": true,
+        "demoLabel": "示範數據",
+        "southboundNet": 186.5,
+        "unitSouthbound": "百萬港元",
+        "southboundNote": "示範：假設的南向資金淨買入本股。不是帳戶持倉，也不是經紀庫存。",
+        "northboundNet": 42.8,
+        "unitNorthbound": "億元人民幣",
+        "northboundScope": "market",
+        "northboundNote": "示範：滬深股通市場合計淨流入。這是市場層級，不是本股，也不是個人持倉。"
+      },
+      "alerts": [
+        {
+          "type": "accumulation",
+          "severity": "high",
+          "timeframe": "1D",
+          "title": "吸籌式背離（示範）",
+          "detail": "最新價 407.40 貼近日線前低 406.10，並落到 50 日均線下方；同期示範大單淨流入 318.0 百萬港元。這是預先放進示範檔的背離例子，不是真實資金流。"
+        }
+      ],
+      "commentary": {
+        "locale": "zh-HK",
+        "origin": "demo",
+        "label": "示範預填",
+        "text": "示範短評：股價回落到 50 日均線及前低附近，日線處於回調，ATR 收縮。示範大單轉為淨流入、散戶淨流出，用來展示吸籌式背離。南向欄位同樣是示範，不是持倉。只作讀圖對照。",
+        "modelId": null,
+        "generatedAt": null
+      },
+      "sources": [
+        {
+          "id": "demo-price-0700",
+          "kind": "demo",
+          "title": "示範價格快照",
+          "detail": "最新價、均線、AVWAP、ATR 與結構是手作數字，用來先跑通版面，不是即時報價。",
+          "appliesTo": ["price", "movingAverages", "avwap", "atr", "structure"]
+        },
+        {
+          "id": "demo-flow-0700",
+          "kind": "demo",
+          "title": "示範資金流",
+          "detail": "大單與散戶淨額是虛構的，用來展示「回測支持配大單淨流入」。不可當作暗池、逐筆大單、經紀商或機構流向。",
+          "appliesTo": ["flow", "alerts"]
+        },
+        {
+          "id": "demo-connect-0700",
+          "kind": "demo",
+          "title": "示範南北向",
+          "detail": "南向淨額是本股的手作例子；北向是市場合計的手作例子。兩者都不是帳戶持倉。",
+          "appliesTo": ["connectFlow"]
+        }
+      ]
+    },
+    {
+      "symbol": "0883.HK",
+      "name": "中國海洋石油",
+      "market": "HK",
+      "instrument": "stock",
+      "currency": "HKD",
+      "quote": {
+        "last": 20.15,
+        "previousClose": 19.7,
+        "change": 0.45,
+        "changePct": 2.28,
+        "session": "2026-11-27",
+        "sessionNote": "手作示範，對應 2026-11-27 港股收市，不是即時報價。",
+        "asOf": "2026-11-28T09:00:00+08:00",
+        "priceKind": "demo"
+      },
+      "structure": {
+        "daily": {
+          "timeframe": "1D",
+          "bias": "up",
+          "label": "上升結構",
+          "summary": "低點逐步抬高，收市靠近短線高位，但未配上大單淨流出。",
+          "swingHigh": 20.22,
+          "swingLow": 18.96
+        },
+        "h4": {
+          "timeframe": "4H",
+          "bias": "up",
+          "label": "上升結構",
+          "summary": "回調淺，四小時仍沿短線低點上行。",
+          "swingHigh": 20.18,
+          "swingLow": 19.55
+        },
+        "h1": {
+          "timeframe": "1H",
+          "bias": "up",
+          "label": "上升結構",
+          "summary": "突破前一小時高點後站穩，短線斜率向上。",
+          "swingHigh": 20.15,
+          "swingLow": 19.92
+        }
+      },
+      "movingAverages": {
+        "ma20": {
+          "period": 20,
+          "value": 19.42,
+          "distanceAbs": 0.73,
+          "distancePct": 3.76,
+          "priceVersus": "above"
+        },
+        "ma50": {
+          "period": 50,
+          "value": 18.66,
+          "distanceAbs": 1.49,
+          "distancePct": 7.98,
+          "priceVersus": "above"
+        },
+        "ma250": {
+          "period": 250,
+          "value": 17.1,
+          "distanceAbs": 3.05,
+          "distancePct": 17.84,
+          "priceVersus": "above"
+        }
+      },
+      "avwap": {
+        "value": 18.05,
+        "anchorDate": "2026-03-16",
+        "anchorLabel": "示範擺動低點",
+        "anchorPrice": 15.42,
+        "distanceAbs": 2.1,
+        "distancePct": 11.63,
+        "priceVersus": "above"
+      },
+      "atr": {
+        "period": 14,
+        "value": 0.42,
+        "baseline": 0.39,
+        "baselineLabel": "60 個交易日 ATR 均值",
+        "ratio": 1.08,
+        "state": "neutral",
+        "label": "中性"
+      },
+      "flow": {
+        "isDemo": true,
+        "demoLabel": "示範數據",
+        "window": "示範淨額 · 單日時段",
+        "unit": "百萬港元",
+        "largeOrderNet": 22.4,
+        "retailNet": 8.1,
+        "note": "正數為淨流入，負數為淨流出。數字是手作示範，並非逐筆大單、暗池或機構成交。"
+      },
+      "connectFlow": {
+        "isDemo": true,
+        "demoLabel": "示範數據",
+        "southboundNet": 15.6,
+        "unitSouthbound": "百萬港元",
+        "southboundNote": "示範：假設的南向資金淨買入本股。不是帳戶持倉，也不是經紀庫存。",
+        "northboundNet": 42.8,
+        "unitNorthbound": "億元人民幣",
+        "northboundScope": "market",
+        "northboundNote": "示範：滬深股通市場合計淨流入，與 0700.HK 共用同一個市場層級例子。不是本股，也不是個人持倉。"
+      },
+      "alerts": [
+        {
+          "type": "alignment",
+          "severity": "info",
+          "timeframe": "1D",
+          "title": "未見明顯背離",
+          "detail": "示範大單、散戶與南向都是淨流入，價格日線向上。北向只是市場合計示範，不參與這條背離判斷。"
+        }
+      ],
+      "commentary": {
+        "locale": "zh-HK",
+        "origin": "demo",
+        "label": "示範預填",
+        "text": "示範短評：日線溫和向上，現價在三條均線之上，ATR 接近中性。示範大單與南向同為淨流入，與價格方向大致一致。北向數字是市場合計的示範，不是本股，也不是個人持倉。",
+        "modelId": null,
+        "generatedAt": null
+      },
+      "sources": [
+        {
+          "id": "demo-price-0883",
+          "kind": "demo",
+          "title": "示範價格快照",
+          "detail": "最新價、均線、AVWAP、ATR 與結構是手作數字，用來先跑通版面，不是即時報價。",
+          "appliesTo": ["price", "movingAverages", "avwap", "atr", "structure"]
+        },
+        {
+          "id": "demo-flow-0883",
+          "kind": "demo",
+          "title": "示範資金流",
+          "detail": "大單與散戶淨額是虛構的。不可當作暗池、逐筆大單、經紀商或機構流向。",
+          "appliesTo": ["flow", "alerts"]
+        },
+        {
+          "id": "demo-connect-0883",
+          "kind": "demo",
+          "title": "示範南北向",
+          "detail": "南向淨額是本股的手作例子；北向是市場合計的手作例子。兩者都不是帳戶持倉。",
+          "appliesTo": ["connectFlow"]
+        }
+      ]
+    }
+  ]
+}

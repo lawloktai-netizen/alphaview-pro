@@ -1,0 +1,361 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.invalid/schemas/capital-flow-dashboard.schema.json",
+  "title": "資金流與價格行為儀表板文件",
+  "description": "個人分析草稿的單一資料文件，涵蓋價格行為與資金流呈現。v1 的資金流可全為示範。公開 OHLCV 只可標成價格，不可標成暗池、大單或真實資金流。本合約沒有落單、持倉、帳戶或 API 金鑰欄位。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["meta", "sources", "symbols"],
+  "properties": {
+    "meta": { "$ref": "#/$defs/meta" },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "symbols": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/symbol" }
+    }
+  },
+  "$defs": {
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "dataMode",
+        "label",
+        "asOf",
+        "timezone",
+        "watchlist",
+        "disclaimer",
+        "methods"
+      ],
+      "properties": {
+        "schemaVersion": { "type": "string", "const": "1.0.0" },
+        "dataMode": {
+          "type": "string",
+          "enum": ["demo", "mixed"],
+          "description": "demo 表示價格與資金流都是示範。mixed 表示價格來自公開行情，資金流仍可能是示範。"
+        },
+        "label": { "type": "string", "minLength": 1 },
+        "asOf": {
+          "type": "string",
+          "format": "date-time",
+          "description": "文件產生時間。頁面以 Asia/Hong_Kong 顯示，並註明與 Asia/Shanghai 同為 UTC+8。"
+        },
+        "timezone": { "type": "string", "enum": ["Asia/Hong_Kong", "Asia/Shanghai"] },
+        "watchlist": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "disclaimer": { "type": "string", "minLength": 1 },
+        "methods": { "$ref": "#/$defs/methods" },
+        "priceRefresh": { "$ref": "#/$defs/priceRefresh" }
+      }
+    },
+    "priceRefresh": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["at", "provider", "note"],
+      "properties": {
+        "at": { "type": "string", "format": "date-time" },
+        "provider": { "type": "string", "minLength": 1 },
+        "note": { "type": "string", "minLength": 1 }
+      }
+    },
+    "methods": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["movingAverage", "atr", "avwap", "structure", "flow"],
+      "properties": {
+        "movingAverage": { "type": "string", "minLength": 1 },
+        "atr": { "type": "string", "minLength": 1 },
+        "avwap": { "type": "string", "minLength": 1 },
+        "structure": { "type": "string", "minLength": 1 },
+        "flow": { "type": "string", "minLength": 1 }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "title", "detail", "appliesTo"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "kind": {
+          "type": "string",
+          "enum": ["demo", "public_ohlcv", "model_commentary", "manual"]
+        },
+        "title": { "type": "string", "minLength": 1 },
+        "detail": { "type": "string", "minLength": 1 },
+        "appliesTo": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "enum": [
+              "price",
+              "movingAverages",
+              "avwap",
+              "atr",
+              "structure",
+              "flow",
+              "connectFlow",
+              "alerts",
+              "commentary"
+            ]
+          }
+        }
+      }
+    },
+    "symbol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "symbol",
+        "name",
+        "market",
+        "instrument",
+        "currency",
+        "quote",
+        "structure",
+        "movingAverages",
+        "avwap",
+        "atr",
+        "flow",
+        "alerts",
+        "commentary"
+      ],
+      "properties": {
+        "symbol": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "market": { "type": "string", "enum": ["US", "HK"] },
+        "instrument": { "type": "string", "enum": ["index", "future", "stock"] },
+        "currency": { "type": "string", "enum": ["USD", "HKD", "point"] },
+        "quote": { "$ref": "#/$defs/quote" },
+        "structure": { "$ref": "#/$defs/structureSet" },
+        "movingAverages": { "$ref": "#/$defs/movingAverages" },
+        "avwap": { "$ref": "#/$defs/avwap" },
+        "atr": { "$ref": "#/$defs/atr" },
+        "flow": { "$ref": "#/$defs/flow" },
+        "connectFlow": { "$ref": "#/$defs/connectFlow" },
+        "alerts": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/alert" }
+        },
+        "commentary": { "$ref": "#/$defs/commentary" },
+        "sources": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/source" }
+        }
+      }
+    },
+    "quote": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "last",
+        "previousClose",
+        "change",
+        "changePct",
+        "session",
+        "sessionNote",
+        "asOf",
+        "priceKind"
+      ],
+      "properties": {
+        "last": { "type": "number" },
+        "previousClose": { "type": "number" },
+        "change": { "type": "number" },
+        "changePct": {
+          "type": "number",
+          "description": "升跌百分比，單位是百分點。0.37 代表 +0.37%。"
+        },
+        "session": { "type": "string", "format": "date" },
+        "sessionNote": { "type": "string", "minLength": 1 },
+        "asOf": { "type": "string", "format": "date-time" },
+        "priceKind": { "type": "string", "enum": ["demo", "public_ohlcv"] }
+      }
+    },
+    "structureSet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["daily", "h4", "h1"],
+      "properties": {
+        "daily": { "$ref": "#/$defs/structureFrame" },
+        "h4": { "$ref": "#/$defs/structureFrame" },
+        "h1": { "$ref": "#/$defs/structureFrame" }
+      }
+    },
+    "structureFrame": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["timeframe", "bias", "label", "summary", "swingHigh", "swingLow"],
+      "properties": {
+        "timeframe": { "type": "string", "enum": ["1D", "4H", "1H"] },
+        "bias": { "type": "string", "enum": ["up", "down", "range", "transition"] },
+        "label": { "type": "string", "minLength": 1 },
+        "summary": { "type": "string", "minLength": 1 },
+        "swingHigh": { "type": "number" },
+        "swingLow": { "type": "number" }
+      }
+    },
+    "movingAverages": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ma20", "ma50", "ma250"],
+      "properties": {
+        "ma20": { "$ref": "#/$defs/movingAverage" },
+        "ma50": { "$ref": "#/$defs/movingAverage" },
+        "ma250": { "$ref": "#/$defs/movingAverage" }
+      }
+    },
+    "movingAverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["period", "value", "distanceAbs", "distancePct", "priceVersus"],
+      "properties": {
+        "period": { "type": "integer", "enum": [20, 50, 250] },
+        "value": { "type": "number" },
+        "distanceAbs": {
+          "type": "number",
+          "description": "最新價減去均線。正數代表價在均線之上。"
+        },
+        "distancePct": {
+          "type": "number",
+          "description": "距離佔均線的百分比，單位是百分點。"
+        },
+        "priceVersus": {
+          "type": "string",
+          "enum": ["above", "below", "at"],
+          "description": "現價在均線之上、之下或貼着。不是帳戶持倉。"
+        }
+      }
+    },
+    "avwap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "anchorDate",
+        "anchorLabel",
+        "anchorPrice",
+        "distanceAbs",
+        "distancePct",
+        "priceVersus"
+      ],
+      "properties": {
+        "value": { "type": "number" },
+        "anchorDate": { "type": "string", "format": "date" },
+        "anchorLabel": { "type": "string", "minLength": 1 },
+        "anchorPrice": { "type": "number" },
+        "distanceAbs": { "type": "number" },
+        "distancePct": { "type": "number" },
+        "priceVersus": {
+          "type": "string",
+          "enum": ["above", "below", "at"],
+          "description": "現價在 AVWAP 之上、之下或貼着。不是帳戶持倉。"
+        }
+      }
+    },
+    "atr": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["period", "value", "baseline", "baselineLabel", "ratio", "state", "label"],
+      "properties": {
+        "period": { "type": "integer", "const": 14 },
+        "value": { "type": "number" },
+        "baseline": { "type": "number", "exclusiveMinimum": 0 },
+        "baselineLabel": { "type": "string", "minLength": 1 },
+        "ratio": { "type": "number", "exclusiveMinimum": 0 },
+        "state": { "type": "string", "enum": ["contraction", "expansion", "neutral"] },
+        "label": { "type": "string", "minLength": 1 }
+      }
+    },
+    "flow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["isDemo", "demoLabel", "window", "unit", "largeOrderNet", "retailNet", "note"],
+      "properties": {
+        "isDemo": { "type": "boolean" },
+        "demoLabel": { "type": "string", "minLength": 1 },
+        "window": { "type": "string", "minLength": 1 },
+        "unit": { "type": "string", "minLength": 1 },
+        "largeOrderNet": {
+          "type": "number",
+          "description": "大單淨額。正數淨流入，負數淨流出。示範檔必須配 isDemo=true。"
+        },
+        "retailNet": { "type": "number" },
+        "note": { "type": "string", "minLength": 1 }
+      }
+    },
+    "connectFlow": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "港股通相關欄位。有這件物件才顯示。北向可以是市場合計，南向可以是本股。都不是帳戶持倉。",
+      "required": [
+        "isDemo",
+        "demoLabel",
+        "southboundNet",
+        "unitSouthbound",
+        "southboundNote",
+        "northboundNet",
+        "unitNorthbound",
+        "northboundScope",
+        "northboundNote"
+      ],
+      "properties": {
+        "isDemo": { "type": "boolean" },
+        "demoLabel": { "type": "string", "minLength": 1 },
+        "southboundNet": { "type": "number" },
+        "unitSouthbound": { "type": "string", "minLength": 1 },
+        "southboundNote": { "type": "string", "minLength": 1 },
+        "northboundNet": { "type": "number" },
+        "unitNorthbound": { "type": "string", "minLength": 1 },
+        "northboundScope": { "type": "string", "enum": ["market", "symbol"] },
+        "northboundNote": { "type": "string", "minLength": 1 }
+      }
+    },
+    "alert": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "severity", "timeframe", "title", "detail"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["distribution", "accumulation", "alignment"]
+        },
+        "severity": { "type": "string", "enum": ["high", "medium", "info"] },
+        "timeframe": { "type": "string", "enum": ["1D", "4H", "1H"] },
+        "title": { "type": "string", "minLength": 1 },
+        "detail": { "type": "string", "minLength": 1 }
+      }
+    },
+    "commentary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["locale", "origin", "label", "text", "modelId", "generatedAt"],
+      "properties": {
+        "locale": { "type": "string", "const": "zh-HK" },
+        "origin": {
+          "type": "string",
+          "enum": ["demo", "model"],
+          "description": "demo 是預填短評。model 是由 GEMINI_API_KEY 觸發的生成結果。"
+        },
+        "label": { "type": "string", "minLength": 1 },
+        "text": { "type": "string", "minLength": 40 },
+        "modelId": { "type": ["string", "null"] },
+        "generatedAt": {
+          "anyOf": [
+            { "type": "string", "format": "date-time" },
+            { "type": "null" }
+          ]
+        }
+      }
+    }
+  }
+}
